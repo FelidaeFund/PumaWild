@@ -4033,7 +4033,7 @@ public class GUI_Manager : MonoBehaviour
 		// panel background
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
 		GUI.Box(new Rect(feedingDisplayX, feedingDisplayY + feedingDisplayHeight * 0.06f, feedingDisplayWidth, feedingDisplayHeight * 1.2f - feedingDisplayHeight * 0.06f), "");
-		GUI.color = new Color(1f, 1f, 1f, 0.6f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 0.3f * guiOpacity);
 		GUI.Box(new Rect(feedingDisplayX, feedingDisplayY + feedingDisplayHeight * 0.06f, feedingDisplayWidth, feedingDisplayHeight * 1.2f - feedingDisplayHeight * 0.06f), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 	
@@ -4187,8 +4187,8 @@ public class GUI_Manager : MonoBehaviour
 		// center panel
 
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.27f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.27f), "");
 		GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
 		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.43f, feedingDisplayY + feedingDisplayHeight * 0.43f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.127f), "");
 		//GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
@@ -4210,9 +4210,9 @@ public class GUI_Manager : MonoBehaviour
 		float panelOffsetY = -0.1f;
 
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.64f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
 		GUI.color = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.64f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 
 		//style.fontSize = (int)(fontRef * 0.28f);
@@ -4275,9 +4275,9 @@ public class GUI_Manager : MonoBehaviour
 
 		
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.64f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
 		GUI.color = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.64f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 
 		style.normal.textColor = new Color(0.90f, 0.65f, 0f, 0.9f);
@@ -4355,9 +4355,11 @@ public class GUI_Manager : MonoBehaviour
 		// population bar
 		
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.34f), "");
 		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.34f), "");
+		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.34f), "");
 	
 		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
 		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.99f, feedingDisplayWidth * 0.93f, feedingDisplayHeight * 0.145f), "");
