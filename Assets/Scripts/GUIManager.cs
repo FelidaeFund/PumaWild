@@ -4,7 +4,7 @@ using System.Collections;
 /// Main handling of all user interface elements
 /// 
 
-public class GUI_Manager : MonoBehaviour 
+public class GUIManager : MonoBehaviour 
 {
 	private bool displayFrameRate = false;
 
@@ -135,8 +135,8 @@ public class GUI_Manager : MonoBehaviour
 	private GUIStyle sliderBarStyle;
 	private GUIStyle sliderThumbStyle;
 
-	private Level_Manager levelManager;
-	private Position_Indicator positionIndicator;
+	private LevelManager levelManager;
+	private PositionIndicator positionIndicator;
 	private int startCount = 0;
 
 	void Start() 
@@ -151,8 +151,8 @@ public class GUI_Manager : MonoBehaviour
 		//SetGuiState("guiStateCaught4");
 		startCount = 1;
 		
-		levelManager = GetComponent<Level_Manager>();
-		positionIndicator = GetComponent<Position_Indicator>();
+		levelManager = GetComponent<LevelManager>();
+		positionIndicator = GetComponent<PositionIndicator>();
 		
 		// basic rect
 		rectTexture = new Texture2D(2,2);

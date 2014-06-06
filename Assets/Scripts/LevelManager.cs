@@ -4,7 +4,7 @@ using System.Collections;
 /// Main handling of all level-based play
 /// 
 
-public class Level_Manager : MonoBehaviour 
+public class LevelManager : MonoBehaviour 
 {
 	private float speedOverdrive = 1.0f;
 	
@@ -243,8 +243,6 @@ public class Level_Manager : MonoBehaviour
 
 	void Start () 
 	{	
-		//pumaAnimator = GameObject.Find("PumaAnimator");
-	
 		// scoring system
 		meatTotalEaten = 0f;
 		meatMaxLevel = 1000f;

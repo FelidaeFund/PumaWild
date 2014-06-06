@@ -4,7 +4,7 @@ using System.Collections;
 /// Positions a deer head on the border of the screen to help 
 /// the player track deer
 
-public class Position_Indicator : MonoBehaviour
+public class PositionIndicator : MonoBehaviour
 {
 	public Texture2D indicatorBuck; 
 	public Texture2D indicatorDoe; 
