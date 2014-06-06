@@ -6,7 +6,9 @@ using System.Collections;
 
 public class GUIManager : MonoBehaviour 
 {
+	// DEBUGGING OPTIONS
 	private bool displayFrameRate = false;
+	private int startCount = 0;
 
 	// PUMA CHARACTERISTICS
 	private float[] speedArray = new float[] {0.85f, 0.75f, 0.55f, 0.45f, 0.25f, 0.15f};
@@ -135,12 +137,26 @@ public class GUIManager : MonoBehaviour
 	private GUIStyle sliderBarStyle;
 	private GUIStyle sliderThumbStyle;
 
+	// EXTERNAL MODULES
 	private LevelManager levelManager;
 	private PositionIndicator positionIndicator;
-	private int startCount = 0;
+	private ScoringSystem scoringSystem;
+
+	//===================================
+	//===================================
+	//
+	//		INITIALIZATION
+	//
+	//===================================
+	//===================================
 
 	void Start() 
 	{	
+		// connect to external modules
+		levelManager = GetComponent<LevelManager>();
+		positionIndicator = GetComponent<PositionIndicator>();
+		scoringSystem = GetComponent<ScoringSystem>();
+		
 		// initialize state
 		SetGuiState("guiStateEnteringApp1");
 		popupPanelVisible = true;
@@ -151,9 +167,7 @@ public class GUIManager : MonoBehaviour
 		//SetGuiState("guiStateCaught4");
 		startCount = 1;
 		
-		levelManager = GetComponent<LevelManager>();
-		positionIndicator = GetComponent<PositionIndicator>();
-		
+
 		// basic rect
 		rectTexture = new Texture2D(2,2);
 		rectStyle = new GUIStyle();

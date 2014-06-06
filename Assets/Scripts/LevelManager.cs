@@ -57,8 +57,6 @@ public class LevelManager : MonoBehaviour
 
 	private float[] recentCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f};
 	
-	private float previousMeatLevel;
-	private float previousPumaHealth;
 	private float caloriesGained;
 	private int lastCaughtDeerType;
 	
@@ -229,20 +227,27 @@ public class LevelManager : MonoBehaviour
 	public Animator doeAnimator;
 	public Animator fawnAnimator;
 	
+	// EXTERNAL MODULES
+	private ScoringSystem scoringSystem;
 
-		
-	//=======================================================
+	//===================================
+	//===================================
 	//
-	//	INITIALIZATION
+	//		INITIALIZATION
 	//
-	//=======================================================
-	
-    void Awake() {
+	//===================================
+	//===================================
+
+    void Awake()
+	{
         Application.targetFrameRate = 120;
     }
 
-	void Start () 
+	void Start() 
 	{	
+		// connect to external modules
+		scoringSystem = GetComponent<ScoringSystem>();
+
 		// scoring system
 		meatTotalEaten = 0f;
 		meatMaxLevel = 1000f;
@@ -362,11 +367,6 @@ public class LevelManager : MonoBehaviour
 		return meatTotalEaten / meatMaxLevel;
 	}
 		
-	public float GetPreviousMeatLevel()
-	{
-		return previousMeatLevel;
-	}
-		
 	public float GetMeatJustEaten()
 	{
 		return meatJustEaten;
@@ -393,11 +393,7 @@ public class LevelManager : MonoBehaviour
 		return pumaPoints[pumaNum] / pumaMaxCalories;
 	}
 	
-	public float GetPreviousPumaHealth()
-	{
-		return previousPumaHealth;
-	}
-	
+
 	public void PumaAddCalories(float caloriesToAdd)
 	{
 		if (selectedPuma == -1)
@@ -582,8 +578,6 @@ public class LevelManager : MonoBehaviour
 				cameraDistance = highCameraDistance;
 				cameraRotOffsetY = 0;
 				SetGameState("gameStateStalking");
-				previousMeatLevel = GetMeatLevel();
-				previousPumaHealth = GetPumaHealth(selectedPuma);
 			}
 			break;	
 	
@@ -1014,13 +1008,11 @@ public class LevelManager : MonoBehaviour
 				
 				SetGameState("gameStateStalking");
 							
-				previousMeatLevel = GetMeatLevel();
-				previousPumaHealth = GetPumaHealth(selectedPuma);
 				caloriesGained = 0f;
 				recentCalories[selectedPuma] = 0f;
 			}
 			break;	
-
+	
 		case "gameStateDied1":
 			//fadeTime = 1.3f;
 			fadeTime = 3f;
@@ -1163,8 +1155,6 @@ public class LevelManager : MonoBehaviour
 				
 				SetGameState("gameStateStalking");
 							
-				previousMeatLevel = GetMeatLevel();
-				previousPumaHealth = GetPumaHealth(selectedPuma);
 				caloriesGained = 0f;
 				recentCalories[selectedPuma] = 0f;
 			}
