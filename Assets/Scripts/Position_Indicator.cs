@@ -11,14 +11,11 @@ public class Position_Indicator : MonoBehaviour
 	public Texture2D indicatorFawn; 
 	public Texture2D indicatorBkgnd; 
 
-	private Level_Manager levelManager;
-
     void Start()
     {
-		levelManager = GetComponent<Level_Manager>();
 	}
 
-    public void DrawIndicator(GameObject deerObj, string type, int borderThickness, float guiOpacity)
+    public void DrawIndicator(float cameraRotY, GameObject pumaObj, GameObject deerObj, string type, int borderThickness, float guiOpacity)
     {
 		float xPos = 0;
 		float yPos = 0;
@@ -26,24 +23,24 @@ public class Position_Indicator : MonoBehaviour
 		float yOffset = 0;
 		float rangeX = Screen.width - borderThickness;
 		float rangeY = Screen.height - borderThickness;
-		float cameraRotY = levelManager.cameraRotY;		
 		float deerToPumaAngle = 0;
 		float deerToPumaDistance = 0;
 
-		//--------------------------
-		// Position calculation
-		//--------------------------
+		//------------------------------------------
+		// Determine onscreen position of indicator
+		//------------------------------------------
 
 		while (cameraRotY < 0)
 			cameraRotY += 360;
 		while (cameraRotY > 360)
 			cameraRotY -= 360;
-							
-		float refX = (levelManager.pumaObj.transform.position.x + Camera.main.transform.position.x) / 2;
-		float refY = (levelManager.pumaObj.transform.position.z + Camera.main.transform.position.z) / 2;
+		
+		// angle based on midpoint between camera and puma
+		float refX = (pumaObj.transform.position.x + Camera.main.transform.position.x) / 2;
+		float refY = (pumaObj.transform.position.z + Camera.main.transform.position.z) / 2;
 
 		deerToPumaAngle = GetAngleFromOffset(refX, refY, deerObj.transform.position.x, deerObj.transform.position.z);
-		deerToPumaDistance = Vector3.Distance(levelManager.pumaObj.transform.position, deerObj.transform.position);
+		deerToPumaDistance = Vector3.Distance(pumaObj.transform.position, deerObj.transform.position);
 
 		xOffset = -(Mathf.Sin((cameraRotY - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
 		yOffset = (Mathf.Cos((cameraRotY - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
@@ -69,9 +66,9 @@ public class Position_Indicator : MonoBehaviour
 		xPos = (Screen.width - borderThickness) / 2 + xOffset;
 		yPos = Screen.height - borderThickness - yOffset;
 
-		//--------------------------
-		// Distance indication
-		//--------------------------
+		//--------------------------------------------
+		// Determine settings for distance indication
+		//--------------------------------------------
 
 		Color backdropColor;
 		float fullRedDistance = 20f;
@@ -94,8 +91,6 @@ public class Position_Indicator : MonoBehaviour
 			backdropColor = new Color(0f, 0f, 0f, 0f * guiOpacity);
 		}
 			
-		//-------------------------
-
 		Color headColor;
 		float fullHeadAlphaDistance = 150f;
 		float startHeadAlphaDistance = 300f;

@@ -78,16 +78,6 @@ public class Level_Manager : MonoBehaviour
 	public Terrain terrain4;
 	private Terrain[] terrainArray;
 
-	// TREES
-
-	private GameObject treeObj1;
-	private GameObject treeObj2;
-	private GameObject treeObj3;
-	private GameObject treeObj4;
-	private GameObject treeObj5;
-	private GameObject[] treeArray;
-	private int treeCount = 20;
-	
 	// PUMA
 
 	public GameObject pumaObj;
@@ -105,7 +95,6 @@ public class Level_Manager : MonoBehaviour
 	private float deerCaughtFinalOffsetFactor90 = 1f;
 	private float inputVert = 0f;
 	private float inputHorz = 0f;
-	private GameObject dummyPuma; // used for calculating tree distance
 	
 	// DEER
 
@@ -142,19 +131,10 @@ public class Level_Manager : MonoBehaviour
 	public float cameraDistance;
 	private float cameraRotOffsetY;
 	private float previousCameraRotOffsetY;
-	private GameObject dummyCam; // used for calculating tree distance
-	
-	//private float highCameraY = 40f;
-	//private float highCameraRotX = 33.5f;
-	//private float highCameraDistance = 27.5f;
 	
 	private float highCameraY = 5.7f;
 	private float highCameraRotX = 12.8f;
 	private float highCameraDistance = 8.6f;
-	
-	//private float medCameraY = 12f;
-	//private float medCameraRotX = 30f;
-	//private float medCameraDistance = 10.5f;
 	
 	private float medCameraY = 4f;
 	private float medCameraRotX = 4f;
@@ -272,12 +252,7 @@ public class Level_Manager : MonoBehaviour
 
 		// puma
 		pumaObj = GameObject.Find("_Puma-thin");	
-		//pumaObj = new GameObject();
 				
-		// dummies for tree distance calc
-		dummyPuma = new GameObject();
-		dummyCam = new GameObject();
-	
 		// deer
 		buck = new DeerClass();
 		buck.type = "Buck";
@@ -341,29 +316,6 @@ public class Level_Manager : MonoBehaviour
 		Camera.main.transform.position = new Vector3(cameraX, cameraY, cameraZ);
 		Camera.main.transform.rotation = Quaternion.Euler(cameraRotX, cameraRotY, cameraRotZ);
 		
-				
-/*		
-		// arrange 5x5 grid of ground planes
-		int i = 0;
-		for (int x = -200; x <= 200; x += 100) {
-			for (int z = -200; z <= 200; z += 100) {
-				groundPlaneArray[i++].transform.position = new Vector3 (x, 0, z);
-			}
-		}
-
-		// arrange list of trees
-		for (i = 0; i < treeCount; i++) {
-			float xPos;
-			float zPos;
-			xPos = Random.Range(-250, 250);
-			zPos = Random.Range(-250, 250);
-			while (xPos > -20 && xPos < 20 && zPos > -20 && zPos < 20) {
-				xPos = Random.Range(-250, 250);
-				zPos = Random.Range(-250, 250);
-			}
-			treeArray[i].transform.position = new Vector3 (xPos, 0, zPos);
-		}
-*/
 	}
 	
 	
@@ -589,16 +541,13 @@ public class Level_Manager : MonoBehaviour
 		case "gameStateCloseup":
 			fadeTime = 0.1f;
 			if (Time.time - stateStartTime < fadeTime) {
-
+				// pause
 			}
 			else {
-			
 				forwardKey = false;
-				backKey = false;
-			
+				backKey = false;		
 				SetGameState("gameStateEnteringGameplay");
 				//SetGameState("gameStateStalking");
-				
 			}
 			break;	
 	
@@ -796,6 +745,8 @@ public class Level_Manager : MonoBehaviour
 
 			if (pumaDeerDistance1 < 2.5f || pumaDeerDistance2 < 2.5f || pumaDeerDistance3 < 2.5f) {
 			
+				// DEER IS CAUGHT !!!
+			
 				if (pumaDeerDistance1 < 2.5f) {
 					buck.forwardRate = 0;
 					buck.turnRate = 0f;
@@ -860,7 +811,7 @@ public class Level_Manager : MonoBehaviour
 					//deerCaughtFinalHeading = cameraRotY - 90;
 					deerCaughtFinalHeading = cameraRotY + 90;
 				}
-			//System.Console.WriteLine("cameraRotY: " + cameraRotY.ToString() + "  deerCaughtHeading: " + deerCaughtHeading.ToString() + "  deerCaughtFinalHeading: " + deerCaughtFinalHeading.ToString());	
+				//System.Console.WriteLine("cameraRotY: " + cameraRotY.ToString() + "  deerCaughtHeading: " + deerCaughtHeading.ToString() + "  deerCaughtFinalHeading: " + deerCaughtFinalHeading.ToString());	
 				if (deerCaughtFinalHeading < 0)
 					deerCaughtFinalHeading += 360;
 				if (deerCaughtFinalHeading >= 360)
@@ -941,7 +892,7 @@ public class Level_Manager : MonoBehaviour
 				float deerY = caughtDeer.gameObj.transform.position.y;
 				float deerZ = pumaZ + (deerCaughtOffsetZ * (1f - percentDone)) + (deerCaughtFinalOffsetZ * percentDone);
 				caughtDeer.gameObj.transform.rotation = Quaternion.Euler(0, caughtDeer.heading, 0);
-			//System.Console.WriteLine("update heading: " + caughtDeer.heading.ToString());	
+				//System.Console.WriteLine("update heading: " + caughtDeer.heading.ToString());	
 				caughtDeer.gameObj.transform.position = new Vector3(deerX, deerY, deerZ);
 			}
 			else {
@@ -1432,33 +1383,6 @@ newCalories = (GetPumaHealth(selectedPuma) < 0.1f) ? newCalories : newCalories *
 			terrainArray[i].transform.position = new Vector3 (terrainX, 0, terrainZ);
 		}
 		
-		//////////////////////////////////////
-		/// set transparency for close trees
-		//////////////////////////////////////
-/*		
-		dummyCam.transform.position = new Vector3(cameraX, 0, cameraZ);
-			
-		for (int i = 0; i < treeCount; i++) {
-			float camDistance = (treeArray[i].transform.position - dummyCam.transform.position).sqrMagnitude;
-			float refDistance = (cameraDistance * 1.2f) * (cameraDistance * 1.2f);
-			PackedSprite pSprite = (PackedSprite)treeArray[i].GetComponent<PackedSprite>();
-			Color spriteColor = pSprite.Color;
-			if (camDistance > refDistance) {
-				spriteColor.a = 1f;		
-			}
-			else {
-				// check for tree behind camera pos (but still can show due to slant)
-				dummyPuma.transform.position = new Vector3(pumaX, 0, pumaZ);
-				float pumaDistance = (treeArray[i].transform.position - dummyPuma.transform.position).sqrMagnitude;
-				if (pumaDistance > refDistance)
-					spriteColor.a = 0f;
-				else
-					spriteColor.a = camDistance / refDistance;
-			}
-			pSprite.SetColor(spriteColor);
-		}
-*/
-
 	}
 	
 	void UpdateDeerHeading(DeerClass deer)

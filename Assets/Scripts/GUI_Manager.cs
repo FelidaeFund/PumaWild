@@ -856,9 +856,9 @@ public class GUI_Manager : MonoBehaviour
 
 		// deer head indicators
 		if (levelManager.buck != null && levelManager.doe != null && levelManager.fawn != null ) {
-			positionIndicator.DrawIndicator(levelManager.buck.gameObj, levelManager.buck.type, borderThickness, guiOpacity);
-			positionIndicator.DrawIndicator(levelManager.doe.gameObj, levelManager.doe.type, borderThickness, guiOpacity);
-			positionIndicator.DrawIndicator(levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.buck.gameObj, levelManager.buck.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.doe.gameObj, levelManager.doe.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, guiOpacity);
 		}
 		guiOpacity = prevGuiOpacity;
 		
@@ -1527,7 +1527,7 @@ public class GUI_Manager : MonoBehaviour
 				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 				style.normal.textColor = deadPumaAnnounceColor;
 				style.fontSize = (int)(overlayRect.width * 0.012f);
-				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED !", style);
+				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED", style);
 			}
 			else if (levelManager.GetPumaHealth(0) >= 1f) {
 				// puma at full health
