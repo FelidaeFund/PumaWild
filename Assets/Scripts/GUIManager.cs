@@ -10,19 +10,22 @@ public class GUIManager : MonoBehaviour
 	private bool displayFrameRate = false;
 	private int startCount = 0;
 
+	//===================================
+	//===================================
+	//		MODULE VARIABLES
+	//===================================
+	//===================================
+
 	// PUMA CHARACTERISTICS
 	private float[] speedArray = new float[] {0.85f, 0.75f, 0.55f, 0.45f, 0.25f, 0.15f};
 	private float[] stealthArray = new float[] {0.15f, 0.25f, 0.45f, 0.55f, 0.75f, 0.85f};
 	private float[] enduranceArray = new float[] {0.85f, 0.75f, 0.55f, 0.45f, 0.25f, 0.15f};
 	private float[] powerArray = new float[] {0.15f, 0.25f, 0.45f, 0.55f, 0.75f, 0.85f};
 
-
 	public string guiState;
 	private float stateStartTime;
 	private float guiFadeTime;
 	private float guiFadePercentComplete;
-
-	private float currentHealth = 0.5f;
 	
 	public GUISkin customGUISkin;
 	private float guiOpacity = 1f;
@@ -144,9 +147,7 @@ public class GUIManager : MonoBehaviour
 
 	//===================================
 	//===================================
-	//
 	//		INITIALIZATION
-	//
 	//===================================
 	//===================================
 
@@ -2588,7 +2589,7 @@ public class GUIManager : MonoBehaviour
 		
 		// filler
 		GUI.color = new Color(1f, 1f, 1f, 1f);
-		float health = 0.8f; //GetCurrentHealth();
+		float health = 0.8f; 
 		Color healthColor = (health > 0.66f) ? new Color(0f, 1f, 0f, 0.7f) : ((health > 0.33f) ? new Color(1f, 1f, 0f, 0.81f) : new Color(1f, 0f, 0f, 1f));
 		DrawRect(new Rect(meterBoxX + meterBoxWidth * 0.05f,  meterBoxY + meterBoxHeight * 0.1f, meterBoxWidth * 0.9f, meterBoxHeight * 0.25f), new Color(0.61f, 0.64f, 0.66f, 1f));	
 		DrawRect(new Rect(meterBoxX + meterBoxWidth * 0.07f,  meterBoxY + meterBoxHeight * 0.11f, (meterBoxWidth * 0.85f) * (health / 1.0f), meterBoxHeight * 0.23f), healthColor);			
@@ -5914,16 +5915,6 @@ public class GUIManager : MonoBehaviour
 		return (selectedPuma == -1) ?  0f : powerArray[selectedPuma];
 	}
 
-	float GetCurrentHealth()
-	{
-		if (selectedPuma == -1)
-			return -1f;
-		currentHealth -= 0.0007f;
-		if (currentHealth < 0f)
-			currentHealth = 1f;
-		return currentHealth;
-	}
-	
 	
 	bool PumaIsSelectable(int pumaNum)
 	{	

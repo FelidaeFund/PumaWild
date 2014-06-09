@@ -21,6 +21,13 @@ public class LevelManager : MonoBehaviour
 	
 	private int selectedPuma = -1;
 
+
+
+
+
+
+
+
 	// SCORING INFO
 	
 	private int[] bucksKilled = new int[] {2, 5, 0, 0, 1, 0};
@@ -59,6 +66,11 @@ public class LevelManager : MonoBehaviour
 	
 	private float caloriesGained;
 	private int lastCaughtDeerType;
+
+
+
+
+
 	
 	// FRAMERATE INFO
 
