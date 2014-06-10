@@ -4138,7 +4138,7 @@ public class GUIManager : MonoBehaviour
 		// main title
 
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX, feedingDisplayY + feedingDisplayHeight * 0.06f, feedingDisplayWidth, feedingDisplayHeight * 0.18f), "");
+		GUI.Box(new Rect(feedingDisplayX, feedingDisplayY + feedingDisplayHeight * 0.06f, feedingDisplayWidth, feedingDisplayHeight * 0.17f), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 
 		GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
@@ -4202,8 +4202,8 @@ public class GUIManager : MonoBehaviour
 		// center panel
 
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.27f), "");
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.27f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.30f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.30f), "");
 		GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
 		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.43f, feedingDisplayY + feedingDisplayHeight * 0.43f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.127f), "");
 		//GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
@@ -4370,11 +4370,11 @@ public class GUIManager : MonoBehaviour
 		// population bar
 		
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.34f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.70f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
 		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.34f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.70f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
 		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.65f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.34f), "");
+		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.70f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
 	
 		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
 		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.99f, feedingDisplayWidth * 0.93f, feedingDisplayHeight * 0.145f), "");
@@ -4857,6 +4857,9 @@ public class GUIManager : MonoBehaviour
 			float pumaIncrementX = healthBarWidth * 0.038f;
 			float pumaIconY = healthBarY - healthBarHeight * 1.32f;
 			
+			if (centerLabels == true)
+				pumaIconY += healthBarHeight * 0.4f;
+			
 			//Color pumaAliveColor = new Color(1f, 1f, 1f, 0.85f * guiOpacity);
 			//Color pumaDeadColor = new Color(0.5f, 0.05f, 0f, 0.9f * guiOpacity);
 		
@@ -5007,14 +5010,17 @@ public class GUIManager : MonoBehaviour
 		
 		if (showPumaIcons == true) {
 			// label goes above bar
+			float labelAdjustY = 0f;
+			if (centerLabels == true)
+				labelAdjustY = healthBarHeight * 0.4f;		
 			style.fontStyle = FontStyle.Bold;
 			style.alignment = TextAnchor.MiddleLeft;
 			style.fontSize = (int)(fontRef * 0.20f);
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			GUI.Button(new Rect(xOffset + healthBarX + healthBarWidth * 0.383f, healthBarY - healthBarHeight * 1.85f, healthBarWidth * 0.3f, healthBarHeight * 0.03f), "POPULATION:", style);
+			GUI.Button(new Rect(xOffset + healthBarX + healthBarWidth * 0.383f, healthBarY - healthBarHeight * 1.85f + labelAdjustY, healthBarWidth * 0.3f, healthBarHeight * 0.03f), "POPULATION:", style);
 			style.fontSize = (int)(fontRef * 0.24f);
 			style.normal.textColor = labelColor;
-			GUI.Button(new Rect(xOffset + healthBarX + healthBarWidth * 0.505f, healthBarY - healthBarHeight * 1.85f, healthBarWidth * 0.3f, healthBarHeight * 0.03f), displayString, style);
+			GUI.Button(new Rect(xOffset + healthBarX + healthBarWidth * 0.505f, healthBarY - healthBarHeight * 1.85f + labelAdjustY, healthBarWidth * 0.3f, healthBarHeight * 0.03f), displayString, style);
 		}
 		else if (centerLabels == false) {
 			// labels go to sides of bar
