@@ -21,47 +21,6 @@ public class LevelManager : MonoBehaviour
 	
 	private int selectedPuma = -1;
 
-
-
-
-
-
-
-
-	// SCORING INFO
-	
-	public float meatJustEaten;
-	
-	private float caloriesPerMeterChasing = 75f;
-	private float caloriesPerMeterStalking = 75f * 0.25f;
-
-	private float pumaMaxCalories = 175000f;
-	private float[] pumaPoints = new float[] {175000f*0.5f, 175000f*0.5f, 1f  *  175000f*0.5f, 1f    *     175000f*0.5f, 175000f*0.5f, 175000f*0.5f};
-
-	// for each prey type, totals for energy spent and calories eaten by pumas 0-5; TOTAL for all pumas uses index 6
-	private float[] buckExpenditures = new float[] {5f, 4f, 6f, 4f, 6f, 3f, 5f};
-	private float[] buckCalories = new float[] {4f, 5f, 3f, 6f, 4f, 5f, 3f};
-	private float[] doeExpenditures = new float[] {4f, 6f, 3f, 4f, 6f, 4f, 5f};
-	private float[] doeCalories = new float[] {4f, 5f, 4f, 6f, 4f, 5f, 3f};
-	private float[] fawnExpenditures = new float[] {5f, 4f, 6f, 3f, 5f, 4f, 5f};
-	private float[] fawnCalories = new float[] {4f, 5f, 3f, 5f, 4f, 6f, 3f};
-
-	//private float[] buckExpenditures = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-	//private float[] buckCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-	//private float[] doeExpenditures = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-	//private float[] doeCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-	//private float[] fawnExpenditures = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-	//private float[] fawnCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-
-	private float[] recentCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f};
-	
-	private float caloriesGained;
-	private int lastCaughtDeerType;
-
-
-
-
-
 	
 	// FRAMERATE INFO
 
@@ -251,9 +210,6 @@ public class LevelManager : MonoBehaviour
 		// connect to external modules
 		scoringSystem = GetComponent<ScoringSystem>();
 
-		// scoring system
-		caloriesGained = 0f;
-
 		// puma
 		pumaObj = GameObject.Find("_Puma-thin");	
 				
@@ -353,21 +309,6 @@ public class LevelManager : MonoBehaviour
 		return (gameState == "gameStateCaught1") ? true : false;
 	}
 
-	public float GetCaloriesExpended()
-	{
-		return recentCalories[selectedPuma];
-	}
-	
-	public float GetCaloriesGained()
-	{
-		return caloriesGained;
-	}
-	
-	public float GetMeatJustEaten()
-	{
-		return meatJustEaten;
-	}
-		
 	public void SetSelectedPuma(int selection)
 	{
 		selectedPuma = selection;
@@ -375,69 +316,7 @@ public class LevelManager : MonoBehaviour
 		pumaChasingSpeed = defaultPumaChasingSpeed + (10f * speedArray[selectedPuma]);
 		chaseTriggerDistance = defaultChaseTriggerDistance - (20f * stealthinessArray[selectedPuma]);
 	}
-	
-	public int GetDeerType()
-	{
-		return lastCaughtDeerType;
-	}
-		
-	public float GetPumaHealth(int pumaNum)
-	{
-		if (pumaNum == -1)
-			return -1f;
 
-		return pumaPoints[pumaNum] / pumaMaxCalories;
-	}
-	
-
-	public void PumaAddCalories(float caloriesToAdd)
-	{
-		if (selectedPuma == -1)
-			return;
-	
-		pumaPoints[selectedPuma] += caloriesToAdd;
-
-		if (pumaPoints[selectedPuma] > pumaMaxCalories)
-			pumaPoints[selectedPuma] = pumaMaxCalories;
-		if (pumaPoints[selectedPuma] < 0) {
-			pumaPoints[selectedPuma] = 0;
-			SetGameState("gameStateDied1");
-		}
-	}
-	
-	
-	
-	public float GetBuckExpenditures(int pumaNum)
-	{
-		return buckExpenditures[pumaNum];
-	}
-	
-	public float GetDoeExpenditures(int pumaNum)
-	{
-		return doeExpenditures[pumaNum];
-	}
-	
-	public float GetFawnExpenditures(int pumaNum)
-	{
-		return fawnExpenditures[pumaNum];
-	}
-	
-	public float GetBuckCalories(int pumaNum)
-	{
-		return buckCalories[pumaNum];
-	}
-	
-	public float GetDoeCalories(int pumaNum)
-	{
-		return doeCalories[pumaNum];
-	}
-	
-	public float GetFawnCalories(int pumaNum)
-	{
-		return fawnCalories[pumaNum];
-	}
-	
-	
 	
 	
 	//=======================================================
@@ -727,16 +606,6 @@ public class LevelManager : MonoBehaviour
 					buckAnimator.SetBool("Die", true);
 					caughtDeer = buck;
 					scoringSystem.DeerCaught(selectedPuma, "Buck");
-
-					
-					meatJustEaten = Random.Range(35f, 43f);
-					caloriesGained = meatJustEaten * Random.Range(900f, 1100f);
-					lastCaughtDeerType = 0;
-					buckExpenditures[selectedPuma] += recentCalories[selectedPuma];
-					buckCalories[selectedPuma] += caloriesGained;
-					buckExpenditures[6] += recentCalories[selectedPuma]; // population total
-					buckCalories[6] += caloriesGained; // population total
-					PumaAddCalories(caloriesGained);
 				}
 				else if (pumaDeerDistance2 < 2.5f) {
 					doe.forwardRate = 0f;
@@ -744,16 +613,6 @@ public class LevelManager : MonoBehaviour
 					doeAnimator.SetBool("Die", true);
 					caughtDeer = doe;
 					scoringSystem.DeerCaught(selectedPuma, "Doe");
-
-
-					meatJustEaten = Random.Range(25f, 32f);
-					caloriesGained = meatJustEaten * Random.Range(900f, 1100f);
-					lastCaughtDeerType = 1;
-					doeExpenditures[selectedPuma] += recentCalories[selectedPuma];
-					doeCalories[selectedPuma] += caloriesGained;
-					doeExpenditures[6] += recentCalories[selectedPuma]; // population total
-					doeCalories[6] += caloriesGained; // population total
-					PumaAddCalories(caloriesGained);
 				}
 				else {
 					fawn.forwardRate = 0f;
@@ -761,16 +620,6 @@ public class LevelManager : MonoBehaviour
 					fawnAnimator.SetBool("Die", true);
 					caughtDeer = fawn;
 					scoringSystem.DeerCaught(selectedPuma, "Fawn");
-					
-					
-					meatJustEaten = Random.Range(17f, 23f);
-					caloriesGained = meatJustEaten * Random.Range(900f, 1100f);
-					lastCaughtDeerType = 2;
-					fawnExpenditures[selectedPuma] += recentCalories[selectedPuma];
-					fawnCalories[selectedPuma] += caloriesGained;
-					fawnExpenditures[6] += recentCalories[selectedPuma]; // population total
-					fawnCalories[6] += caloriesGained; // population total
-					PumaAddCalories(caloriesGained);
 				}
 
 				// prepare caughtDeer obj for slide
@@ -992,9 +841,7 @@ public class LevelManager : MonoBehaviour
 				ResetAnimations();
 				
 				SetGameState("gameStateStalking");
-							
-				caloriesGained = 0f;
-				recentCalories[selectedPuma] = 0f;
+				scoringSystem.ClearLastKillInfo(selectedPuma);
 			}
 			break;	
 	
@@ -1137,11 +984,9 @@ public class LevelManager : MonoBehaviour
 							
 				PlaceDeerPositions();
 				ResetAnimations();
-				
+	
 				SetGameState("gameStateStalking");
-							
-				caloriesGained = 0f;
-				recentCalories[selectedPuma] = 0f;
+				scoringSystem.ClearLastKillInfo(selectedPuma);
 			}
 			break;	
 
@@ -1222,16 +1067,14 @@ public class LevelManager : MonoBehaviour
 		else if (gameState == "gameStateChasing") {
 			float rotationSpeed = 150f;
 			distance = inputVert * Time.deltaTime  * pumaChasingSpeed * speedOverdrive;
-			float travelledDistance = (GetPumaHealth(selectedPuma) > 0.05f) ? distance : distance * (GetPumaHealth(selectedPuma) / 0.05f);
+			float travelledDistance = (scoringSystem.GetPumaHealth(selectedPuma) > 0.05f) ? distance : distance * (scoringSystem.GetPumaHealth(selectedPuma) / 0.05f);
 			cameraRotY += inputHorz * Time.deltaTime * rotationSpeed;
 			pumaHeading = cameraRotY + pumaHeadingOffset;
 			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * travelledDistance);
 			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * travelledDistance);
 			scoringSystem.PumaHasRun(selectedPuma, distance);
-			
-			float newCalories = distance * caloriesPerMeterChasing;
-			recentCalories[selectedPuma] += newCalories;
-			PumaAddCalories(-newCalories);
+			if (scoringSystem.GetPumaHealth(selectedPuma) == 0f)
+				SetGameState("gameStateDied1");			
 		}
 		
 		else if (gameState == "gameStateStalking") {		
@@ -1242,10 +1085,8 @@ public class LevelManager : MonoBehaviour
 			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * distance);
 			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * distance);
 			scoringSystem.PumaHasWalked(selectedPuma, distance);
-					
-			float newCalories = distance * caloriesPerMeterStalking;
-			recentCalories[selectedPuma] += newCalories;
-			PumaAddCalories(-newCalories);					
+			if (scoringSystem.GetPumaHealth(selectedPuma) == 0f)
+				SetGameState("gameStateDied1");			
 		}
 
 		pumaAnimator.SetFloat("Distance", distance);

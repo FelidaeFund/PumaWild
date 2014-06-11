@@ -474,7 +474,7 @@ public class GUIManager : MonoBehaviour
 					// return to select screen rather than quit screen
 					currentScreen = 0;
 				}
-				if (levelManager.GetPumaHealth(selectedPuma) <= 0f) {
+				if (scoringSystem.GetPumaHealth(selectedPuma) <= 0f) {
 					// puma has died
 					selectedPuma = -1;
 					currentScreen = 0;
@@ -1517,14 +1517,14 @@ public class GUIManager : MonoBehaviour
 			headshotHeight = overlayRect.height * 0.085f;
 			headshotWidth = headshotTexture.width * (headshotHeight / headshotTexture.height);
 			headshotX = textureX + (textureWidth - headshotWidth) * 0.5f;
-			if (levelManager.GetPumaHealth(0) <= 0f)
+			if (scoringSystem.GetPumaHealth(0) <= 0f)
 				GUI.color = deadPumaHeadshotColor;
-			else if (levelManager.GetPumaHealth(0) >= 1f)
+			else if (scoringSystem.GetPumaHealth(0) >= 1f)
 				GUI.color = fullHealthPumaHeadshotColor;
 			GUI.DrawTexture(new Rect(headshotX, headshotY, headshotWidth, headshotHeight), headshotTexture);
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
-			if (levelManager.GetPumaHealth(0) > 0f && levelManager.GetPumaHealth(0) < 1f)
+			if (scoringSystem.GetPumaHealth(0) > 0f && scoringSystem.GetPumaHealth(0) < 1f)
 				CreateHealthBar(0, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
@@ -1534,7 +1534,7 @@ public class GUIManager : MonoBehaviour
 			// display bars in puma middle
 			DrawDisplayBars(0, headshotX, headshotY, headshotWidth, headshotHeight);
 			// final ending label at very top
-			if (levelManager.GetPumaHealth(0) <= 0f) {
+			if (scoringSystem.GetPumaHealth(0) <= 0f) {
 				// puma is dead
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1544,7 +1544,7 @@ public class GUIManager : MonoBehaviour
 				style.fontSize = (int)(overlayRect.width * 0.012f);
 				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED", style);
 			}
-			else if (levelManager.GetPumaHealth(0) >= 1f) {
+			else if (scoringSystem.GetPumaHealth(0) >= 1f) {
 				// puma at full health
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1590,9 +1590,9 @@ public class GUIManager : MonoBehaviour
 			GUI.DrawTexture(new Rect(selectedIconX, selectedIconY + iconDownShift, selectedIconWidth, selectedIconHeight), pumaIconTexture);
 		}
 		else {
-			if (levelManager.GetPumaHealth(0) <= 0f)
+			if (scoringSystem.GetPumaHealth(0) <= 0f)
 				GUI.color = deadPumaIconColor;
-			else if (levelManager.GetPumaHealth(0) >= 1f)
+			else if (scoringSystem.GetPumaHealth(0) >= 1f)
 				GUI.color = fullHealthPumaIconColor;
 			else
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -1604,9 +1604,9 @@ public class GUIManager : MonoBehaviour
 		// text
 		if (selectedPuma == 0)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-		else if (levelManager.GetPumaHealth(0) <= 0f)
+		else if (scoringSystem.GetPumaHealth(0) <= 0f)
 			style.normal.textColor = deadPumaTextColor;
-		else if (levelManager.GetPumaHealth(0) >= 1f)
+		else if (scoringSystem.GetPumaHealth(0) >= 1f)
 			style.normal.textColor = fullHealthPumaTextColor;
 		else
 			style.normal.textColor = unselectedTextColor;
@@ -1636,14 +1636,14 @@ public class GUIManager : MonoBehaviour
 			headshotHeight = overlayRect.height * 0.085f;
 			headshotWidth = headshotTexture.width * (headshotHeight / headshotTexture.height);
 			headshotX = textureX + (textureWidth - headshotWidth) * 0.5f;
-			if (levelManager.GetPumaHealth(1) <= 0f)
+			if (scoringSystem.GetPumaHealth(1) <= 0f)
 				GUI.color = deadPumaHeadshotColor;
-			else if (levelManager.GetPumaHealth(1) >= 1f)
+			else if (scoringSystem.GetPumaHealth(1) >= 1f)
 				GUI.color = fullHealthPumaHeadshotColor;
 			GUI.DrawTexture(new Rect(headshotX, headshotY, headshotWidth, headshotHeight), headshotTexture);
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
-			if (levelManager.GetPumaHealth(1) > 0f && levelManager.GetPumaHealth(1) < 1f)
+			if (scoringSystem.GetPumaHealth(1) > 0f && scoringSystem.GetPumaHealth(1) < 1f)
 				CreateHealthBar(1, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
@@ -1653,7 +1653,7 @@ public class GUIManager : MonoBehaviour
 			// display bars in puma middle
 			DrawDisplayBars(1, headshotX, headshotY, headshotWidth, headshotHeight);
 			// final ending label at very top
-			if (levelManager.GetPumaHealth(1) <= 0f) {
+			if (scoringSystem.GetPumaHealth(1) <= 0f) {
 				// puma is dead
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1663,7 +1663,7 @@ public class GUIManager : MonoBehaviour
 				style.fontSize = (int)(overlayRect.width * 0.012f);
 				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED !", style);
 			}
-			else if (levelManager.GetPumaHealth(1) >= 1f) {
+			else if (scoringSystem.GetPumaHealth(1) >= 1f) {
 				// puma at full health
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1709,9 +1709,9 @@ public class GUIManager : MonoBehaviour
 			GUI.DrawTexture(new Rect(selectedIconX, selectedIconY + iconDownShift, selectedIconWidth, selectedIconHeight), pumaIconTexture);
 		}
 		else {
-			if (levelManager.GetPumaHealth(1) <= 0f)
+			if (scoringSystem.GetPumaHealth(1) <= 0f)
 				GUI.color = deadPumaIconColor;
-			else if (levelManager.GetPumaHealth(1) >= 1f)
+			else if (scoringSystem.GetPumaHealth(1) >= 1f)
 				GUI.color = fullHealthPumaIconColor;
 			else
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -1723,9 +1723,9 @@ public class GUIManager : MonoBehaviour
 		// text
 		if (selectedPuma == 1)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-		else if (levelManager.GetPumaHealth(1) <= 0f)
+		else if (scoringSystem.GetPumaHealth(1) <= 0f)
 			style.normal.textColor = deadPumaTextColor;
-		else if (levelManager.GetPumaHealth(1) >= 1f)
+		else if (scoringSystem.GetPumaHealth(1) >= 1f)
 			style.normal.textColor = fullHealthPumaTextColor;
 		else
 			style.normal.textColor = unselectedTextColor;
@@ -1753,14 +1753,14 @@ public class GUIManager : MonoBehaviour
 			headshotHeight = overlayRect.height * 0.085f;
 			headshotWidth = headshotTexture.width * (headshotHeight / headshotTexture.height);
 			headshotX = textureX + (textureWidth - headshotWidth) * 0.5f;
-			if (levelManager.GetPumaHealth(2) <= 0f)
+			if (scoringSystem.GetPumaHealth(2) <= 0f)
 				GUI.color = deadPumaHeadshotColor;
-			else if (levelManager.GetPumaHealth(2) >= 1f)
+			else if (scoringSystem.GetPumaHealth(2) >= 1f)
 				GUI.color = fullHealthPumaHeadshotColor;
 			GUI.DrawTexture(new Rect(headshotX, headshotY, headshotWidth, headshotHeight), headshotTexture);
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
-			if (levelManager.GetPumaHealth(2) > 0f && levelManager.GetPumaHealth(2) < 1f)
+			if (scoringSystem.GetPumaHealth(2) > 0f && scoringSystem.GetPumaHealth(2) < 1f)
 				CreateHealthBar(2, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
@@ -1770,7 +1770,7 @@ public class GUIManager : MonoBehaviour
 			// display bars in puma middle
 			DrawDisplayBars(2, headshotX, headshotY, headshotWidth, headshotHeight);
 			// final ending label at very top
-			if (levelManager.GetPumaHealth(2) <= 0f) {
+			if (scoringSystem.GetPumaHealth(2) <= 0f) {
 				// puma is dead
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1780,7 +1780,7 @@ public class GUIManager : MonoBehaviour
 				style.fontSize = (int)(overlayRect.width * 0.012f);
 				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED !", style);
 			}
-			else if (levelManager.GetPumaHealth(2) >= 1f) {
+			else if (scoringSystem.GetPumaHealth(2) >= 1f) {
 				// puma at full health
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1826,9 +1826,9 @@ public class GUIManager : MonoBehaviour
 			GUI.DrawTexture(new Rect(selectedIconX, selectedIconY + iconDownShift, selectedIconWidth, selectedIconHeight), pumaIconTexture);
 		}
 		else {
-			if (levelManager.GetPumaHealth(2) <= 0f)
+			if (scoringSystem.GetPumaHealth(2) <= 0f)
 				GUI.color = deadPumaIconColor;
-			else if (levelManager.GetPumaHealth(2) >= 1f)
+			else if (scoringSystem.GetPumaHealth(2) >= 1f)
 				GUI.color = fullHealthPumaIconColor;
 			else
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -1840,9 +1840,9 @@ public class GUIManager : MonoBehaviour
 		// text
 		if (selectedPuma == 2)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-		else if (levelManager.GetPumaHealth(2) <= 0f)
+		else if (scoringSystem.GetPumaHealth(2) <= 0f)
 			style.normal.textColor = deadPumaTextColor;
-		else if (levelManager.GetPumaHealth(2) >= 1f)
+		else if (scoringSystem.GetPumaHealth(2) >= 1f)
 			style.normal.textColor = fullHealthPumaTextColor;
 		else
 			style.normal.textColor = unselectedTextColor;
@@ -1870,14 +1870,14 @@ public class GUIManager : MonoBehaviour
 			headshotHeight = overlayRect.height * 0.085f;
 			headshotWidth = headshotTexture.width * (headshotHeight / headshotTexture.height);
 			headshotX = textureX + (textureWidth - headshotWidth) * 0.5f;
-			if (levelManager.GetPumaHealth(3) <= 0f)
+			if (scoringSystem.GetPumaHealth(3) <= 0f)
 				GUI.color = deadPumaHeadshotColor;
-			else if (levelManager.GetPumaHealth(3) >= 1f)
+			else if (scoringSystem.GetPumaHealth(3) >= 1f)
 				GUI.color = fullHealthPumaHeadshotColor;
 			GUI.DrawTexture(new Rect(headshotX, headshotY, headshotWidth, headshotHeight), headshotTexture);
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
-			if (levelManager.GetPumaHealth(3) > 0f && levelManager.GetPumaHealth(3) < 1f)
+			if (scoringSystem.GetPumaHealth(3) > 0f && scoringSystem.GetPumaHealth(3) < 1f)
 				CreateHealthBar(3, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
@@ -1887,7 +1887,7 @@ public class GUIManager : MonoBehaviour
 			// display bars in puma middle
 			DrawDisplayBars(3, headshotX, headshotY, headshotWidth, headshotHeight);
 			// final ending label at very top
-			if (levelManager.GetPumaHealth(3) <= 0f) {
+			if (scoringSystem.GetPumaHealth(3) <= 0f) {
 				// puma is dead
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1897,7 +1897,7 @@ public class GUIManager : MonoBehaviour
 				style.fontSize = (int)(overlayRect.width * 0.012f);
 				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED !", style);
 			}
-			else if (levelManager.GetPumaHealth(3) >= 1f) {
+			else if (scoringSystem.GetPumaHealth(3) >= 1f) {
 				// puma at full health
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1943,9 +1943,9 @@ public class GUIManager : MonoBehaviour
 			GUI.DrawTexture(new Rect(selectedIconX, selectedIconY + iconDownShift, selectedIconWidth, selectedIconHeight), pumaIconTexture);
 		}
 		else {
-			if (levelManager.GetPumaHealth(3) <= 0f)
+			if (scoringSystem.GetPumaHealth(3) <= 0f)
 				GUI.color = deadPumaIconColor;
-			else if (levelManager.GetPumaHealth(3) >= 1f)
+			else if (scoringSystem.GetPumaHealth(3) >= 1f)
 				GUI.color = fullHealthPumaIconColor;
 			else
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -1957,9 +1957,9 @@ public class GUIManager : MonoBehaviour
 		// text
 		if (selectedPuma == 3)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-		else if (levelManager.GetPumaHealth(3) <= 0f)
+		else if (scoringSystem.GetPumaHealth(3) <= 0f)
 			style.normal.textColor = deadPumaTextColor;
-		else if (levelManager.GetPumaHealth(3) >= 1f)
+		else if (scoringSystem.GetPumaHealth(3) >= 1f)
 			style.normal.textColor = fullHealthPumaTextColor;
 		else
 			style.normal.textColor = unselectedTextColor;
@@ -1987,14 +1987,14 @@ public class GUIManager : MonoBehaviour
 			headshotHeight = overlayRect.height * 0.085f;
 			headshotWidth = headshotTexture.width * (headshotHeight / headshotTexture.height);
 			headshotX = textureX + (textureWidth - headshotWidth) * 0.5f;
-			if (levelManager.GetPumaHealth(4) <= 0f)
+			if (scoringSystem.GetPumaHealth(4) <= 0f)
 				GUI.color = deadPumaHeadshotColor;
-			else if (levelManager.GetPumaHealth(4) >= 1f)
+			else if (scoringSystem.GetPumaHealth(4) >= 1f)
 				GUI.color = fullHealthPumaHeadshotColor;
 			GUI.DrawTexture(new Rect(headshotX, headshotY, headshotWidth, headshotHeight), headshotTexture);
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
-			if (levelManager.GetPumaHealth(4) > 0f && levelManager.GetPumaHealth(4) < 1f)
+			if (scoringSystem.GetPumaHealth(4) > 0f && scoringSystem.GetPumaHealth(4) < 1f)
 				CreateHealthBar(4, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
@@ -2004,7 +2004,7 @@ public class GUIManager : MonoBehaviour
 			// display bars in puma middle
 			DrawDisplayBars(4, headshotX, headshotY, headshotWidth, headshotHeight);
 			// final ending label at very top
-			if (levelManager.GetPumaHealth(4) <= 0f) {
+			if (scoringSystem.GetPumaHealth(4) <= 0f) {
 				// puma is dead
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -2014,7 +2014,7 @@ public class GUIManager : MonoBehaviour
 				style.fontSize = (int)(overlayRect.width * 0.012f);
 				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED !", style);
 			}
-			else if (levelManager.GetPumaHealth(4) >= 1f) {
+			else if (scoringSystem.GetPumaHealth(4) >= 1f) {
 				// puma at full health
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -2060,9 +2060,9 @@ public class GUIManager : MonoBehaviour
 			GUI.DrawTexture(new Rect(selectedIconX, selectedIconY + iconDownShift, selectedIconWidth, selectedIconHeight), pumaIconTexture);
 		}
 		else {
-			if (levelManager.GetPumaHealth(4) <= 0f)
+			if (scoringSystem.GetPumaHealth(4) <= 0f)
 				GUI.color = deadPumaIconColor;
-			else if (levelManager.GetPumaHealth(4) >= 1f)
+			else if (scoringSystem.GetPumaHealth(4) >= 1f)
 				GUI.color = fullHealthPumaIconColor;
 			else
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -2074,9 +2074,9 @@ public class GUIManager : MonoBehaviour
 		// text
 		if (selectedPuma == 4)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-		else if (levelManager.GetPumaHealth(4) <= 0f)
+		else if (scoringSystem.GetPumaHealth(4) <= 0f)
 			style.normal.textColor = deadPumaTextColor;
-		else if (levelManager.GetPumaHealth(4) >= 1f)
+		else if (scoringSystem.GetPumaHealth(4) >= 1f)
 			style.normal.textColor = fullHealthPumaTextColor;
 		else
 			style.normal.textColor = unselectedTextColor;
@@ -2104,14 +2104,14 @@ public class GUIManager : MonoBehaviour
 			headshotHeight = overlayRect.height * 0.085f;
 			headshotWidth = headshotTexture.width * (headshotHeight / headshotTexture.height);
 			headshotX = textureX + (textureWidth - headshotWidth) * 0.5f;
-			if (levelManager.GetPumaHealth(5) <= 0f)
+			if (scoringSystem.GetPumaHealth(5) <= 0f)
 				GUI.color = deadPumaHeadshotColor;
-			else if (levelManager.GetPumaHealth(5) >= 1f)
+			else if (scoringSystem.GetPumaHealth(5) >= 1f)
 				GUI.color = fullHealthPumaHeadshotColor;
 			GUI.DrawTexture(new Rect(headshotX, headshotY, headshotWidth, headshotHeight), headshotTexture);
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
-			if (levelManager.GetPumaHealth(5) > 0f && levelManager.GetPumaHealth(5) < 1f)
+			if (scoringSystem.GetPumaHealth(5) > 0f && scoringSystem.GetPumaHealth(5) < 1f)
 				CreateHealthBar(5, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
@@ -2121,7 +2121,7 @@ public class GUIManager : MonoBehaviour
 			// display bars in puma middle
 			DrawDisplayBars(5, headshotX, headshotY, headshotWidth, headshotHeight);
 			// final ending label at very top
-			if (levelManager.GetPumaHealth(5) <= 0f) {
+			if (scoringSystem.GetPumaHealth(5) <= 0f) {
 				// puma is dead
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -2131,7 +2131,7 @@ public class GUIManager : MonoBehaviour
 				style.fontSize = (int)(overlayRect.width * 0.012f);
 				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED !", style);
 			}
-			else if (levelManager.GetPumaHealth(5) >= 1f) {
+			else if (scoringSystem.GetPumaHealth(5) >= 1f) {
 				// puma at full health
 				headshotY = overlayRect.y + overlayRect.height * 0.2885f + yOffsetForAddingPopulationBar + headUpShift;
 				GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -2177,9 +2177,9 @@ public class GUIManager : MonoBehaviour
 			GUI.DrawTexture(new Rect(selectedIconX, selectedIconY + iconDownShift, selectedIconWidth, selectedIconHeight), pumaIconTexture);
 		}
 		else {
-			if (levelManager.GetPumaHealth(5) <= 0f)
+			if (scoringSystem.GetPumaHealth(5) <= 0f)
 				GUI.color = deadPumaIconColor;
-			else if (levelManager.GetPumaHealth(5) >= 1f)
+			else if (scoringSystem.GetPumaHealth(5) >= 1f)
 				GUI.color = fullHealthPumaIconColor;
 			else
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -2191,9 +2191,9 @@ public class GUIManager : MonoBehaviour
 		// text
 		if (selectedPuma == 5)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-		else if (levelManager.GetPumaHealth(5) <= 0f)
+		else if (scoringSystem.GetPumaHealth(5) <= 0f)
 			style.normal.textColor = deadPumaTextColor;
-		else if (levelManager.GetPumaHealth(5) >= 1f)
+		else if (scoringSystem.GetPumaHealth(5) >= 1f)
 			style.normal.textColor = fullHealthPumaTextColor;
 		else
 			style.normal.textColor = unselectedTextColor;
@@ -2863,9 +2863,9 @@ public class GUIManager : MonoBehaviour
 		textureX = rightShift + statsX + columnWidth*0 + columnGap*0;
 		textureHeight = statsHeight * headSize;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(0) <= 0f)
+		if (scoringSystem.GetPumaHealth(0) <= 0f)
 			GUI.color = deadPumaHeadshotColor;
-		else if (levelManager.GetPumaHealth(0) >= 1f)
+		else if (scoringSystem.GetPumaHealth(0) >= 1f)
 			GUI.color = fullHealthPumaHeadshotColor;
 		else
 			GUI.color = new Color(1f, 1f, 1f, headshotOpacity * guiOpacity);
@@ -2876,9 +2876,9 @@ public class GUIManager : MonoBehaviour
 		textureX = rightShift + statsX + columnWidth*1 + columnGap*1;
 		textureHeight = statsHeight * headSize;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(1) <= 0f)
+		if (scoringSystem.GetPumaHealth(1) <= 0f)
 			GUI.color = deadPumaHeadshotColor;
-		else if (levelManager.GetPumaHealth(1) >= 1f)
+		else if (scoringSystem.GetPumaHealth(1) >= 1f)
 			GUI.color = fullHealthPumaHeadshotColor;
 		else
 			GUI.color = new Color(1f, 1f, 1f, headshotOpacity * guiOpacity);
@@ -2889,9 +2889,9 @@ public class GUIManager : MonoBehaviour
 		textureX = rightShift + statsX + columnWidth*2 + columnGap*2;
 		textureHeight = statsHeight * headSize;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(2) <= 0f)
+		if (scoringSystem.GetPumaHealth(2) <= 0f)
 			GUI.color = deadPumaHeadshotColor;
-		else if (levelManager.GetPumaHealth(2) >= 1f)
+		else if (scoringSystem.GetPumaHealth(2) >= 1f)
 			GUI.color = fullHealthPumaHeadshotColor;
 		else
 			GUI.color = new Color(1f, 1f, 1f, headshotOpacity * guiOpacity);
@@ -2902,9 +2902,9 @@ public class GUIManager : MonoBehaviour
 		textureX = rightShift + statsX + columnWidth*4 + columnGap*4 + midColumnSizeIncrease;
 		textureHeight = statsHeight * headSize;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(3) <= 0f)
+		if (scoringSystem.GetPumaHealth(3) <= 0f)
 			GUI.color = deadPumaHeadshotColor;
-		else if (levelManager.GetPumaHealth(3) >= 1f)
+		else if (scoringSystem.GetPumaHealth(3) >= 1f)
 			GUI.color = fullHealthPumaHeadshotColor;
 		else
 			GUI.color = new Color(1f, 1f, 1f, headshotOpacity * guiOpacity);
@@ -2915,9 +2915,9 @@ public class GUIManager : MonoBehaviour
 		textureX = rightShift + statsX + columnWidth*5 + columnGap*5 + midColumnSizeIncrease;
 		textureHeight = statsHeight * headSize;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(4) <= 0f)
+		if (scoringSystem.GetPumaHealth(4) <= 0f)
 			GUI.color = deadPumaHeadshotColor;
-		else if (levelManager.GetPumaHealth(4) >= 1f)
+		else if (scoringSystem.GetPumaHealth(4) >= 1f)
 			GUI.color = fullHealthPumaHeadshotColor;
 		else
 			GUI.color = new Color(1f, 1f, 1f, headshotOpacity * guiOpacity);
@@ -2928,9 +2928,9 @@ public class GUIManager : MonoBehaviour
 		textureX = rightShift + statsX + columnWidth*6 + columnGap*6 + midColumnSizeIncrease;
 		textureHeight = statsHeight * headSize;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(5) <= 0f)
+		if (scoringSystem.GetPumaHealth(5) <= 0f)
 			GUI.color = deadPumaHeadshotColor;
-		else if (levelManager.GetPumaHealth(5) >= 1f)
+		else if (scoringSystem.GetPumaHealth(5) >= 1f)
 			GUI.color = fullHealthPumaHeadshotColor;
 		else
 			GUI.color = new Color(1f, 1f, 1f, headshotOpacity * guiOpacity);
@@ -2950,7 +2950,7 @@ public class GUIManager : MonoBehaviour
 		headshotTexture = closeup1Texture;
 		textureY = smallHeadUpperY;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(0) <= 0f)
+		if (scoringSystem.GetPumaHealth(0) <= 0f)
 			GUI.color = new Color(0.45f, 0f, 0f, 0.8f * guiOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
@@ -2958,7 +2958,7 @@ public class GUIManager : MonoBehaviour
 		headshotTexture = closeup4Texture;
 		textureY = smallHeadLowerY;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(3) <= 0f)
+		if (scoringSystem.GetPumaHealth(3) <= 0f)
 			GUI.color = new Color(0.45f, 0f, 0f, 0.8f * guiOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
@@ -2968,7 +2968,7 @@ public class GUIManager : MonoBehaviour
 		headshotTexture = closeup2Texture;
 		textureY = smallHeadUpperY;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(1) <= 0f)
+		if (scoringSystem.GetPumaHealth(1) <= 0f)
 			GUI.color = new Color(0.45f, 0f, 0f, 0.8f * guiOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
@@ -2976,7 +2976,7 @@ public class GUIManager : MonoBehaviour
 		headshotTexture = closeup5Texture;
 		textureY = smallHeadLowerY;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(4) <= 0f)
+		if (scoringSystem.GetPumaHealth(4) <= 0f)
 			GUI.color = new Color(0.45f, 0f, 0f, 0.8f * guiOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
@@ -2986,7 +2986,7 @@ public class GUIManager : MonoBehaviour
 		headshotTexture = closeup3Texture;
 		textureY = smallHeadUpperY;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(2) <= 0f)
+		if (scoringSystem.GetPumaHealth(2) <= 0f)
 			GUI.color = new Color(0.45f, 0f, 0f, 0.8f * guiOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
@@ -2994,7 +2994,7 @@ public class GUIManager : MonoBehaviour
 		headshotTexture = closeup6Texture;
 		textureY = smallHeadLowerY;
 		textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
-		if (levelManager.GetPumaHealth(5) <= 0f)
+		if (scoringSystem.GetPumaHealth(5) <= 0f)
 			GUI.color = new Color(0.45f, 0f, 0f, 0.8f * guiOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
@@ -3015,7 +3015,7 @@ public class GUIManager : MonoBehaviour
 		Color selectedTextColor = new Color(0.88f, 0.55f, 0f, 1f);
 		selectedTextColor = unselectedTextColor;
 		
-		style.normal.textColor = (selectedPuma == 0) ? selectedTextColor : ((levelManager.GetPumaHealth(0) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(0) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 0) ? selectedTextColor : ((scoringSystem.GetPumaHealth(0) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(0) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * bigTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3023,7 +3023,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "Eric", style);
 		style.alignment = TextAnchor.MiddleCenter;
 		
-		style.normal.textColor = (selectedPuma == 1) ? selectedTextColor : ((levelManager.GetPumaHealth(1) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(1) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 1) ? selectedTextColor : ((scoringSystem.GetPumaHealth(1) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(1) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * bigTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3031,7 +3031,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "Palo", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 2) ? selectedTextColor : ((levelManager.GetPumaHealth(2) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(2) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 2) ? selectedTextColor : ((scoringSystem.GetPumaHealth(2) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(2) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * bigTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3039,7 +3039,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "Mitch", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 3) ? selectedTextColor : ((levelManager.GetPumaHealth(3) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(3) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 3) ? selectedTextColor : ((scoringSystem.GetPumaHealth(3) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(3) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * bigTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3047,7 +3047,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "Trish", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 4) ? selectedTextColor : ((levelManager.GetPumaHealth(4) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(4) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 4) ? selectedTextColor : ((scoringSystem.GetPumaHealth(4) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(4) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * bigTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3055,7 +3055,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "Liam", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 5) ? selectedTextColor : ((levelManager.GetPumaHealth(5) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(5) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 5) ? selectedTextColor : ((scoringSystem.GetPumaHealth(5) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(5) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * bigTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3070,7 +3070,7 @@ public class GUIManager : MonoBehaviour
 		float smallTextFont = 0.013f;
 		textY = statsY + statsHeight * 0.212f;	
 
-		style.normal.textColor = (selectedPuma == 0) ? selectedTextColor : ((levelManager.GetPumaHealth(0) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(0) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 0) ? selectedTextColor : ((scoringSystem.GetPumaHealth(0) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(0) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * smallTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3078,7 +3078,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "2 years - male", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 1) ? selectedTextColor : ((levelManager.GetPumaHealth(1) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(1) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 1) ? selectedTextColor : ((scoringSystem.GetPumaHealth(1) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(1) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * smallTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3086,7 +3086,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "2 years - female", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 2) ? selectedTextColor : ((levelManager.GetPumaHealth(2) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(2) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 2) ? selectedTextColor : ((scoringSystem.GetPumaHealth(2) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(2) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * smallTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3094,7 +3094,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "5 years - male", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 3) ? selectedTextColor : ((levelManager.GetPumaHealth(3) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(3) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 3) ? selectedTextColor : ((scoringSystem.GetPumaHealth(3) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(3) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * smallTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3102,7 +3102,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "5 years - female", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 4) ? selectedTextColor : ((levelManager.GetPumaHealth(4) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(4) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 4) ? selectedTextColor : ((scoringSystem.GetPumaHealth(4) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(4) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * smallTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3110,7 +3110,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Button(new Rect(textureX, textY, columnWidth, textureHeight), "8 years - male", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
-		style.normal.textColor = (selectedPuma == 5) ? selectedTextColor : ((levelManager.GetPumaHealth(5) <= 0f) ? deadPumaTextColor : ((levelManager.GetPumaHealth(5) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
+		style.normal.textColor = (selectedPuma == 5) ? selectedTextColor : ((scoringSystem.GetPumaHealth(5) <= 0f) ? deadPumaTextColor : ((scoringSystem.GetPumaHealth(5) >= 1f) ? fullHealthPumaTextColor : unselectedTextColor));
 		style.fontSize = (int)(overlayRect.width * smallTextFont * fontScale);
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
@@ -3133,7 +3133,7 @@ public class GUIManager : MonoBehaviour
 		style.fontStyle = FontStyle.BoldAndItalic;
 		style.alignment = TextAnchor.UpperCenter;
 		textureX = statsX + columnWidth*3 + columnGap*3;
-		GUI.Button(new Rect(textureX, statsY + statsHeight * 0.065f, columnWidth + midColumnSizeIncrease, textureHeight), "local results", style);
+		GUI.Button(new Rect(textureX, statsY + statsHeight * 0.065f, columnWidth + midColumnSizeIncrease, textureHeight), "total results", style);
 		style.alignment = TextAnchor.MiddleCenter;
 
 		
@@ -3152,9 +3152,9 @@ public class GUIManager : MonoBehaviour
 
 		for (int j = 0; j < 6; j++) {
 		
-			if (levelManager.GetPumaHealth(j) <= 0f)
+			if (scoringSystem.GetPumaHealth(j) <= 0f)
 				GUI.color = deadPumaDeerIconColor;
-			else if (levelManager.GetPumaHealth(j) >= 1f)
+			else if (scoringSystem.GetPumaHealth(j) >= 1f)
 				GUI.color = fullHealthPumaDeerIconColor;
 
 			columnNum = (j < 3) ? j : j+1;
@@ -3942,14 +3942,14 @@ public class GUIManager : MonoBehaviour
 			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
 			textureWidth = statusDisplayWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-			if (levelManager.GetPumaHealth(0) >= 1f) {
+			if (scoringSystem.GetPumaHealth(0) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
 				//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 				//GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			//else {
-				GUI.color = (levelManager.GetPumaHealth(0) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(0) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(0) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(0) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 			
@@ -3957,14 +3957,14 @@ public class GUIManager : MonoBehaviour
 			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
 			textureWidth = statusDisplayWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-			if (levelManager.GetPumaHealth(1) >= 1f) {
+			if (scoringSystem.GetPumaHealth(1) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
 				//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 				//GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			//else {
-				GUI.color = (levelManager.GetPumaHealth(1) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(1) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(1) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(1) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
@@ -3972,14 +3972,14 @@ public class GUIManager : MonoBehaviour
 			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
 			textureWidth = statusDisplayWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-			if (levelManager.GetPumaHealth(2) >= 1f) {
+			if (scoringSystem.GetPumaHealth(2) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
 				//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 				//GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			//else {
-				GUI.color = (levelManager.GetPumaHealth(2) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(2) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(2) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(2) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
@@ -3987,14 +3987,14 @@ public class GUIManager : MonoBehaviour
 			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
 			textureWidth = statusDisplayWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-			if (levelManager.GetPumaHealth(3) >= 1f) {
+			if (scoringSystem.GetPumaHealth(3) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
 				//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 				//GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			//else {
-				GUI.color = (levelManager.GetPumaHealth(3) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(3) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(3) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(3) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
@@ -4002,14 +4002,14 @@ public class GUIManager : MonoBehaviour
 			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
 			textureWidth = statusDisplayWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-			if (levelManager.GetPumaHealth(4) >= 1f) {
+			if (scoringSystem.GetPumaHealth(4) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
 				//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 				//GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			//else {
-				GUI.color = (levelManager.GetPumaHealth(4) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(4) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(4) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(4) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
@@ -4017,14 +4017,14 @@ public class GUIManager : MonoBehaviour
 			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
 			textureWidth = statusDisplayWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-			if (levelManager.GetPumaHealth(0) >= 1f) {
+			if (scoringSystem.GetPumaHealth(0) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
 				//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 				//GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			//else {
-				GUI.color = (levelManager.GetPumaHealth(5) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(5) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(5) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(5) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 		}
@@ -4065,16 +4065,19 @@ public class GUIManager : MonoBehaviour
 		float title2Offset = feedingDisplayWidth * 0.06f;
 		float backgroundOffset = feedingDisplayWidth * 0f;
 
-		if (levelManager.GetCaloriesExpended() > 1.2f * levelManager.GetCaloriesGained())
+		float lastKillExpense = scoringSystem.GetLastKillExpense(selectedPuma);
+		float lastKillCaloriesEaten = scoringSystem.GetLastKillCaloriesEaten();
+		
+		if (lastKillExpense > 1.2f * lastKillCaloriesEaten)
 			efficiencyLevel = 0;
-		else if (levelManager.GetCaloriesExpended() > levelManager.GetCaloriesGained())
+		else if (lastKillExpense > lastKillCaloriesEaten)
 			efficiencyLevel = 1;
-		else if (levelManager.GetCaloriesExpended() > 0.8 * levelManager.GetCaloriesGained())
+		else if (lastKillExpense > 0.8 * lastKillCaloriesEaten)
 			efficiencyLevel = 2;
 		else
 			efficiencyLevel = 3;
 				
-		float calorieChange = levelManager.GetCaloriesGained() - levelManager.GetCaloriesExpended();
+		float calorieChange = lastKillCaloriesEaten - lastKillExpense;
 		if (calorieChange < 0)
 			calorieChange = -calorieChange;
 		int calorieDisplay = (int)calorieChange;
@@ -4236,7 +4239,7 @@ public class GUIManager : MonoBehaviour
 		//style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 		style.normal.textColor = new Color(0.90f, 0.65f, 0f,  0.9f);
 		style.fontSize = (int)(fontRef * 0.16f);
-		int meatJustEaten = (int)levelManager.GetMeatJustEaten();
+		int meatJustEaten = (int)scoringSystem.GetLastKillMeatEaten();
 		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.220f, feedingDisplayY + feedingDisplayHeight * (0.60f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), meatJustEaten.ToString() + " lbs", style);
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.220f, feedingDisplayY + feedingDisplayHeight * (0.6f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "Meat", style);
 		style.fontSize = (int)(fontRef * 0.12f);
@@ -4245,16 +4248,16 @@ public class GUIManager : MonoBehaviour
 		Texture2D displayHeadTexture = buckHeadTexture;
 		string displayHeadLabel = "unnamed";
 				
-		switch (levelManager.GetDeerType()) {
-			case 0:
+		switch (scoringSystem.GetLastKillDeerType()) {
+			case "Buck":
 				displayHeadTexture = buckHeadTexture;
 				displayHeadLabel = "Buck";
 				break;
-			case 1:
+			case "Doe":
 				displayHeadTexture = doeHeadTexture;
 				displayHeadLabel = "Doe";
 				break;
-			case 2:
+			case "Fawn":
 				displayHeadTexture = fawnHeadTexture;
 				displayHeadLabel = "Fawn";
 				break;		
@@ -4279,7 +4282,7 @@ public class GUIManager : MonoBehaviour
 		//style.fontSize = (int)(fontRef * 0.33f);
 		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.30f, feedingDisplayY + feedingDisplayHeight * 0.50f, feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "+", style);
 		style.fontSize = (int)(fontRef * 0.18f);
-		int caloriesGained = (int)levelManager.GetCaloriesGained();
+		int caloriesGained = (int)scoringSystem.GetLastKillCaloriesEaten();
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.040f, feedingDisplayY + feedingDisplayHeight * (0.60f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), caloriesGained.ToString("n0"), style);
 		style.fontSize = (int)(fontRef * 0.12f);
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.045f, feedingDisplayY + feedingDisplayHeight * (0.68f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "calories +", style);
@@ -4359,7 +4362,7 @@ public class GUIManager : MonoBehaviour
 		//style.fontSize = (int)(fontRef * 0.12f);
 		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.85f, feedingDisplayY + feedingDisplayHeight * 0.51f, feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "minus", style);
 		style.fontSize = (int)(fontRef * 0.18f);
-		int caloriesExpended = (int)levelManager.GetCaloriesExpended();
+		int caloriesExpended = (int)scoringSystem.GetLastKillExpense(selectedPuma);
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.855f, feedingDisplayY + feedingDisplayHeight * (0.60f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), caloriesExpended.ToString("n0"), style);
 		style.fontSize = (int)(fontRef * 0.125f);
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.86f, feedingDisplayY + feedingDisplayHeight * (0.68f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "points -", style);
@@ -4642,7 +4645,7 @@ public class GUIManager : MonoBehaviour
 	
 	void CreateHealthBar(int pumaNum, float healthBarX, float healthBarY, float healthBarWidth, float healthBarHeight, bool hideStatFlag = false, bool shiftStatFlag = false) 
 	{ 
-		float health = levelManager.GetPumaHealth(pumaNum); 
+		float health = scoringSystem.GetPumaHealth(pumaNum); 
 		float textureX;
 		float textureY;
 		float textureWidth;
@@ -4825,12 +4828,12 @@ public class GUIManager : MonoBehaviour
 	void CreatePopulationHealthBar(float healthBarX, float healthBarY, float healthBarWidth, float healthBarHeight, bool showPumaIcons, bool centerLabels) 
 	{ 
 		float health = 0; 
-		health += levelManager.GetPumaHealth(0); 
-		health += levelManager.GetPumaHealth(1); 
-		health += levelManager.GetPumaHealth(2); 
-		health += levelManager.GetPumaHealth(3); 
-		health += levelManager.GetPumaHealth(4); 
-		health += levelManager.GetPumaHealth(5); 
+		health += scoringSystem.GetPumaHealth(0); 
+		health += scoringSystem.GetPumaHealth(1); 
+		health += scoringSystem.GetPumaHealth(2); 
+		health += scoringSystem.GetPumaHealth(3); 
+		health += scoringSystem.GetPumaHealth(4); 
+		health += scoringSystem.GetPumaHealth(5); 
 		health /= 6;
 		
 		GUIStyle style = new GUIStyle();
@@ -4880,7 +4883,7 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
-				GUI.color = (levelManager.GetPumaHealth(0) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(0) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(0) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(0) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			
@@ -4895,7 +4898,7 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
-				GUI.color = (levelManager.GetPumaHealth(1) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(1) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(1) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(1) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 
@@ -4910,7 +4913,7 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
-				GUI.color = (levelManager.GetPumaHealth(2) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(2) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(2) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(2) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 
@@ -4925,7 +4928,7 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
-				GUI.color = (levelManager.GetPumaHealth(3) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(3) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(3) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(3) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 
@@ -4940,7 +4943,7 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
-				GUI.color = (levelManager.GetPumaHealth(4) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(4) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(4) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(4) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 
@@ -4955,7 +4958,7 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
-				GUI.color = (levelManager.GetPumaHealth(5) <= 0f) ? pumaDeadColor : ((levelManager.GetPumaHealth(5) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
+				GUI.color = (scoringSystem.GetPumaHealth(5) <= 0f) ? pumaDeadColor : ((scoringSystem.GetPumaHealth(5) >= 1f) ? pumaFullHealthColor : pumaAliveColor);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 		}
@@ -5678,9 +5681,9 @@ public class GUIManager : MonoBehaviour
 		
 		if (true) {
 
-			if (levelManager.GetPumaHealth(pumaNum) >= 1f)
+			if (scoringSystem.GetPumaHealth(pumaNum) >= 1f)
 				GUI.color = new Color(0.1f, 1f, 0f, (brightFlag ? 0.7f : 0.55f) * guiOpacity);
-			else if (levelManager.GetPumaHealth(pumaNum) <= 0f)
+			else if (scoringSystem.GetPumaHealth(pumaNum) <= 0f)
 				GUI.color = new Color(0.4f, 0.4f, 0.4f, (brightFlag ? 0.5f : 0.4f) * guiOpacity);
 
 			DrawRect(new Rect(refX + refWidth * 0.54f + displayBarsRightShift,  yOffset + refY + refHeight + overlayRect.height * 0.018f - overlayRect.height * 0.002f, refWidth * 0.34f, overlayRect.height * 0.0048f), new Color(0.42f, 0.404f, 0.533f, 1f));	
@@ -5688,7 +5691,7 @@ public class GUIManager : MonoBehaviour
 			DrawRect(new Rect(refX + refWidth * 0.54f + displayBarsRightShift,  yOffset + refY + refHeight + overlayRect.height * 0.062f - overlayRect.height * 0.002f, refWidth * 0.34f, overlayRect.height * 0.0048f), new Color(0.5f, 0.5f, 0.5f, 1f));	
 			DrawRect(new Rect(refX + refWidth * 0.54f + displayBarsRightShift,  yOffset + refY + refHeight + overlayRect.height * 0.084f - overlayRect.height * 0.002f, refWidth * 0.34f, overlayRect.height * 0.0048f), new Color(0.5f, 0.5f, 0.5f, 1f));	
 
-			if (levelManager.GetPumaHealth(pumaNum) > 0f && levelManager.GetPumaHealth(pumaNum) < 1f) {
+			if (scoringSystem.GetPumaHealth(pumaNum) > 0f && scoringSystem.GetPumaHealth(pumaNum) < 1f) {
 				float speed = GetPumaSpeed(pumaNum);
 				Color speedColor = (speed > 0.66f) ? new Color(0f, 1f, 0f, 0.8f) : ((speed > 0.33f) ? new Color(1f, 1f, 0f, 0.85f) : new Color(1f, 0f, 0f, 1f));
 				DrawRect(new Rect(refX + refWidth * 0.54f + displayBarsRightShift,  yOffset + refY + refHeight + overlayRect.height * 0.018f - overlayRect.height * 0.002f, refWidth * 0.34f * speed, overlayRect.height * 0.0048f), speedColor);	
@@ -5741,9 +5744,9 @@ public class GUIManager : MonoBehaviour
 		
 		// display bars for characteristics: fillers
 		GUI.color = new Color(1f, 1f, 1f, 0.6f * guiOpacity);
-		if (pumaNum < 6 && levelManager.GetPumaHealth(pumaNum) <= 0f)
+		if (pumaNum < 6 && scoringSystem.GetPumaHealth(pumaNum) <= 0f)
 			GUI.color = new Color(0.6f, 0.1f, 0.1f, 0.4f * guiOpacity);
-		else if (pumaNum < 6 && levelManager.GetPumaHealth(pumaNum) >= 1f)
+		else if (pumaNum < 6 && scoringSystem.GetPumaHealth(pumaNum) >= 1f)
 			//GUI.color = new Color(0.1f, 0.75f, 0.1f, 0.4f * guiOpacity);
 			GUI.color = new Color(0.1f, 0.50f, 0f, 0.5f * guiOpacity);
 
@@ -5753,12 +5756,12 @@ public class GUIManager : MonoBehaviour
 		Color lowerMiddleColor = new Color(0.99f, 0.40f, 0f, 1f);
 		Color lowerColor = new Color(0.86f, 0f, 0f, 1f);
 		
-		float buckCalories = levelManager.GetBuckCalories(pumaNum);
-		float doeCalories  = levelManager.GetDoeCalories(pumaNum);
-		float fawnCalories = levelManager.GetFawnCalories(pumaNum);
+		float buckCalories = scoringSystem.GetBuckCalories(pumaNum);
+		float doeCalories  = scoringSystem.GetDoeCalories(pumaNum);
+		float fawnCalories = scoringSystem.GetFawnCalories(pumaNum);
 		
 		if (buckCalories > 0f) {
-			float buckExpenditures = levelManager.GetBuckExpenditures(pumaNum);		
+			float buckExpenditures = scoringSystem.GetBuckExpenses(pumaNum);		
 			float buckSuccess = 0f;
 			if (buckCalories > buckExpenditures) {
 				float percent = buckExpenditures / buckCalories;
@@ -5781,7 +5784,7 @@ public class GUIManager : MonoBehaviour
 			DrawRect(new Rect(rect1X+margin,  barsY+margin + (1f - buckSuccess) * (barsHeight-margin*2f), rectWidth-margin*2f, (barsHeight-margin*2f) * buckSuccess), buckColor);	
 		}
 		if (doeCalories > 0f) {
-			float doeExpenditures = levelManager.GetDoeExpenditures(pumaNum);		
+			float doeExpenditures = scoringSystem.GetDoeExpenses(pumaNum);		
 			float doeSuccess = 0f;
 			if (doeCalories > doeExpenditures) {
 				float percent = doeExpenditures / doeCalories;
@@ -5804,7 +5807,7 @@ public class GUIManager : MonoBehaviour
 			DrawRect(new Rect(rect2X+margin,  barsY+margin + (1f - doeSuccess) * (barsHeight-margin*2f), rectWidth-margin*2f, (barsHeight-margin*2f) * doeSuccess), doeColor);	
 		}
 		if (fawnCalories > 0f) {
-			float fawnExpenditures = levelManager.GetFawnExpenditures(pumaNum);		
+			float fawnExpenditures = scoringSystem.GetFawnExpenses(pumaNum);		
 			float fawnSuccess = 0f;
 			if (fawnCalories > fawnExpenditures) {
 				float percent = fawnExpenditures / fawnCalories;
@@ -5924,10 +5927,10 @@ public class GUIManager : MonoBehaviour
 	
 	bool PumaIsSelectable(int pumaNum)
 	{	
-		if (levelManager.GetPumaHealth(pumaNum) <= 0f)
+		if (scoringSystem.GetPumaHealth(pumaNum) <= 0f)
 			return false;
 			
-		if (levelManager.GetPumaHealth(pumaNum) >= 1f)
+		if (scoringSystem.GetPumaHealth(pumaNum) >= 1f)
 			return false;
 			
 		return true;

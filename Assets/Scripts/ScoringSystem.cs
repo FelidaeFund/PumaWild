@@ -75,26 +75,26 @@ public class ScoringSystem : MonoBehaviour
 		lastKillExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f};
 
 		// kill scoreboard
-		//bucksKilled = new int[] {0, 0, 0, 0, 0, 0};
-		//doesKilled = new int[] {0, 0, 0, 0, 0, 0};
-		//fawnsKilled = new int[] {0, 0, 0, 0, 0, 0};
-		bucksKilled = new int[] {2, 5, 0, 0, 1, 0};
-		doesKilled = new int[] {3, 0, 2, 2, 0, 1};
-		fawnsKilled = new int[] {1, 0, 3, 0, 5, 2};
+		bucksKilled = new int[] {0, 0, 0, 0, 0, 0};
+		doesKilled = new int[] {0, 0, 0, 0, 0, 0};
+		fawnsKilled = new int[] {0, 0, 0, 0, 0, 0};
+		//bucksKilled = new int[] {2, 5, 0, 0, 1, 0};
+		//doesKilled = new int[] {3, 0, 2, 2, 0, 1};
+		//fawnsKilled = new int[] {1, 0, 3, 0, 5, 2};
 
-		// energy scoreboard - totals for energy spent and calories eaten
-		buckExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-		buckCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-		doeExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-		doeCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-		fawnExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-		fawnCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
-		//buckExpenses = new float[] {5f, 4f, 6f, 4f, 6f, 3f};
-		//buckCalories = new float[] {4f, 5f, 3f, 6f, 4f, 5f};
-		//doeExpenses = new float[] {4f, 6f, 3f, 4f, 6f, 4f};
-		//doeCalories = new float[] {4f, 5f, 4f, 6f, 4f, 5f};
-		//fawnExpenses = new float[] {5f, 4f, 6f, 3f, 5f, 4f};
-		//fawnCalories = new float[] {4f, 5f, 3f, 5f, 4f, 6f};
+		// energy scoreboard - totals for energy spent and calories eaten; NOTE: index 6 is total for all
+		buckExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
+		buckCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
+		doeExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
+		doeCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
+		fawnExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
+		fawnCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
+		//buckExpenses = new float[] {5f, 4f, 6f, 4f, 6f, 3f, 5f};
+		//buckCalories = new float[] {4f, 5f, 3f, 6f, 4f, 5f, 3f};
+		//doeExpenses = new float[] {4f, 6f, 3f, 4f, 6f, 4f, 5f};
+		//doeCalories = new float[] {4f, 5f, 4f, 6f, 4f, 5f, 3f};
+		//fawnExpenses = new float[] {5f, 4f, 6f, 3f, 5f, 4f, 5f};
+		//fawnCalories = new float[] {4f, 5f, 3f, 5f, 4f, 6f, 3f};
 	}
 	
 	//===========================================
@@ -103,7 +103,7 @@ public class ScoringSystem : MonoBehaviour
 	//
 	// 	This set of functions is called by the 
 	// 	level manager when game events happen
-	//	that result in changes in the score 
+	//	that result in changes in game score 
 	//===========================================
 	//===========================================
 
@@ -133,6 +133,7 @@ public class ScoringSystem : MonoBehaviour
 	{
 		if (selectedPuma == -1)
 			return;
+
 		if (distance < 0)
 			distance *= -1f;
 			
@@ -143,12 +144,12 @@ public class ScoringSystem : MonoBehaviour
 			healthPoints[selectedPuma] = 0;
 	}
 	
-	//------------------------------------------
+	//--------------------------------------------
 	// DeerCaught()
 	// 
 	// Called whenever a puma catches its prey;
-	// the source of puma calories for 'health'
-	//------------------------------------------
+	// this is the source of calories for 'health'
+	//--------------------------------------------
 
 	public void DeerCaught(int selectedPuma, string deerType)
 	{
@@ -162,6 +163,8 @@ public class ScoringSystem : MonoBehaviour
 			bucksKilled[selectedPuma] += 1;
 			buckExpenses[selectedPuma] += lastKillExpenses[selectedPuma];
 			buckCalories[selectedPuma] += caloriesEaten;
+			buckExpenses[6] += lastKillExpenses[selectedPuma];  // population total
+			buckCalories[6] += caloriesEaten;  					// population total
 			break;
 		
 		case "Doe":
@@ -170,6 +173,8 @@ public class ScoringSystem : MonoBehaviour
 			doesKilled[selectedPuma] += 1;
 			doeExpenses[selectedPuma] += lastKillExpenses[selectedPuma];
 			doeCalories[selectedPuma] += caloriesEaten;
+			doeExpenses[6] += lastKillExpenses[selectedPuma];   // population total
+			doeCalories[6] += caloriesEaten;  					// population total
 			break;
 		
 		case "Fawn":
@@ -178,6 +183,8 @@ public class ScoringSystem : MonoBehaviour
 			fawnsKilled[selectedPuma] += 1;
 			fawnExpenses[selectedPuma] += lastKillExpenses[selectedPuma];
 			fawnCalories[selectedPuma] += caloriesEaten;
+			fawnExpenses[6] += lastKillExpenses[selectedPuma];  // population total
+			fawnCalories[6] += caloriesEaten;  					// population total
 			break;
 			
 		default:
@@ -220,6 +227,39 @@ public class ScoringSystem : MonoBehaviour
 	//===========================================
 	//===========================================
 
+	public float GetMeatLevel()
+	{
+		return meatTotalEaten / meatLimitForLevel;
+	}
+		
+	public float GetPumaHealth(int pumaNum)
+	{
+		if (pumaNum == -1)
+			return -1f;
+
+		return healthPoints[pumaNum] / maxHealth;
+	}
+
+	public float GetLastKillMeatEaten()
+	{
+		return lastKillMeatEaten;
+	}
+		
+	public float GetLastKillCaloriesEaten()
+	{
+		return lastKillCaloriesEaten;
+	}
+	
+	public string GetLastKillDeerType()
+	{
+		return lastKillDeerType;
+	}
+	
+	public float GetLastKillExpense(int selectedPuma)
+	{
+		return lastKillExpenses[selectedPuma];
+	}
+	
 	public int GetBucksKilled(int selectedPuma)
 	{
 		return bucksKilled[selectedPuma];
@@ -235,11 +275,36 @@ public class ScoringSystem : MonoBehaviour
 		return fawnsKilled[selectedPuma];
 	}
 
-	public float GetMeatLevel()
+	public float GetBuckExpenses(int pumaNum)
 	{
-		return meatTotalEaten / meatLimitForLevel;
+		return buckExpenses[pumaNum];
 	}
-		
+	
+	public float GetDoeExpenses(int pumaNum)
+	{
+		return doeExpenses[pumaNum];
+	}
+	
+	public float GetFawnExpenses(int pumaNum)
+	{
+		return fawnExpenses[pumaNum];
+	}
+	
+	public float GetBuckCalories(int pumaNum)
+	{
+		return buckCalories[pumaNum];
+	}
+	
+	public float GetDoeCalories(int pumaNum)
+	{
+		return doeCalories[pumaNum];
+	}
+	
+	public float GetFawnCalories(int pumaNum)
+	{
+		return fawnCalories[pumaNum];
+	}
+	
 
 }
 
