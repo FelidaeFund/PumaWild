@@ -3166,7 +3166,7 @@ public class GUIManager : MonoBehaviour
 			textureHeight = displayHeadTexture.height * (textureWidth / displayHeadTexture.width);
 			incrementHeight = textureHeight * 1.1f;
 			textureY = headstackBaseY - textureHeight * 0.0f;
-			int kills = levelManager.GetBucksKilled(j);
+			int kills = scoringSystem.GetBucksKilled(j);
 			for (int i = 0; i < kills; i++) {
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), displayHeadTexture);
 				textureY += incrementHeight;
@@ -3177,7 +3177,7 @@ public class GUIManager : MonoBehaviour
 			textureWidth = columnWidth * 0.26f;
 			textureHeight = displayHeadTexture.height * (textureWidth / displayHeadTexture.width);
 			textureY = headstackBaseY - textureHeight * 0.08f;
-			kills = levelManager.GetDoesKilled(j);
+			kills = scoringSystem.GetDoesKilled(j);
 			for (int i = 0; i < kills; i++) {
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), displayHeadTexture);
 				textureY += incrementHeight;
@@ -3188,7 +3188,7 @@ public class GUIManager : MonoBehaviour
 			textureY = headstackBaseY - textureHeight * 0.08f;
 			textureWidth = columnWidth * 0.27f;
 			textureHeight = displayHeadTexture.height * (textureWidth / displayHeadTexture.width);
-			kills = levelManager.GetFawnsKilled(j);
+			kills = scoringSystem.GetFawnsKilled(j);
 			for (int i = 0; i < kills; i++) {
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), displayHeadTexture);
 				textureY += incrementHeight;
@@ -3208,7 +3208,7 @@ public class GUIManager : MonoBehaviour
 		// buck
 		int bucksKilled = 0;
 		for (int i = 0; i < 6; i++)
-			bucksKilled += levelManager.GetBucksKilled(i);
+			bucksKilled += scoringSystem.GetBucksKilled(i);
 		displayHeadTexture = buckHeadTexture;
 		textureX = statsX + columnWidth*columnNum + columnGap*columnNum + columnWidth*0.03f + columnShift;
 		textureWidth = columnWidth * 0.3f * 0.66f;
@@ -3229,7 +3229,7 @@ public class GUIManager : MonoBehaviour
 		// doe
 		int doesKilled = 0;
 		for (int i = 0; i < 6; i++)
-			doesKilled += levelManager.GetDoesKilled(i);
+			doesKilled += scoringSystem.GetDoesKilled(i);
 		displayHeadTexture = doeHeadTexture;
 		textureX = statsX + columnWidth*columnNum + columnGap*columnNum + columnWidth*0.48f + columnShift;
 		textureWidth = columnWidth * 0.31f * 0.66f;
@@ -3249,7 +3249,7 @@ public class GUIManager : MonoBehaviour
 		// fawn
 		int fawnsKilled = 0;
 		for (int i = 0; i < 6; i++)
-			fawnsKilled += levelManager.GetFawnsKilled(i);
+			fawnsKilled += scoringSystem.GetFawnsKilled(i);
 		displayHeadTexture = fawnHeadTexture;
 		textureX = statsX + columnWidth*columnNum + columnGap*columnNum + columnWidth*0.94f + columnShift;
 		textureY = headstackBaseY;
@@ -4560,7 +4560,7 @@ public class GUIManager : MonoBehaviour
 
 	void CreateFeedingBar(float feedingBarX, float feedingBarY, float feedingBarWidth, float feedingBarHeight) 
 	{ 
-		float meatLevel = levelManager.GetMeatLevel();
+		float meatLevel = scoringSystem.GetMeatLevel();
 		if (meatLevel > 1f)
 			meatLevel = 1f;
 			

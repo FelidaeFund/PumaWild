@@ -12,7 +12,7 @@ public class ScoringSystem : MonoBehaviour
 	//===================================
 	//===================================
 
-	// global amounts
+	// meat consumption
 	private float meatLimitForLevel;
 	private float meatTotalEaten;
 
@@ -21,21 +21,21 @@ public class ScoringSystem : MonoBehaviour
 	private float[] healthPoints;
 	
 	// energy usage
-	private float expensePerMeterChasing = 75f;
-	private float expensePerMeterStalking = 75f * 0.25f;
+	private float expensePerMeterChasing;
+	private float expensePerMeterStalking;
 
 	// amounts for last kill
 	private float lastKillMeatEaten;
-	private float lastKilCaloriesEaten;
-	private int lastKillDeerType;
-	private float[] expensesSinceLastKill;
+	private float lastKillCaloriesEaten;
+	private string lastKillDeerType;
+	private float[] lastKillExpenses;
 
 	// kill scoreboard
 	private int[] bucksKilled;
 	private int[] doesKilled;
 	private int[] fawnsKilled;
 
-	// energy scoreboard - for each prey type, totals for energy spent and calories eaten
+	// energy scoreboard
 	private float[] buckExpenses;
 	private float[] buckCalories;
 	private float[] doeExpenses;
@@ -56,40 +56,33 @@ public class ScoringSystem : MonoBehaviour
 
     private void InitScoringSystem()
     {
-		// global amounts
+		// meat consumption
 		meatLimitForLevel = 1000f;
 		meatTotalEaten = 0f;
 
 		// health points
 		maxHealth = 175000f;
-		healthPoints = new float[] {
-			maxHealth * 0.5f,
-			maxHealth * 0.5f,
-			maxHealth * 0.5f,
-			maxHealth * 0.5f,
-			maxHealth * 0.5f,
-			maxHealth * 0.5f
-		};
-		
+		healthPoints = new float[] { maxHealth * 0.5f, maxHealth * 0.5f, maxHealth * 0.5f,
+									 maxHealth * 0.5f, maxHealth * 0.5f, maxHealth * 0.5f};
 		// energy usage
 		expensePerMeterChasing = 75f;
 		expensePerMeterStalking = expensePerMeterChasing * 0.25f;
 
 		// amounts for last kill
 		lastKillMeatEaten = 0f;
-		lastKilCaloriesEaten = 0f;
-		lastKillDeerType = -1;
-		expensesSinceLastKill = new float[] {0f, 0f, 0f, 0f, 0f, 0f};
+		lastKillCaloriesEaten = 0f;
+		lastKillDeerType = "None";
+		lastKillExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f};
 
 		// kill scoreboard
-		bucksKilled = new int[] {0, 0, 0, 0, 0, 0};
-		doesKilled = new int[] {0, 0, 0, 0, 0, 0};
-		fawnsKilled = new int[] {0, 0, 0, 0, 0, 0};
-		//bucksKilled = new int[] {2, 5, 0, 0, 1, 0};
-		//doesKilled = new int[] {3, 0, 2, 2, 0, 1};
-		//fawnsKilled = new int[] {1, 0, 3, 0, 5, 2};
+		//bucksKilled = new int[] {0, 0, 0, 0, 0, 0};
+		//doesKilled = new int[] {0, 0, 0, 0, 0, 0};
+		//fawnsKilled = new int[] {0, 0, 0, 0, 0, 0};
+		bucksKilled = new int[] {2, 5, 0, 0, 1, 0};
+		doesKilled = new int[] {3, 0, 2, 2, 0, 1};
+		fawnsKilled = new int[] {1, 0, 3, 0, 5, 2};
 
-		// energy scoreboard - for each prey type, totals for energy spent and calories eaten
+		// energy scoreboard - totals for energy spent and calories eaten
 		buckExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
 		buckCalories = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
 		doeExpenses = new float[] {0f, 0f, 0f, 0f, 0f, 0f, 0f};
@@ -104,18 +97,149 @@ public class ScoringSystem : MonoBehaviour
 		//fawnCalories = new float[] {4f, 5f, 3f, 5f, 4f, 6f};
 	}
 	
+	//===========================================
+	//===========================================
+	//	SCORE UPDATES
+	//
+	// 	This set of functions is called by the 
+	// 	level manager when game events happen
+	//	that result in changes in the score 
+	//===========================================
+	//===========================================
+
+	//------------------------------------------
+	// PumaHasWalked(), PumaHasRun()
+	// 
+	// Called for every movement of the puma
+	// when under player control; these are the 
+	// main source of puma energy 'expenses'
+	//------------------------------------------
+
+	public void PumaHasWalked(int selectedPuma, float distance)
+	{
+		if (selectedPuma == -1)
+			return;
+		if (distance < 0)
+			distance *= -1f;
+			
+		float newExpense = distance * expensePerMeterStalking;
+		lastKillExpenses[selectedPuma] += newExpense;
+		healthPoints[selectedPuma] -= newExpense;
+		if (healthPoints[selectedPuma] < 0)
+			healthPoints[selectedPuma] = 0;
+	}
 	
-	// AbsorbExpenditures()
+	public void PumaHasRun(int selectedPuma, float distance)
+	{
+		if (selectedPuma == -1)
+			return;
+		if (distance < 0)
+			distance *= -1f;
+			
+		float newExpense = distance * expensePerMeterChasing;
+		lastKillExpenses[selectedPuma] += newExpense;
+		healthPoints[selectedPuma] -= newExpense;
+		if (healthPoints[selectedPuma] < 0)
+			healthPoints[selectedPuma] = 0;
+	}
+	
+	//------------------------------------------
+	// DeerCaught()
+	// 
+	// Called whenever a puma catches its prey;
+	// the source of puma calories for 'health'
+	//------------------------------------------
+
+	public void DeerCaught(int selectedPuma, string deerType)
+	{
+		float meatEaten;
+		float caloriesEaten;
+	
+		switch (deerType) {
+		case "Buck":
+			meatEaten = Random.Range(35f, 43f);
+			caloriesEaten = meatEaten * Random.Range(900f, 1100f);
+			bucksKilled[selectedPuma] += 1;
+			buckExpenses[selectedPuma] += lastKillExpenses[selectedPuma];
+			buckCalories[selectedPuma] += caloriesEaten;
+			break;
+		
+		case "Doe":
+			meatEaten = Random.Range(25f, 32f);
+			caloriesEaten = meatEaten * Random.Range(900f, 1100f);
+			doesKilled[selectedPuma] += 1;
+			doeExpenses[selectedPuma] += lastKillExpenses[selectedPuma];
+			doeCalories[selectedPuma] += caloriesEaten;
+			break;
+		
+		case "Fawn":
+			meatEaten = Random.Range(17f, 23f);
+			caloriesEaten = meatEaten * Random.Range(900f, 1100f);
+			fawnsKilled[selectedPuma] += 1;
+			fawnExpenses[selectedPuma] += lastKillExpenses[selectedPuma];
+			fawnCalories[selectedPuma] += caloriesEaten;
+			break;
+			
+		default:
+			System.Console.WriteLine("ScoringSystem.DeerCaught got bad deerType: " + deerType);
+			return;
+		}
+
+		lastKillMeatEaten = meatEaten;
+		lastKillCaloriesEaten = caloriesEaten;
+		lastKillDeerType = deerType;
+		
+		meatTotalEaten += meatEaten;
+		healthPoints[selectedPuma] += caloriesEaten;
+		if (healthPoints[selectedPuma] > maxHealth)
+			healthPoints[selectedPuma] = maxHealth;
+	}
+	
+	//------------------------------------------
+	// ClearLastKillInfo()
 	// 
 	// Called when leaving the Feeding Display,
 	// which is the point where the accumulated
-	// expenditures are absorbed into the history
+	// expenditures and other data are cleared
+	//------------------------------------------
 
-	public void AbsorbExpenses(int selectedPuma)
+	public void ClearLastKillInfo(int selectedPuma)
 	{
-
-	
+		lastKillMeatEaten = 0f;
+		lastKillCaloriesEaten = 0f;
+		lastKillDeerType = "None";
+		lastKillExpenses[selectedPuma] = 0f;
 	}
+
+	//===========================================
+	//===========================================
+	//	GET THE SCORE
+	//
+	// 	This set of functions is called by the 
+	// 	GUI to display the score for the game
+	//===========================================
+	//===========================================
+
+	public int GetBucksKilled(int selectedPuma)
+	{
+		return bucksKilled[selectedPuma];
+	}
+
+	public int GetDoesKilled(int selectedPuma)
+	{
+		return doesKilled[selectedPuma];
+	}
+
+	public int GetFawnsKilled(int selectedPuma)
+	{
+		return fawnsKilled[selectedPuma];
+	}
+
+	public float GetMeatLevel()
+	{
+		return meatTotalEaten / meatLimitForLevel;
+	}
+		
 
 }
 
