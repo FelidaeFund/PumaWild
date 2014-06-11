@@ -45,7 +45,7 @@ public class LevelManager : MonoBehaviour
 	private float pumaY;
 	private float pumaZ;
 	private float pumaHeading = 0f;
-	private float pumaHeadingOffset = 0f;
+	public float pumaHeadingOffset = 0f;   			// NOTE: is currently changed from InputControls....probably shouldn't be
 	private float pumaStalkingSpeed = 22f * 0.66f;
 	private float pumaChasingSpeed = 32f * 0.66f;
 	private float defaultPumaChasingSpeed = 32f * 0.66f;
@@ -53,8 +53,6 @@ public class LevelManager : MonoBehaviour
 	private float defaultChaseTriggerDistance = 40f * 0.66f;
 	private float deerCaughtFinalOffsetFactor0 = 1f * 0.66f;
 	private float deerCaughtFinalOffsetFactor90 = 1f;
-	private float inputVert = 0f;
-	private float inputHorz = 0f;
 	
 	// DEER
 
@@ -139,48 +137,6 @@ public class LevelManager : MonoBehaviour
 	private float deerCaughtCameraRotY;
 	private float deerCaughtNextFrameTime;
 	public int deerCaughtEfficiency = 0;
-	
-	// NAVIGATION CONTROLS
-
-	enum Nav {Off, Inc, Full, Dec};
-	
-	private Nav navStateLeft = Nav.Off;
-	private Nav navStateRight = Nav.Off;
-	private Nav navStateForward = Nav.Off;
-	private Nav navStateBack = Nav.Off;
-
-	private Nav navStateForwardLeft = Nav.Off;
-	private Nav navStateForwardRight = Nav.Off;
-	private Nav navStateBackLeft = Nav.Off;
-	private Nav navStateBackRight = Nav.Off;
-	
-	private float navValLeft = 0;
-	private float navValRight = 0;
-	private float navValForward = 0;
-	private float navValBack = 0;
-
-	private float navValForwardLeft = 0;
-	private float navValForwardRight = 0;
-	private float navValBackLeft = 0;
-	private float navValBackRight = 0;
-	
-	private bool leftKey = false;
-	private bool rightKey = false;
-	private bool forwardKey = false;
-	private bool backKey = false;
-
-	private Nav newNavState;
-	private float newNavVal;
-	
-	public bool forwardClicked = false;
-	public bool backClicked = false;
-	public bool sideLeftClicked = false;
-	public bool sideRightClicked = false;
-	public bool diagLeftClicked = false;
-	public bool diagRightClicked = false;
-	
-	public bool leftArrowMouseEvent = false;
-	public bool rightArrowMouseEvent = false;
 
 	// ANIMATORS
 	
@@ -191,6 +147,7 @@ public class LevelManager : MonoBehaviour
 	
 	// EXTERNAL MODULES
 	private ScoringSystem scoringSystem;
+	private InputControls inputControls;
 
 	//===================================
 	//===================================
@@ -209,6 +166,7 @@ public class LevelManager : MonoBehaviour
 	{	
 		// connect to external modules
 		scoringSystem = GetComponent<ScoringSystem>();
+		inputControls = GetComponent<InputControls>();
 
 		// puma
 		pumaObj = GameObject.Find("_Puma-thin");	
@@ -334,7 +292,7 @@ public class LevelManager : MonoBehaviour
 			
 		CalculateFrameRate();
 			
-		ProcessNavControls();
+		inputControls.ProcessControls(gameState);
 
 		//===========================
 		// Update Game-State Logic
@@ -399,8 +357,7 @@ public class LevelManager : MonoBehaviour
 				// pause
 			}
 			else {
-				forwardKey = false;
-				backKey = false;		
+				inputControls.ResetControls();		
 				SetGameState("gameStateEnteringGameplay");
 				//SetGameState("gameStateStalking");
 			}
@@ -669,8 +626,7 @@ public class LevelManager : MonoBehaviour
 
 		case "gameStateCaught1":
 			fadeTime = 1.3f;
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
 	
 				cameraRotPercentDone = ((Time.time - stateStartTime) / fadeTime);
@@ -739,8 +695,7 @@ public class LevelManager : MonoBehaviour
 			break;
 
 		case "gameStateCaught2":
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime > 0.2f) {
 				SetGameState("gameStateCaught3");
 			}
@@ -748,8 +703,7 @@ public class LevelManager : MonoBehaviour
 
 		case "gameStateCaught3":
 			fadeTime = 5f;
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
 				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
@@ -785,8 +739,7 @@ public class LevelManager : MonoBehaviour
 			break;
 			
 		case "gameStateCaught4":
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime > 0.1f) {
 				cameraRotOffsetY -= Time.deltaTime + 0.03f;
 				if (cameraRotOffsetY < -180f)
@@ -848,8 +801,7 @@ public class LevelManager : MonoBehaviour
 		case "gameStateDied1":
 			//fadeTime = 1.3f;
 			fadeTime = 3f;
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
 	
 				cameraRotPercentDone = ((Time.time - stateStartTime) / fadeTime);
@@ -884,8 +836,7 @@ public class LevelManager : MonoBehaviour
 			break;
 
 		case "gameStateDied2":
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime > 0.2f) {
 				SetGameState("gameStateDied3");
 			}
@@ -893,8 +844,7 @@ public class LevelManager : MonoBehaviour
 
 		case "gameStateDied3":
 			fadeTime = 5f;
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
 				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
@@ -930,8 +880,7 @@ public class LevelManager : MonoBehaviour
 			break;
 			
 		case "gameStateDied4":
-			forwardKey = false;
-			backKey = false;
+			inputControls.ResetControls();
 			if (Time.time - stateStartTime > 0.1f) {
 				cameraRotOffsetY -= Time.deltaTime + 0.03f;
 				if (cameraRotOffsetY < -180f)
@@ -998,51 +947,30 @@ public class LevelManager : MonoBehaviour
 		// Update Positions
 		//=======================
 			
-		/*
-		int displayInt;
-		System.Console.WriteLine("=================================");	
-		displayInt = frameCurrentDuration;
-		System.Console.WriteLine("Frame time: " + displayInt.ToString());	
-		displayInt = (int)(Time.deltaTime * 1000);
-		System.Console.WriteLine("Delta time: " + displayInt.ToString());		
-		System.Console.WriteLine("-----------");	
-		displayInt = (int)(inputVert * 1000);
-		System.Console.WriteLine("Input vert: " + displayInt.ToString());		
-		displayInt = (int)(inputHorz * 1000);
-		System.Console.WriteLine("Input horz: " + displayInt.ToString());		
-		System.Console.WriteLine("=================================");	
-		*/
-
 		float distance = 0f;
 
 		pumaAnimator.SetBool("GuiMode", false);
 
 		if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftControl)) {
 			// dev only: camera distance and angle
-			cameraDistance -= inputVert * Time.deltaTime * 20 * 5 * speedOverdrive;
-			cameraRotOffsetY += inputHorz * Time.deltaTime * 40 * 5 * speedOverdrive;
+			cameraDistance -= inputControls.GetInputVert() * Time.deltaTime * 20 * 5 * speedOverdrive;
+			cameraRotOffsetY += inputControls.GetInputHorz() * Time.deltaTime * 40 * 5 * speedOverdrive;
 			pumaHeading = cameraRotY;
-			ResetNavState();
-			inputVert = 0;
-			inputHorz = 0;
+			inputControls.ResetControls();
 		}
 		
 		else if (Input.GetKey(KeyCode.LeftShift)) {
 			// dev only: camera height
-			cameraY += inputVert * Time.deltaTime  * 20 * 5 * speedOverdrive;
+			cameraY += inputControls.GetInputVert() * Time.deltaTime  * 20 * 5 * speedOverdrive;
 			pumaHeading = cameraRotY;
-			ResetNavState();
-			inputVert = 0;
-			inputHorz = 0;
+			inputControls.ResetControls();
 		}
 		
 		else if (Input.GetKey(KeyCode.LeftControl)) {
 			// dev only: camera pitch
-			cameraRotX += inputVert * Time.deltaTime  * 50 * 5 * speedOverdrive;
+			cameraRotX += inputControls.GetInputVert() * Time.deltaTime  * 50 * 5 * speedOverdrive;
 			pumaHeading = cameraRotY;
-			ResetNavState();
-			inputVert = 0;
-			inputHorz = 0;
+			inputControls.ResetControls();
 		}
 		
 		else if (gameState == "gameStateGui" || gameState == "gameStateLeavingGameplay" || gameState == "gameStateLeavingGui") {
@@ -1066,9 +994,9 @@ public class LevelManager : MonoBehaviour
 		
 		else if (gameState == "gameStateChasing") {
 			float rotationSpeed = 150f;
-			distance = inputVert * Time.deltaTime  * pumaChasingSpeed * speedOverdrive;
+			distance = inputControls.GetInputVert() * Time.deltaTime  * pumaChasingSpeed * speedOverdrive;
 			float travelledDistance = (scoringSystem.GetPumaHealth(selectedPuma) > 0.05f) ? distance : distance * (scoringSystem.GetPumaHealth(selectedPuma) / 0.05f);
-			cameraRotY += inputHorz * Time.deltaTime * rotationSpeed;
+			cameraRotY += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
 			pumaHeading = cameraRotY + pumaHeadingOffset;
 			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * travelledDistance);
 			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * travelledDistance);
@@ -1079,8 +1007,8 @@ public class LevelManager : MonoBehaviour
 		
 		else if (gameState == "gameStateStalking") {		
 			float rotationSpeed = 100f;
-			distance = inputVert * Time.deltaTime  * pumaStalkingSpeed * speedOverdrive;
-			cameraRotY += inputHorz * Time.deltaTime * rotationSpeed;
+			distance = inputControls.GetInputVert() * Time.deltaTime  * pumaStalkingSpeed * speedOverdrive;
+			cameraRotY += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
 			pumaHeading = cameraRotY + pumaHeadingOffset;
 			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * distance);
 			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * distance);
@@ -1448,207 +1376,7 @@ public class LevelManager : MonoBehaviour
 			frameCount++;
 		}
 	}
-	
-	void ProcessNavControls()
-	{
-		bool leftKeyState = Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.J) || leftArrowMouseEvent == true;
-		bool rightKeyState = Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.L) || rightArrowMouseEvent == true;
-		bool forwardKeyState = Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.I) || forwardClicked == true;
-		bool backKeyState = Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.K) || backClicked == true;
-		
-		bool sideLeftState = Input.GetKey(KeyCode.U) || sideLeftClicked == true;
-		bool sideRightState = Input.GetKey(KeyCode.O) || sideRightClicked == true;
-		bool diagLeftState = Input.GetKey(KeyCode.Alpha8) || diagLeftClicked == true;
-		bool diagRightState = Input.GetKey(KeyCode.Alpha9) || diagRightClicked == true;
-		
-		forwardClicked = backClicked = sideLeftClicked = sideRightClicked = diagLeftClicked = diagRightClicked = false;
-	
-		if (forwardKeyState == true)
-			pumaHeadingOffset = 0f;
 
-		if (sideLeftState == true) {
-			pumaHeadingOffset = -60f;
-			forwardKeyState = true;
-		}
-		else if (sideRightState == true) {
-			pumaHeadingOffset = 60f;
-			forwardKeyState = true;
-		}
-		else if (diagLeftState == true) {
-			pumaHeadingOffset = -30f;
-			forwardKeyState = true;
-		}
-		else if (diagRightState == true) {
-			pumaHeadingOffset = 30f;
-			forwardKeyState = true;
-		}
-	
-		leftKey = leftKeyState;
-		rightKey = rightKeyState;
-		//forwardKey = Input.GetKey(KeyCode.UpArrow);
-		//backKey = Input.GetKey(KeyCode.DownArrow);
-
-
-		if (inputVert == 0) {
-			if (forwardKey == false)
-				forwardKey = forwardKeyState;
-			if (forwardKey == false)
-				backKey = backKeyState;	
-		}
-		else if (inputVert > 0) {
-			if (forwardKey == false)
-				forwardKey = forwardKeyState;
-			else if (backKeyState == true)
-				forwardKey = false;
-		}
-		else {
-			if (backKey == false)
-				backKey = backKeyState;
-			else if (forwardKeyState == true)
-				backKey = false;
-		}
-
-		
-		// basic input processing
-	
-		UpdateNav(navStateForward, navValForward, forwardKey, Time.deltaTime * 3, Time.deltaTime * 3);
-		navStateForward = newNavState;
-		navValForward = newNavVal;
-
-		UpdateNav(navStateBack, -navValBack * 2, backKey, Time.deltaTime * 3, Time.deltaTime * 3);
-		navStateBack = newNavState;
-		navValBack = -newNavVal / 2;
-
-		UpdateNav(navStateLeft, -navValLeft, leftKey, Time.deltaTime * ((gameState == "gameStateStalking") ? 3f : 4.4f), Time.deltaTime * 3);
-		navStateLeft = newNavState;
-		navValLeft = -newNavVal;
-
-		UpdateNav(navStateRight, navValRight, rightKey, Time.deltaTime * ((gameState == "gameStateStalking") ? 3f : 4.4f), Time.deltaTime * 3);
-		navStateRight = newNavState;
-		navValRight = newNavVal;
-		
-		//inputVert = navValForward; // + navValBack;	 // disable down motion
-		inputVert = navValForward + navValBack;		 // enable down motion
-		inputHorz = navValRight + navValLeft;
-		
-		if (inputVert == 0)
-			pumaHeadingOffset = 0;
-		
-	}
-	
-	
-	
-	
-	void UpdateNav(Nav previousNavState, float previousNavVal, bool keyPressed, float incStep, float decStep)
-	{
-		newNavState = previousNavState;
-		newNavVal = previousNavVal;
-	
-		switch (previousNavState) {
-
-		case Nav.Off:
-			if (keyPressed) {
-				newNavState = Nav.Inc;
-				newNavVal = previousNavVal + incStep;
-				if (newNavVal >= 1f) {
-					newNavState = Nav.Full;
-					newNavVal = 1f;
-				}
-			}
-			else {
-				newNavVal = 0f;
-			}
-			break;
-
-		case Nav.Inc:
-			if (keyPressed) {
-				newNavVal = previousNavVal + incStep;
-				if (newNavVal >= 1f) {
-					newNavState = Nav.Full;
-					newNavVal = 1f;
-				}
-			}
-			else {
-				newNavState = Nav.Dec;
-				newNavVal = previousNavVal - decStep;
-				if (newNavVal <= 0f) {
-					newNavState = Nav.Off;
-					newNavVal = 0f;
-				}
-			}
-			break;
-			
-		case Nav.Full:
-			if (keyPressed) {
-				newNavVal = 1f;
-			}
-			else {
-				newNavState = Nav.Dec;
-				newNavVal = previousNavVal - decStep;
-				if (newNavVal <= 0f) {
-					newNavState = Nav.Off;
-					newNavVal = 0f;
-				}
-			}
-			break;
-			
-		case Nav.Dec:
-			if (keyPressed) {
-				newNavState = Nav.Inc;
-				newNavVal = previousNavVal + incStep;
-				if (newNavVal >= 1f) {
-					newNavState = Nav.Full;
-					newNavVal = 1f;
-				}
-			}
-			else {
-				newNavVal = previousNavVal - decStep;
-				if (newNavVal <= 0f) {
-					newNavState = Nav.Off;
-					newNavVal = 0f;
-				}
-			}
-			break;
-		}
-	}
-	
-	void ResetNavState()
-	{
-		navStateLeft = Nav.Off;
-		navStateRight = Nav.Off;
-		navStateForward = Nav.Off;
-		navStateBack = Nav.Off;
-
-		navStateForwardLeft = Nav.Off;
-		navStateForwardRight = Nav.Off;
-		navStateBackLeft = Nav.Off;
-		navStateBackRight = Nav.Off;
-		
-		navValLeft = 0;
-		navValRight = 0;
-		navValForward = 0;
-		navValBack = 0;
-
-		navValForwardLeft = 0;
-		navValForwardRight = 0;
-		navValBackLeft = 0;
-		navValBackRight = 0;
-		
-		leftKey = false;
-		rightKey = false;
-		forwardKey = false;
-		backKey = false;
-		
-		forwardClicked = false;
-		backClicked = false;
-		sideLeftClicked = false;
-		sideRightClicked = false;
-		diagLeftClicked = false;
-		diagRightClicked = false;
-		
-		leftArrowMouseEvent = false;
-		rightArrowMouseEvent = false;
-	}
 }
 
 

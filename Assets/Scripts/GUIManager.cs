@@ -144,6 +144,7 @@ public class GUIManager : MonoBehaviour
 	private LevelManager levelManager;
 	private PositionIndicator positionIndicator;
 	private ScoringSystem scoringSystem;
+	private InputControls inputControls;
 
 	//===================================
 	//===================================
@@ -157,6 +158,7 @@ public class GUIManager : MonoBehaviour
 		levelManager = GetComponent<LevelManager>();
 		positionIndicator = GetComponent<PositionIndicator>();
 		scoringSystem = GetComponent<ScoringSystem>();
+		inputControls = GetComponent<InputControls>();
 		
 		// initialize state
 		SetGuiState("guiStateEnteringApp1");
@@ -982,22 +984,16 @@ public class GUIManager : MonoBehaviour
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), arrowDownTexture);
 		GUI.color = new Color(1f, 1f, 1f, 0f);
 		if (GUI.Button(new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.45f, textureWidth * 0.24f, textureHeight * 0.24f), "")) {
-			levelManager.forwardClicked = true;
+			inputControls.forwardClicked = true;
 		}
 		if (GUI.Button(new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.69f, textureWidth * 0.24f, textureHeight * 0.24f), "")) {
-			levelManager.backClicked = true;
+			inputControls.backClicked = true;
 		}
-		//if (GUI.Button(new Rect(textureX + textureWidth * 0.24f, textureY + textureHeight * 0.53f, textureWidth * 0.13f, textureHeight * 0.40f), "")) {
-			//levelManager.diagLeftClicked = true;
-		//}
-		//if (GUI.Button(new Rect(textureX + textureWidth * 0.61f, textureY + textureHeight * 0.53f, textureWidth * 0.13f, textureHeight * 0.40f), "")) {
-			//levelManager.diagRightClicked = true;
-		//}
 		if (GUI.Button(new Rect(textureX + textureWidth * 0.11f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f), "")) {
-			levelManager.sideLeftClicked = true;
+			inputControls.sideLeftClicked = true;
 		}
 		if (GUI.Button(new Rect(textureX + textureWidth * 0.61f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f), "")) {
-			levelManager.sideRightClicked = true;
+			inputControls.sideRightClicked = true;
 		}
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		
@@ -1046,27 +1042,27 @@ public class GUIManager : MonoBehaviour
 				float mouseX = Event.current.mousePosition.x;
 				float mouseY = Event.current.mousePosition.y;
 				if (mouseX >= leftBoxX && mouseX <= leftBoxX+leftBoxWidth && mouseY >= leftBoxY && mouseY <= leftBoxY+leftBoxHeight) {
-					levelManager.leftArrowMouseEvent = true;
-					levelManager.rightArrowMouseEvent = false;
+					inputControls.leftArrowMouseEvent = true;
+					inputControls.rightArrowMouseEvent = false;
 				}
 				else if (mouseX >= rightBoxX && mouseX <= rightBoxX+rightBoxWidth && mouseY >= rightBoxY && mouseY <= rightBoxY+rightBoxHeight) {
-					levelManager.leftArrowMouseEvent = false;
-					levelManager.rightArrowMouseEvent = true;
+					inputControls.leftArrowMouseEvent = false;
+					inputControls.rightArrowMouseEvent = true;
 				}
 				else {
-					levelManager.leftArrowMouseEvent = false;
-					levelManager.rightArrowMouseEvent = false;	
+					inputControls.leftArrowMouseEvent = false;
+					inputControls.rightArrowMouseEvent = false;	
 				}
 			}
 			else if (Event.current.type == EventType.mouseUp) {
-				levelManager.leftArrowMouseEvent = false;
-				levelManager.rightArrowMouseEvent = false;	
+				inputControls.leftArrowMouseEvent = false;
+				inputControls.rightArrowMouseEvent = false;	
 			}	
 		}	
-		if (levelManager.leftArrowMouseEvent == true) {
+		if (inputControls.leftArrowMouseEvent == true) {
 			//GUI.Button(new Rect(leftBoxX, leftBoxY, leftBoxWidth, leftBoxHeight), "");
 		}
-		if (levelManager.rightArrowMouseEvent == true) {
+		if (inputControls.rightArrowMouseEvent == true) {
 			//GUI.Button(new Rect(rightBoxX, rightBoxY, rightBoxWidth, rightBoxHeight), "");
 		}
 		
@@ -3137,11 +3133,6 @@ public class GUIManager : MonoBehaviour
 		style.alignment = TextAnchor.MiddleCenter;
 
 		
-		
-		
-		
-		
-
 		// deer heads
 
 		float headstackBaseY = statsY + statsHeight * 0.291f;

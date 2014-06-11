@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/// ScoringSystem
 /// Keeps track of game progress and current score
-/// 
 
 public class ScoringSystem : MonoBehaviour
 {
