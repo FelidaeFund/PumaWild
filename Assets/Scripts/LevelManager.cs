@@ -182,6 +182,9 @@ public class LevelManager : MonoBehaviour
 	public bool leftArrowMouseEvent = false;
 	public bool rightArrowMouseEvent = false;
 
+	//Boolean variable that allows or not puma to go forward, based on collision status.
+	private bool allowedForward = true;
+
 	// ANIMATORS
 	
 	public Animator pumaAnimator;
@@ -1510,10 +1513,14 @@ public class LevelManager : MonoBehaviour
 
 		
 		// basic input processing
-	
-		UpdateNav(navStateForward, navValForward, forwardKey, Time.deltaTime * 3, Time.deltaTime * 3);
-		navStateForward = newNavState;
-		navValForward = newNavVal;
+		
+		//This if checks whether the puma is allowed to go forward or not,
+		//based on collision state
+		if(allowedForward != false){
+			UpdateNav(navStateForward, navValForward, forwardKey, Time.deltaTime * 3, Time.deltaTime * 3);
+			navStateForward = newNavState;
+			navValForward = newNavVal;
+		}
 
 		UpdateNav(navStateBack, -navValBack * 2, backKey, Time.deltaTime * 3, Time.deltaTime * 3);
 		navStateBack = newNavState;
@@ -1648,6 +1655,60 @@ public class LevelManager : MonoBehaviour
 		
 		leftArrowMouseEvent = false;
 		rightArrowMouseEvent = false;
+	}
+
+	//This method affects the control for collisions during stalking state
+	//Boolean argument "colliding" tells whether the puma is in collision or not
+	public void stalkingCollision(bool colliding)
+	{
+		if (colliding == true)
+		{
+			//Stops forward movement off
+			navStateForward = Nav.Off;
+			navValForward = 0;
+			forwardKey = false;
+			forwardClicked = false;
+			//Stops backward movement off
+			navStateBack = Nav.Off;
+			navValBack = 0;
+			backKey = false;
+			backClicked = false;
+			//Locks forward keys functionality
+			allowedForward = false;
+		}
+		else
+		{	
+			//if the puma is not colliding, we allow him to use the forward controls
+			allowedForward = true;
+		}
+	}
+
+	//This method affects the control for collisions during chasing state
+	//Boolean argument "colliding" tells whether the puma is in collision or not
+	//TODO: Implement different decisions for chasing
+	public void chasingCollision(bool colliding)
+	{
+		if (colliding == true)
+		{
+			//Stops forward movement off
+			navStateForward = Nav.Off;
+			navValForward = 0;
+			forwardKey = false;
+			forwardClicked = false;
+			//Stops backward movement off
+			navStateBack = Nav.Off;
+			navValBack = 0;
+			backKey = false;
+			backClicked = false;
+			//Locks forward keys functionality
+			allowedForward = false;
+			//TODO: Set annimation to sitting, trigger lost chasing event, etc...
+		}
+		else
+		{
+			//if the puma is not colliding, we allow him to use the forward controls
+			allowedForward = true;
+		}
 	}
 }
 
