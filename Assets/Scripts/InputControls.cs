@@ -16,44 +16,45 @@ public class InputControls : MonoBehaviour
 	enum NavState {Off, Inc, Full, Dec};
 	
 	// four main directions
-	private NavState navStateLeft = NavState.Off;
-	private NavState navStateRight = NavState.Off;
-	private NavState navStateForward = NavState.Off;
-	private NavState navStateBack = NavState.Off;
-	private float navValLeft = 0;
-	private float navValRight = 0;
-	private float navValForward = 0;
-	private float navValBack = 0;
+	private NavState navStateLeft;
+	private NavState navStateRight;
+	private NavState navStateForward;
+	private NavState navStateBack;
+	private float navValLeft;
+	private float navValRight;
+	private float navValForward;
+	private float navValBack;
 
-	// four diagonal directions
-	private NavState navStateForwardLeft = NavState.Off;
-	private NavState navStateForwardRight = NavState.Off;
-	private NavState navStateBackLeft = NavState.Off;
-	private NavState navStateBackRight = NavState.Off;
-	private float navValForwardLeft = 0;
-	private float navValForwardRight = 0;
-	private float navValBackLeft = 0;
-	private float navValBackRight = 0;
-	
-	private bool leftKey = false;
-	private bool rightKey = false;
-	private bool forwardKey = false;
-	private bool backKey = false;
+	// four diagonal directions (FOR SMOOTHING; NOT YET IMPLEMENTED)
+	private NavState navStateForwardLeft;
+	private NavState navStateForwardRight;
+	private NavState navStateBackLeft;
+	private NavState navStateBackRight;
+	private float navValForwardLeft;
+	private float navValForwardRight;
+	private float navValBackLeft;
+	private float navValBackRight;
 
+	// used in resolving interactions between forward and back
+	private bool forwardKey;
+	private bool backKey;
+
+	// main variables for current movement status
+	private float inputVert;
+	private float inputHorz;
+
+	// used for passing back data from subroutine
 	private NavState newNavState;
 	private float newNavVal;
 	
-	public bool forwardClicked = false;
-	public bool backClicked = false;
-	public bool sideLeftClicked = false;
-	public bool sideRightClicked = false;
+	// onscreen locations for control boxes
+	private Rect rectForward;
+	private Rect rectBack;
+	private Rect rectDiagLeft;
+	private Rect rectDiagRight;
+	private Rect rectTurnLeft;
+	private Rect rectTurnRight;
 	
-	public bool leftArrowMouseEvent = false;
-	public bool rightArrowMouseEvent = false;
-
-	private float inputVert = 0f;
-	private float inputHorz = 0f;
-
 	// external modules
 	private LevelManager levelManager;
 
@@ -67,6 +68,42 @@ public class InputControls : MonoBehaviour
     {
 		// connect to external modules
 		levelManager = GetComponent<LevelManager>();
+		
+		rectForward = new Rect (0f, 0f, 0f, 0f);
+		rectBack = new Rect (0f, 0f, 0f, 0f);
+		rectDiagLeft = new Rect (0f, 0f, 0f, 0f);
+		rectDiagRight = new Rect (0f, 0f, 0f, 0f);
+		rectTurnLeft = new Rect (0f, 0f, 0f, 0f);
+		rectTurnRight = new Rect (0f, 0f, 0f, 0f);		
+
+		ResetControls();	
+	}
+
+	public void ResetControls()
+	{
+		navStateForward = NavState.Off;
+		navStateBack = NavState.Off;
+		navStateLeft = NavState.Off;
+		navStateRight = NavState.Off;
+		navValForward = 0;
+		navValBack = 0;
+		navValLeft = 0;
+		navValRight = 0;
+
+		navStateForwardLeft = NavState.Off;
+		navStateForwardRight = NavState.Off;
+		navStateBackLeft = NavState.Off;
+		navStateBackRight = NavState.Off;
+		navValForwardLeft = 0;
+		navValForwardRight = 0;
+		navValBackLeft = 0;
+		navValBackRight = 0;
+		
+		forwardKey = false;
+		backKey = false;
+		
+		inputVert = 0f;
+		inputHorz = 0f;
 	}
 
 	//===================================
@@ -85,51 +122,89 @@ public class InputControls : MonoBehaviour
 
 	public void ProcessControls(string gameState)
 	{
-		bool leftKeyState = Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.J) || leftArrowMouseEvent == true;
-		bool rightKeyState = Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.L) || rightArrowMouseEvent == true;
-		bool forwardKeyState = Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.I) || forwardClicked == true;
-		bool backKeyState = Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.K) || backClicked == true;
-		bool sideLeftState = Input.GetKey(KeyCode.U) || sideLeftClicked == true;
-		bool sideRightState = Input.GetKey(KeyCode.O) || sideRightClicked == true;
-		
-		forwardClicked = backClicked = sideLeftClicked = sideRightClicked = false;
+		// initialize key states to 'off'
+		bool keyStateForward = false;
+		bool keyStateBack = false;
+		bool keyStateDiagLeft = false;
+		bool keyStateDiagRight = false;
+		bool keyStateTurnLeft = false;
+		bool keyStateTurnRight = false;
+
+		// check for pressed mouse within any of the onscreen rects
+		if (Input.GetMouseButton(0)) {
+			float mouseX = Input.mousePosition.x;
+			float mouseY = Screen.height - Input.mousePosition.y;	
+			
+			if (mouseX >= rectForward.xMin && mouseX <= rectForward.xMax && mouseY >= rectForward.yMin && mouseY <= rectForward.yMax) {
+				keyStateForward = true;
+			}
+			if (mouseX >= rectBack.x && mouseX <= rectBack.x+rectBack.width && mouseY >= rectBack.y && mouseY <= rectBack.y+rectBack.height) {
+				keyStateBack = true;
+			}
+			if (mouseX >= rectDiagLeft.x && mouseX <= rectDiagLeft.x+rectDiagLeft.width && mouseY >= rectDiagLeft.y && mouseY <= rectDiagLeft.y+rectDiagLeft.height) {
+				keyStateDiagLeft = true;
+			}
+			if (mouseX >= rectDiagRight.x && mouseX <= rectDiagRight.x+rectDiagRight.width && mouseY >= rectDiagRight.y && mouseY <= rectDiagRight.y+rectDiagRight.height) {
+				keyStateDiagRight = true;
+			}
+			if (mouseX >= rectTurnLeft.x && mouseX <= rectTurnLeft.x+rectTurnLeft.width && mouseY >= rectTurnLeft.y && mouseY <= rectTurnLeft.y+rectTurnLeft.height) {
+				keyStateTurnLeft = true;
+			}
+			if (mouseX >= rectTurnRight.x && mouseX <= rectTurnRight.x+rectTurnRight.width && mouseY >= rectTurnRight.y && mouseY <= rectTurnRight.y+rectTurnRight.height) {
+				keyStateTurnRight = true;
+			}
+		}
 	
-		if (forwardKeyState == true)
+		// check for relevant keys pressed on the physical keyboard
+		if (Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.UpArrow))
+			keyStateForward = true;
+		if (Input.GetKey(KeyCode.K) || Input.GetKey(KeyCode.DownArrow))
+			keyStateBack = true;
+		if (Input.GetKey(KeyCode.U))
+			keyStateDiagLeft = true;
+		if (Input.GetKey(KeyCode.O))
+			keyStateDiagRight = true;
+		if (Input.GetKey(KeyCode.J) || Input.GetKey(KeyCode.LeftArrow))
+			keyStateTurnLeft = true;
+		if (Input.GetKey(KeyCode.L) || Input.GetKey(KeyCode.RightArrow))
+			keyStateTurnRight = true;
+			
+		// set the heading to either straight ahead or diagonal
+	
+		if (keyStateForward == true)
 			levelManager.pumaHeadingOffset = 0f;
 
-		if (sideLeftState == true) {
+		if (keyStateDiagLeft == true) {
 			levelManager.pumaHeadingOffset = -60f;
-			forwardKeyState = true;
+			keyStateForward = true;
 		}
-		else if (sideRightState == true) {
+		else if (keyStateDiagRight == true) {
 			levelManager.pumaHeadingOffset = 60f;
-			forwardKeyState = true;
+			keyStateForward = true;
 		}
+		
+		// deal with interactions between forward and back keys
 	
-		leftKey = leftKeyState;
-		rightKey = rightKeyState;
-
 		if (inputVert == 0) {
 			if (forwardKey == false)
-				forwardKey = forwardKeyState;
+				forwardKey = keyStateForward;
 			if (forwardKey == false)
-				backKey = backKeyState;	
+				backKey = keyStateBack;	
 		}
 		else if (inputVert > 0) {
 			if (forwardKey == false)
-				forwardKey = forwardKeyState;
-			else if (backKeyState == true)
+				forwardKey = keyStateForward;
+			else if (keyStateBack == true)
 				forwardKey = false;
 		}
 		else {
 			if (backKey == false)
-				backKey = backKeyState;
-			else if (forwardKeyState == true)
+				backKey = keyStateBack;
+			else if (keyStateForward == true)
 				backKey = false;
 		}
-
 		
-		// basic input processing
+		// now do main input processing
 	
 		UpdateNavChannel(navStateForward, navValForward, forwardKey, Time.deltaTime * 3, Time.deltaTime * 3);
 		navStateForward = newNavState;
@@ -139,21 +214,22 @@ public class InputControls : MonoBehaviour
 		navStateBack = newNavState;
 		navValBack = -newNavVal / 2;
 
-		UpdateNavChannel(navStateLeft, -navValLeft, leftKey, Time.deltaTime * ((gameState == "gameStateStalking") ? 3f : 4.4f), Time.deltaTime * 3);
+		UpdateNavChannel(navStateLeft, -navValLeft, keyStateTurnLeft, Time.deltaTime * ((gameState == "gameStateStalking") ? 3f : 4.4f), Time.deltaTime * 3);
 		navStateLeft = newNavState;
 		navValLeft = -newNavVal;
 
-		UpdateNavChannel(navStateRight, navValRight, rightKey, Time.deltaTime * ((gameState == "gameStateStalking") ? 3f : 4.4f), Time.deltaTime * 3);
+		UpdateNavChannel(navStateRight, navValRight, keyStateTurnRight, Time.deltaTime * ((gameState == "gameStateStalking") ? 3f : 4.4f), Time.deltaTime * 3);
 		navStateRight = newNavState;
 		navValRight = newNavVal;
 		
-		//inputVert = navValForward; // + navValBack;	 // disable down motion
-		inputVert = navValForward + navValBack;		 // enable down motion
+		//inputVert = navValForward;				 // disable backward motion
+		inputVert = navValForward + navValBack;		 // enable backward motion
 		inputHorz = navValRight + navValLeft;
 		
-		if (inputVert == 0)
+		if (inputVert == 0) {
+			// reset heading when puma stopped
 			levelManager.pumaHeadingOffset = 0;
-		
+		}
 	}
 
 	private void UpdateNavChannel(NavState previousNavState, float previousNavVal, bool keyPressed, float incStep, float decStep)
@@ -229,45 +305,6 @@ public class InputControls : MonoBehaviour
 		}
 	}
 
-	public void ResetControls()
-	{
-		navStateLeft = NavState.Off;
-		navStateRight = NavState.Off;
-		navStateForward = NavState.Off;
-		navStateBack = NavState.Off;
-
-		navStateForwardLeft = NavState.Off;
-		navStateForwardRight = NavState.Off;
-		navStateBackLeft = NavState.Off;
-		navStateBackRight = NavState.Off;
-		
-		navValLeft = 0;
-		navValRight = 0;
-		navValForward = 0;
-		navValBack = 0;
-
-		navValForwardLeft = 0;
-		navValForwardRight = 0;
-		navValBackLeft = 0;
-		navValBackRight = 0;
-		
-		leftKey = false;
-		rightKey = false;
-		forwardKey = false;
-		backKey = false;
-		
-		forwardClicked = false;
-		backClicked = false;
-		sideLeftClicked = false;
-		sideRightClicked = false;
-		
-		leftArrowMouseEvent = false;
-		rightArrowMouseEvent = false;
-
-		inputVert = 0f;
-		inputHorz = 0f;
-	}
-
 	//===================================
 	//===================================
 	//		READ CURRENT STATE
@@ -284,7 +321,41 @@ public class InputControls : MonoBehaviour
 		return inputHorz;
 	}
 	
+	//===================================
+	//===================================
+	//		SET ONSCREEN BOXES
+	//===================================
+	//===================================
+
+	public void SetRectForward(Rect rect)
+	{
+		rectForward = rect;	
+	}
 	
+	public void SetRectBack(Rect rect)
+	{
+		rectBack = rect;	
+	}
+	
+	public void SetRectDiagLeft(Rect rect)
+	{
+		rectDiagLeft = rect;	
+	}
+	
+	public void SetRectDiagRight(Rect rect)
+	{
+		rectDiagRight = rect;	
+	}
+	
+	public void SetRectTurnLeft(Rect rect)
+	{
+		rectTurnLeft = rect;	
+	}
+	
+	public void SetRectTurnRight(Rect rect)
+	{
+		rectTurnRight = rect;	
+	}
 }
 
 

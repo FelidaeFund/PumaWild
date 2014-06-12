@@ -304,8 +304,6 @@ public class ScoringSystem : MonoBehaviour
 	{
 		return fawnCalories[pumaNum];
 	}
-	
-
 }
 
 

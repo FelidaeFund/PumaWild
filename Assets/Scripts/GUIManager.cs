@@ -964,6 +964,7 @@ public class GUIManager : MonoBehaviour
 		float rightBoxY = textureY + textureHeight * 0.4f;
 		float rightBoxWidth = textureWidth * 0.8f;
 		float rightBoxHeight = textureHeight * 0.6f;
+		inputControls.SetRectTurnRight(new Rect(rightBoxX, rightBoxY, rightBoxWidth, rightBoxHeight));
 		
 		// upper right paw
 	
@@ -982,20 +983,11 @@ public class GUIManager : MonoBehaviour
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), arrowRightTexture);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), arrowUpTexture);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), arrowDownTexture);
-		GUI.color = new Color(1f, 1f, 1f, 0f);
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.45f, textureWidth * 0.24f, textureHeight * 0.24f), "")) {
-			inputControls.forwardClicked = true;
-		}
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.69f, textureWidth * 0.24f, textureHeight * 0.24f), "")) {
-			inputControls.backClicked = true;
-		}
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.11f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f), "")) {
-			inputControls.sideLeftClicked = true;
-		}
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.61f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f), "")) {
-			inputControls.sideRightClicked = true;
-		}
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		inputControls.SetRectForward(   new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.45f, textureWidth * 0.24f, textureHeight * 0.24f));
+		inputControls.SetRectBack(      new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.69f, textureWidth * 0.24f, textureHeight * 0.24f));
+		inputControls.SetRectDiagLeft(  new Rect(textureX + textureWidth * 0.11f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f));
+		inputControls.SetRectDiagRight( new Rect(textureX + textureWidth * 0.61f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f));
+		
 		
 		// upper left paw
 	
@@ -1031,41 +1023,7 @@ public class GUIManager : MonoBehaviour
 		float leftBoxY = textureY + textureHeight * 0.4f;
 		float leftBoxWidth = textureWidth * 0.8f;
 		float leftBoxHeight = textureHeight * 0.6f;
-
-
-			
-				
-		
-		
-		if (Event.current != null) {
-			if (Event.current.type == EventType.mouseDown || Event.current.type == EventType.mouseDrag) {
-				float mouseX = Event.current.mousePosition.x;
-				float mouseY = Event.current.mousePosition.y;
-				if (mouseX >= leftBoxX && mouseX <= leftBoxX+leftBoxWidth && mouseY >= leftBoxY && mouseY <= leftBoxY+leftBoxHeight) {
-					inputControls.leftArrowMouseEvent = true;
-					inputControls.rightArrowMouseEvent = false;
-				}
-				else if (mouseX >= rightBoxX && mouseX <= rightBoxX+rightBoxWidth && mouseY >= rightBoxY && mouseY <= rightBoxY+rightBoxHeight) {
-					inputControls.leftArrowMouseEvent = false;
-					inputControls.rightArrowMouseEvent = true;
-				}
-				else {
-					inputControls.leftArrowMouseEvent = false;
-					inputControls.rightArrowMouseEvent = false;	
-				}
-			}
-			else if (Event.current.type == EventType.mouseUp) {
-				inputControls.leftArrowMouseEvent = false;
-				inputControls.rightArrowMouseEvent = false;	
-			}	
-		}	
-		if (inputControls.leftArrowMouseEvent == true) {
-			//GUI.Button(new Rect(leftBoxX, leftBoxY, leftBoxWidth, leftBoxHeight), "");
-		}
-		if (inputControls.rightArrowMouseEvent == true) {
-			//GUI.Button(new Rect(rightBoxX, rightBoxY, rightBoxWidth, rightBoxHeight), "");
-		}
-		
+		inputControls.SetRectTurnLeft(new Rect(leftBoxX, leftBoxY, leftBoxWidth, leftBoxHeight));
 		
 		guiOpacity = prevGuiOpacity;
 
