@@ -1046,38 +1046,23 @@ public class LevelManager : MonoBehaviour
 			// the camera is then moved to the 'correct' distance along the vector from puma to camera
 			// that screws up the viewing angle, putting the puma too high or low in field of view
 			// lastly we calculate an angle offset for new position, and factor in some fudge to account for viewing angle problem
-		System.Console.WriteLine("=============================");	
-		System.Console.WriteLine("pumaY: " + pumaY.ToString());	
-		System.Console.WriteLine("cameraX: " + cameraX.ToString());	
-		System.Console.WriteLine("cameraY: " + cameraY.ToString());	
-		System.Console.WriteLine("cameraZ: " + cameraZ.ToString());	
-		System.Console.WriteLine("cameraRotX: " + cameraRotX.ToString());	
-		System.Console.WriteLine("cameraDistance: " + cameraDistance.ToString());	
-		System.Console.WriteLine("----------");	 // camera moves up
+
 		float adjustedCameraX = cameraX;
 		float adjustedCameraY = cameraY + GetTerrainHeight(cameraX, cameraZ);
 		float adjustedCameraZ = cameraZ;	
-		System.Console.WriteLine("adjustedCameraX: " + adjustedCameraX.ToString());	
-		System.Console.WriteLine("adjustedCameraY: " + adjustedCameraY.ToString());	
-		System.Console.WriteLine("adjustedCameraZ: " + adjustedCameraZ.ToString());	
-		System.Console.WriteLine("----------");	  // slides along vector
+
 		float idealVisualDistance = Vector3.Distance(new Vector3(0, 0, 0), new Vector3(cameraDistance, cameraY, 0));
-		System.Console.WriteLine("idealVisualDistance: " + idealVisualDistance.ToString());	
 		float currentVisualAngle = GetAngleFromOffset(0, pumaY, cameraDistance, adjustedCameraY);
-		System.Console.WriteLine("currentVisualAngle: " + currentVisualAngle.ToString());	
 		float adjustedCameraDistance = Mathf.Sin(currentVisualAngle*Mathf.PI/180) * idealVisualDistance;
-		System.Console.WriteLine("adjustedCameraDistance: " + adjustedCameraDistance.ToString());	
+
 		adjustedCameraY = pumaY + Mathf.Cos(currentVisualAngle*Mathf.PI/180) * idealVisualDistance;
 		adjustedCameraX = pumaX - (Mathf.Sin(cameraRotY*Mathf.PI/180) * adjustedCameraDistance);
 		adjustedCameraZ = pumaZ - (Mathf.Cos(cameraRotY*Mathf.PI/180) * adjustedCameraDistance);	
-		System.Console.WriteLine("adjustedCameraX: " + adjustedCameraX.ToString());	
-		System.Console.WriteLine("adjustedCameraY: " + adjustedCameraY.ToString());	
-		System.Console.WriteLine("adjustedCameraZ: " + adjustedCameraZ.ToString());	
-		System.Console.WriteLine("----------");	  // adjust angle
+
 		float cameraRotXAdjustment = -1f * (GetAngleFromOffset(0, pumaY, cameraDistance, GetTerrainHeight(cameraX, cameraZ)) - 90f);
 		cameraRotXAdjustment *= (cameraRotXAdjustment > 0) ? 0.65f : 0.8f;
 		float adjustedCameraRotX = cameraRotX + cameraRotXAdjustment;
-		System.Console.WriteLine("adjustedCameraRotX: " + adjustedCameraRotX.ToString());	
+
 		displayVar1 = cameraRotX;
 		displayVar2 = cameraRotXAdjustment;
 		displayVar3 = adjustedCameraRotX;
@@ -1085,13 +1070,12 @@ public class LevelManager : MonoBehaviour
 		// update camera obj
 		Camera.main.transform.position = new Vector3(adjustedCameraX, adjustedCameraY, adjustedCameraZ);
 		Camera.main.transform.rotation = Quaternion.Euler(adjustedCameraRotX, cameraRotY, cameraRotZ);
-		
 		cameraRotY = oldCameraRotY;
 
+		// update deer objects
 		UpdateDeerHeading(buck);
 		UpdateDeerHeading(doe);
 		UpdateDeerHeading(fawn);
-
 		UpdateDeerPosition(buck);
 		UpdateDeerPosition(doe);
 		UpdateDeerPosition(fawn);
@@ -1312,41 +1296,27 @@ public class LevelManager : MonoBehaviour
 		float terrainX;
 		float terrainZ;
 	
-		//System.Console.WriteLine("Entering GetTerrainHeight:   x: " + x.ToString()  + "  z: " + z.ToString());	
-		//System.Console.WriteLine("terrain 1:   x: " + terrain1.transform.position.x.ToString()  + "  z: " + terrain1.transform.position.z.ToString());	
-		//System.Console.WriteLine("terrain 2:   x: " + terrain2.transform.position.x.ToString()  + "  z: " + terrain2.transform.position.z.ToString());	
-		//System.Console.WriteLine("terrain 3:   x: " + terrain3.transform.position.x.ToString()  + "  z: " + terrain3.transform.position.z.ToString());	
-		//System.Console.WriteLine("terrain 4:   x: " + terrain4.transform.position.x.ToString()  + "  z: " + terrain4.transform.position.z.ToString());	
-
 		terrainX = terrain1.transform.position.x;
 		terrainZ = terrain1.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			//int height = (int)(terrain1.SampleHeight(new Vector3(x, 0, z)));
-			//System.Console.WriteLine("terrain 1: " + height.ToString());	
 			return  terrain1.SampleHeight(new Vector3(x, 0, z));
 		}
 			
 		terrainX = terrain2.transform.position.x;
 		terrainZ = terrain2.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			//int height = (int)(terrain2.SampleHeight(new Vector3(x, 0, z)));
-			//System.Console.WriteLine("terrain 2: " + height.ToString());	
 			return  terrain2.SampleHeight(new Vector3(x, 0, z));
 		}
 			
 		terrainX = terrain3.transform.position.x;
 		terrainZ = terrain3.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			//int height = (int)(terrain3.SampleHeight(new Vector3(x, 0, z)));
-			//System.Console.WriteLine("terrain 3: " + height.ToString());	
 			return  terrain3.SampleHeight(new Vector3(x, 0, z));
 		}
 			
 		terrainX = terrain4.transform.position.x;
 		terrainZ = terrain4.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			//int height = (int)(terrain4.SampleHeight(new Vector3(x, 0, z)));
-			//System.Console.WriteLine("terrain 4: " + height.ToString());	
 			return  terrain4.SampleHeight(new Vector3(x, 0, z));
 		}
 			
@@ -1354,14 +1324,7 @@ public class LevelManager : MonoBehaviour
 	}
 
 	
-	
-	//=======================================================
-	//
-	//	FRAME-BASED PROCESSING
-	//
-	//=======================================================
-	
-	void CalculateFrameRate()
+	void CalculateFrameRate()	// for frame rate display
 	{
 		int currentMsec = (int)(Time.time * 1000);
 
