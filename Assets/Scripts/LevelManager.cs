@@ -41,6 +41,7 @@ public class LevelManager : MonoBehaviour
 	// PUMA
 
 	public GameObject pumaObj;
+	public float mainHeading;
 	private float pumaX;
 	private float pumaY;
 	private float pumaZ;
@@ -84,7 +85,7 @@ public class LevelManager : MonoBehaviour
 	public float cameraY;
 	private float cameraZ;
 	public float cameraRotX;
-	public float cameraRotY;
+	private float cameraRotY;
 	private float cameraRotZ;
 	public float cameraDistance;
 	private float cameraRotOffsetY;
@@ -134,7 +135,7 @@ public class LevelManager : MonoBehaviour
 	private float deerCaughtFinalOffsetX;
 	private float deerCaughtOffsetZ;
 	private float deerCaughtFinalOffsetZ;
-	private float deerCaughtCameraRotY;
+	private float deerCaughtmainHeading;
 	private float deerCaughtNextFrameTime;
 	public int deerCaughtEfficiency = 0;
 
@@ -224,15 +225,15 @@ public class LevelManager : MonoBehaviour
 		pumaZ = 100f;			
 		cameraX = 0f;
 		cameraZ = 0f;	
-		cameraRotY = Random.Range(0f, 360f);
+		mainHeading = Random.Range(0f, 360f);
 		cameraRotZ = 0f;
 		
-		cameraX = pumaX - (Mathf.Sin(cameraRotY*Mathf.PI/180) * cameraDistance);
-		cameraZ = pumaZ - (Mathf.Cos(cameraRotY*Mathf.PI/180) * cameraDistance);
+		cameraX = pumaX - (Mathf.Sin(mainHeading*Mathf.PI/180) * cameraDistance);
+		cameraZ = pumaZ - (Mathf.Cos(mainHeading*Mathf.PI/180) * cameraDistance);
 
 		pumaObj.transform.position = new Vector3(pumaX, pumaY, pumaZ);
 		Camera.main.transform.position = new Vector3(cameraX, cameraY, cameraZ);
-		Camera.main.transform.rotation = Quaternion.Euler(cameraRotX, cameraRotY, cameraRotZ);
+		Camera.main.transform.rotation = Quaternion.Euler(cameraRotX, mainHeading, cameraRotZ);
 		
 	}
 	
@@ -581,31 +582,31 @@ public class LevelManager : MonoBehaviour
 
 				// prepare caughtDeer obj for slide
 				deerCaughtHeading = caughtDeer.heading;
-				if (cameraRotY >= deerCaughtHeading) {
-					deerCaughtHeadingLeft = (cameraRotY - deerCaughtHeading <= 180) ? false : true;
+				if (mainHeading >= deerCaughtHeading) {
+					deerCaughtHeadingLeft = (mainHeading - deerCaughtHeading <= 180) ? false : true;
 				}
 				else {
-					deerCaughtHeadingLeft = (deerCaughtHeading - cameraRotY <= 180) ? true : false;
+					deerCaughtHeadingLeft = (deerCaughtHeading - mainHeading <= 180) ? true : false;
 				}
 				if (deerCaughtHeadingLeft == true) {
-					deerCaughtFinalHeading = cameraRotY + 90;
+					deerCaughtFinalHeading = mainHeading + 90;
 				}
 				else {
-					//deerCaughtFinalHeading = cameraRotY - 90;
-					deerCaughtFinalHeading = cameraRotY + 90;
+					//deerCaughtFinalHeading = mainHeading - 90;
+					deerCaughtFinalHeading = mainHeading + 90;
 				}
-				//System.Console.WriteLine("cameraRotY: " + cameraRotY.ToString() + "  deerCaughtHeading: " + deerCaughtHeading.ToString() + "  deerCaughtFinalHeading: " + deerCaughtFinalHeading.ToString());	
+				//System.Console.WriteLine("mainHeading: " + mainHeading.ToString() + "  deerCaughtHeading: " + deerCaughtHeading.ToString() + "  deerCaughtFinalHeading: " + deerCaughtFinalHeading.ToString());	
 				if (deerCaughtFinalHeading < 0)
 					deerCaughtFinalHeading += 360;
 				if (deerCaughtFinalHeading >= 360)
 					deerCaughtFinalHeading -= 360;
-				deerCaughtCameraRotY = cameraRotY;
+				deerCaughtmainHeading = mainHeading;
 				deerCaughtOffsetX = caughtDeer.gameObj.transform.position.x - pumaX;
 				deerCaughtOffsetZ = caughtDeer.gameObj.transform.position.z - pumaZ;
-				deerCaughtFinalOffsetX = (Mathf.Sin(cameraRotY*Mathf.PI/180) * deerCaughtFinalOffsetFactor0);
-				deerCaughtFinalOffsetZ = (Mathf.Cos(cameraRotY*Mathf.PI/180) * deerCaughtFinalOffsetFactor0);
-				deerCaughtFinalOffsetX += (Mathf.Sin((cameraRotY-90f)*Mathf.PI/180) * deerCaughtFinalOffsetFactor90);
-				deerCaughtFinalOffsetZ += (Mathf.Cos((cameraRotY-90f)*Mathf.PI/180) * deerCaughtFinalOffsetFactor90);
+				deerCaughtFinalOffsetX = (Mathf.Sin(mainHeading*Mathf.PI/180) * deerCaughtFinalOffsetFactor0);
+				deerCaughtFinalOffsetZ = (Mathf.Cos(mainHeading*Mathf.PI/180) * deerCaughtFinalOffsetFactor0);
+				deerCaughtFinalOffsetX += (Mathf.Sin((mainHeading-90f)*Mathf.PI/180) * deerCaughtFinalOffsetFactor90);
+				deerCaughtFinalOffsetZ += (Mathf.Cos((mainHeading-90f)*Mathf.PI/180) * deerCaughtFinalOffsetFactor90);
 				//deerCaughtFinalOffsetX += (Mathf.Sin(deerCaughtFinalHeading*Mathf.PI/180) * 9f);
 				//deerCaughtFinalOffsetZ += (Mathf.Cos(deerCaughtFinalHeading*Mathf.PI/180) * 9f);
 				deerCaughtNextFrameTime = 0;
@@ -654,8 +655,8 @@ public class LevelManager : MonoBehaviour
 				// puma and deer slide to a stop
 				float percentDone = 1f - ((Time.time - stateStartTime) / fadeTime);
 				float pumaMoveDistance = 1f * Time.deltaTime * pumaChasingSpeed * percentDone * 1.1f;
-				pumaX += (Mathf.Sin(deerCaughtCameraRotY*Mathf.PI/180) * pumaMoveDistance);
-				pumaZ += (Mathf.Cos(deerCaughtCameraRotY*Mathf.PI/180) * pumaMoveDistance);
+				pumaX += (Mathf.Sin(deerCaughtmainHeading*Mathf.PI/180) * pumaMoveDistance);
+				pumaZ += (Mathf.Cos(deerCaughtmainHeading*Mathf.PI/180) * pumaMoveDistance);
 				// during slide move deer to correct position 
 				percentDone = ((Time.time - stateStartTime) / fadeTime);
 				if ((deerCaughtFinalHeading > deerCaughtHeading) && (deerCaughtFinalHeading - deerCaughtHeading > 180))
@@ -955,21 +956,21 @@ public class LevelManager : MonoBehaviour
 			// dev only: camera distance and angle
 			cameraDistance -= inputControls.GetInputVert() * Time.deltaTime * 20 * 5 * speedOverdrive;
 			cameraRotOffsetY += inputControls.GetInputHorz() * Time.deltaTime * 40 * 5 * speedOverdrive;
-			pumaHeading = cameraRotY;
+			pumaHeading = mainHeading;
 			inputControls.ResetControls();
 		}
 		
 		else if (Input.GetKey(KeyCode.LeftShift)) {
 			// dev only: camera height
 			cameraY += inputControls.GetInputVert() * Time.deltaTime  * 20 * 5 * speedOverdrive;
-			pumaHeading = cameraRotY;
+			pumaHeading = mainHeading;
 			inputControls.ResetControls();
 		}
 		
 		else if (Input.GetKey(KeyCode.LeftControl)) {
 			// dev only: camera pitch
 			cameraRotX += inputControls.GetInputVert() * Time.deltaTime  * 50 * 5 * speedOverdrive;
-			pumaHeading = cameraRotY;
+			pumaHeading = mainHeading;
 			inputControls.ResetControls();
 		}
 		
@@ -977,9 +978,9 @@ public class LevelManager : MonoBehaviour
 			if ((gameState != "gameStateLeavingGui") || (Time.time - stateStartTime < 1.8f))
 				pumaAnimator.SetBool("GuiMode", true);
 			distance = guiFlybySpeed * Time.deltaTime  * 12f * speedOverdrive;
-			pumaHeading = cameraRotY;
-			pumaX += (Mathf.Sin(cameraRotY*Mathf.PI/180) * distance);
-			pumaZ += (Mathf.Cos(cameraRotY*Mathf.PI/180) * distance);
+			pumaHeading = mainHeading;
+			pumaX += (Mathf.Sin(mainHeading*Mathf.PI/180) * distance);
+			pumaZ += (Mathf.Cos(mainHeading*Mathf.PI/180) * distance);
 		}
 		
 		else if (gameState == "gameStateCloseup" || gameState == "gameStateEnteringGameplay" ||
@@ -987,17 +988,17 @@ public class LevelManager : MonoBehaviour
 				 gameState == "gameStateDied1" || gameState == "gameStateDied2" || gameState == "gameStateDied3" || gameState == "gameStateDied4" || gameState == "gameStateDied5")
 		{
 			distance = 0f;
-			pumaHeading = cameraRotY;
-			pumaX += (Mathf.Sin(cameraRotY*Mathf.PI/180) * distance);
-			pumaZ += (Mathf.Cos(cameraRotY*Mathf.PI/180) * distance);
+			pumaHeading = mainHeading;
+			pumaX += (Mathf.Sin(mainHeading*Mathf.PI/180) * distance);
+			pumaZ += (Mathf.Cos(mainHeading*Mathf.PI/180) * distance);
 		}
 		
 		else if (gameState == "gameStateChasing") {
 			float rotationSpeed = 150f;
 			distance = inputControls.GetInputVert() * Time.deltaTime  * pumaChasingSpeed * speedOverdrive;
 			float travelledDistance = (scoringSystem.GetPumaHealth(selectedPuma) > 0.05f) ? distance : distance * (scoringSystem.GetPumaHealth(selectedPuma) / 0.05f);
-			cameraRotY += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
-			pumaHeading = cameraRotY + pumaHeadingOffset;
+			mainHeading += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
+			pumaHeading = mainHeading + pumaHeadingOffset;
 			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * travelledDistance);
 			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * travelledDistance);
 			scoringSystem.PumaHasRun(selectedPuma, distance);
@@ -1008,8 +1009,8 @@ public class LevelManager : MonoBehaviour
 		else if (gameState == "gameStateStalking") {		
 			float rotationSpeed = 100f;
 			distance = inputControls.GetInputVert() * Time.deltaTime  * pumaStalkingSpeed * speedOverdrive;
-			cameraRotY += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
-			pumaHeading = cameraRotY + pumaHeadingOffset;
+			mainHeading += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
+			pumaHeading = mainHeading + pumaHeadingOffset;
 			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * distance);
 			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * distance);
 			scoringSystem.PumaHasWalked(selectedPuma, distance);
@@ -1019,9 +1020,8 @@ public class LevelManager : MonoBehaviour
 
 		pumaAnimator.SetFloat("Distance", distance);
 
-		float oldCameraRotY = cameraRotY;
-		cameraRotY += cameraRotOffsetY;
-		
+		cameraRotY = mainHeading + cameraRotOffsetY;
+	
 		cameraX = pumaX - (Mathf.Sin(cameraRotY*Mathf.PI/180) * cameraDistance);
 		cameraZ = pumaZ - (Mathf.Cos(cameraRotY*Mathf.PI/180) * cameraDistance);	
 	
@@ -1070,7 +1070,6 @@ public class LevelManager : MonoBehaviour
 		// update camera obj
 		Camera.main.transform.position = new Vector3(adjustedCameraX, adjustedCameraY, adjustedCameraZ);
 		Camera.main.transform.rotation = Quaternion.Euler(adjustedCameraRotX, cameraRotY, cameraRotZ);
-		cameraRotY = oldCameraRotY;
 
 		// update deer objects
 		UpdateDeerHeading(buck);

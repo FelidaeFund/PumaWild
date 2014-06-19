@@ -736,9 +736,9 @@ public class GUIManager : MonoBehaviour
 
 		// deer head indicators
 		if (levelManager.buck != null && levelManager.doe != null && levelManager.fawn != null ) {
-			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.buck.gameObj, levelManager.buck.type, borderThickness, guiOpacity);
-			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.doe.gameObj, levelManager.doe.type, borderThickness, guiOpacity);
-			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.buck.gameObj, levelManager.buck.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.doe.gameObj, levelManager.doe.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, guiOpacity);
 		}
 		guiOpacity = prevGuiOpacity;
 		
