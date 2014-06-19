@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-/// ScoringSystem
 /// Keeps track of game progress and current score
+/// 
 
 public class ScoringSystem : MonoBehaviour
 {
@@ -304,6 +304,8 @@ public class ScoringSystem : MonoBehaviour
 	{
 		return fawnCalories[pumaNum];
 	}
+	
+
 }
 
 

@@ -15,7 +15,7 @@ public class PositionIndicator : MonoBehaviour
     {
 	}
 
-    public void DrawIndicator(float mainHeading, GameObject pumaObj, GameObject deerObj, string type, int borderThickness, float guiOpacity)
+    public void DrawIndicator(float cameraRotY, GameObject pumaObj, GameObject deerObj, string type, int borderThickness, float guiOpacity)
     {
 		float xPos = 0;
 		float yPos = 0;
@@ -30,10 +30,10 @@ public class PositionIndicator : MonoBehaviour
 		// Determine onscreen position of indicator
 		//------------------------------------------
 
-		while (mainHeading < 0)
-			mainHeading += 360;
-		while (mainHeading > 360)
-			mainHeading -= 360;
+		while (cameraRotY < 0)
+			cameraRotY += 360;
+		while (cameraRotY > 360)
+			cameraRotY -= 360;
 		
 		// angle based on midpoint between camera and puma
 		float refX = (pumaObj.transform.position.x + Camera.main.transform.position.x) / 2;
@@ -42,8 +42,8 @@ public class PositionIndicator : MonoBehaviour
 		deerToPumaAngle = GetAngleFromOffset(refX, refY, deerObj.transform.position.x, deerObj.transform.position.z);
 		deerToPumaDistance = Vector3.Distance(pumaObj.transform.position, deerObj.transform.position);
 
-		xOffset = -(Mathf.Sin((mainHeading - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
-		yOffset = (Mathf.Cos((mainHeading - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
+		xOffset = -(Mathf.Sin((cameraRotY - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
+		yOffset = (Mathf.Cos((cameraRotY - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
 		xOffset *= (rangeX/2) / rangeY; // adjust x offset to fit screen width			
 			
 		if (yOffset > 0) {
