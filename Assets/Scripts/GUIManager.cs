@@ -30,14 +30,14 @@ public class GUIManager : MonoBehaviour
 	
 	public GUISkin customGUISkin;
 	private float guiOpacity = 1f;
-	private float levelDisplayOpacity = 1f;
-	private float statusDisplayOpacity = 1f;
+	private float levelPanelOpacity = 1f;
+	private float statusPanelOpacity = 1f;
 	
-	private bool popupPanelVisible = false;
-	private int popupPanelPage = 0;
-	private float popupPanelTransStart;
-	private float popupPanelTransTime;
-	private bool popupPanelIntroFlag;
+	private bool infoPanelVisible = false;
+	private int infoPanelPage = 0;
+	private float infoPanelTransStart;
+	private float infoPanelTransTime;
+	private bool infoPanelIntroFlag;
 
 	public Texture2D logoTexture; 
 	public Texture2D backgroundTexture; 
@@ -105,7 +105,7 @@ public class GUIManager : MonoBehaviour
 	private int currentScreen = 0;
 	private int currentLevel = 0;
 	private int pumasAlive = 6;
-	private int selectedPuma = -1;
+	public int selectedPuma = -1;			// TEMP: !!! should not be public; need to consolidate in either LevelManager or GUIManager, with function call to get it
 	private int difficultyLevel = 1;
 	private int soundEnable = 1;
 	private float soundVolume = 0.5f;
@@ -144,6 +144,7 @@ public class GUIManager : MonoBehaviour
 	private PositionIndicator positionIndicator;
 	private ScoringSystem scoringSystem;
 	private InputControls inputControls;
+	private FeedingDisplay feedingDisplay;
 
 	//===================================
 	//===================================
@@ -158,13 +159,14 @@ public class GUIManager : MonoBehaviour
 		positionIndicator = GetComponent<PositionIndicator>();
 		scoringSystem = GetComponent<ScoringSystem>();
 		inputControls = GetComponent<InputControls>();
+		feedingDisplay = GetComponent<FeedingDisplay>();
 		
 		// initialize state
 		SetGuiState("guiStateStartApp1");
-		popupPanelVisible = true;
-		popupPanelTransStart = Time.time - 100000;
-		popupPanelTransTime = 0.3f;
-		popupPanelIntroFlag = true;
+		infoPanelVisible = true;
+		infoPanelTransStart = Time.time - 100000;
+		infoPanelTransTime = 0.3f;
+		infoPanelIntroFlag = true;
 		
 		// basic rect
 		rectTexture = new Texture2D(2,2);
@@ -271,7 +273,7 @@ public class GUIManager : MonoBehaviour
 		// debug option (enabled at top of file)
 		if (skipStraightToLevel == true) {
 			SetGuiState("guiStateStartApp1");
-			popupPanelVisible = false;
+			infoPanelVisible = false;
 			if (++skipStraightToLevelFrameCount == 10) {
 				SetGuiState("guiStateGameplay");
 				levelManager.SetGameState("gameStateLeavingGui");
@@ -280,8 +282,8 @@ public class GUIManager : MonoBehaviour
 		}
 		
 		// detect caught condition
-		if (levelManager.IsCaughtState() == true && guiState != "guiStateCaught1" && guiState != "guiStateCaught2") {
-			SetGuiState("guiStateCaught1");
+		if (levelManager.IsCaughtState() == true && guiState != "guiStateFeeding1" && guiState != "guiStateFeeding2") {
+			SetGuiState("guiStateFeeding1");
 		}
 		
 		//======================================
@@ -305,8 +307,8 @@ public class GUIManager : MonoBehaviour
 			// fade-out of popup panel
 			guiStateDuration = 1.1f;
 			if (Time.time > guiStateStartTime + guiStateDuration) {
-				popupPanelTransTime = 0.3f;
-				popupPanelIntroFlag = false;
+				infoPanelTransTime = 0.3f;
+				infoPanelIntroFlag = false;
 				SetGuiState("guiStateEnteringOverlay");
 			}
 			break;
@@ -421,70 +423,87 @@ public class GUIManager : MonoBehaviour
 		// leaving the feeding display
 		//------------------------------
 
-		case "guiStateCaught1":
+		case "guiStateFeeding1":
 			// fade-out of game-play controls
 			guiStateDuration = 1f;
 			FadeOutOpacityLinear();
 			if (Time.time > guiStateStartTime + guiStateDuration)
-				SetGuiState("guiStateCaught2");
+				SetGuiState("guiStateFeeding2");
 			break;
 
-		case "guiStateCaught2":
+		case "guiStateFeeding2":
 			// pause during attack on deer
 			guiStateDuration = 2f;
 			if (Time.time - guiStateStartTime > guiStateDuration)
-				SetGuiState("guiStateCaught3");
+				SetGuiState("guiStateFeeding3");
 			break;
 
-		case "guiStateCaught3":
-			// fade-in of feeding display
+		case "guiStateFeeding3":
+			// fade-in of feeding display main panel
 			guiStateDuration = 1f;
 			FadeInOpacityLinear();
 			CheckForKeyboardEscapeFromFeeding();
 			if (Time.time > guiStateStartTime + guiStateDuration)
-				SetGuiState("guiStateCaught4");
+				SetGuiState("guiStateFeeding4");
 			break;
 
-		case "guiStateCaught4":
+		case "guiStateFeeding4":
+			// brief pause
+			guiStateDuration = 1f;
+			CheckForKeyboardEscapeFromFeeding();
+			if (Time.time > guiStateStartTime + guiStateDuration)
+				SetGuiState("guiStateFeeding5");
+			break;
+
+		case "guiStateFeeding5":
+			// fade-in of feeding display 'ok' button
+			guiStateDuration = 1f;
+			FadeInOpacityLinear();
+			CheckForKeyboardEscapeFromFeeding();
+			if (Time.time > guiStateStartTime + guiStateDuration)
+				SetGuiState("guiStateFeeding6");
+			break;
+
+		case "guiStateFeeding6":
 			// ongoing view of feeding display
 			CheckForKeyboardEscapeFromFeeding();
 			break;
 
-		case "guiStateCaught5":
+		case "guiStateFeeding7":
 			// fade-out of feeding display
 			guiStateDuration = 2f;
 			FadeOutOpacityLinear();
 			if (Time.time > guiStateStartTime + guiStateDuration)
-				SetGuiState("guiStateCaught6");
+				SetGuiState("guiStateFeeding8");
 			break;
 
-		case "guiStateCaught6":
+		case "guiStateFeeding8":
 			// fade-in of movement controls
 			guiStateDuration = 0.9f;
 			FadeInOpacityLinear();
 			CheckForKeyboardEscapeFromGameplay();
 			if (Time.time > guiStateStartTime + guiStateDuration)
-				SetGuiState("guiStateCaught7");
+				SetGuiState("guiStateFeeding9");
 			break;
 
-		case "guiStateCaught7":
+		case "guiStateFeeding9":
 			// fade-in of position indicators
 			guiStateDuration = 1f;
 			FadeInOpacityLogarithmic();
 			CheckForKeyboardEscapeFromGameplay();
 			if (Time.time > guiStateStartTime + guiStateDuration)
-				SetGuiState("guiStateCaught8");
+				SetGuiState("guiStateFeeding10");
 			break;
 			
-		case "guiStateCaught8":
+		case "guiStateFeeding10":
 			// brief pause
 			guiStateDuration = 0.1f;
 			CheckForKeyboardEscapeFromGameplay();
 			if (Time.time > guiStateStartTime + guiStateDuration)
-				SetGuiState("guiStateCaught9");
+				SetGuiState("guiStateFeeding11");
 			break;
 			
-		case "guiStateCaught9":
+		case "guiStateFeeding11":
 			// fade-in of status indicators
 			guiStateDuration = 0.7f;
 			FadeInOpacityLinear();
@@ -532,7 +551,7 @@ public class GUIManager : MonoBehaviour
 	{
 		if (spacePressed || leftShiftPressed || rightShiftPressed) {
 			// use keyboard to resume gameplay
-			SetGuiState("guiStateCaught5");
+			SetGuiState("guiStateFeeding7");
 			levelManager.SetGameState("gameStateCaught5");
 		}
 	}
@@ -614,8 +633,8 @@ public class GUIManager : MonoBehaviour
 		case "guiStateEnteringOverlay":
 		case "guiStateOverlay":
 		case "guiStateLeavingOverlay":
-			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
-				CreateOverlayPanel();
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				DrawOverlayPanel();
 			break;
 
 		case "guiStateEnteringGameplay2":
@@ -624,21 +643,69 @@ public class GUIManager : MonoBehaviour
 		case "guiStateEnteringGameplay5":
 		case "guiStateGameplay":
 		case "guiStateLeavingGameplay":
-		case "guiStateCaught1":
-		case "guiStateCaught6":
-		case "guiStateCaught7":
-		case "guiStateCaught8":
-		case "guiStateCaught9":
-			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
-				CreateGameplayDisplay();
+
+
+		case "guiStateFeeding1":
+			// fade-out of game-play controls
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				DrawGameplayDisplay();
 			break;
 
-		case "guiStateCaught3":
-		case "guiStateCaught4":
-		case "guiStateCaught5":
-			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
-				CreateFeedingDisplay((Screen.width / 2) - (Screen.height * 0.7f), Screen.height * 0.025f, Screen.height * 1.4f, Screen.height * 0.37f);
+		case "guiStateFeeding2":
+			// no GUI display during attack on deer
 			break;
+
+		case "guiStateFeeding3":
+			// fade-in of feeding display main panel
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				feedingDisplay.Draw(guiOpacity, 0f);
+			break;
+
+		case "guiStateFeeding4":
+			// brief pause
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				feedingDisplay.Draw(1f, 0f);
+			break;
+
+		case "guiStateFeeding5":
+			// fade-in of feeding display 'ok' button
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				feedingDisplay.Draw(1f, guiOpacity);
+			break;
+
+		case "guiStateFeeding6":
+			// ongoing view of feeding display
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				feedingDisplay.Draw(1f, 1f);
+			break;
+
+		case "guiStateFeeding7":
+			// fade-out of feeding display
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				feedingDisplay.Draw(guiOpacity, guiOpacity);
+			break;
+
+			
+			
+		case "guiStateFeeding8":
+			// fade-in of movement controls
+		case "guiStateFeeding9":
+			// fade-in of position indicators
+		case "guiStateFeeding10":
+			// brief pause
+		case "guiStateFeeding11":
+			// fade-in of status indicators
+			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				DrawGameplayDisplay();
+			break;
+
+
+
+
+
+
+
+
 		}
 
 		// frame rate display
@@ -661,34 +728,43 @@ public class GUIManager : MonoBehaviour
 		
 		// draw popup panel
 				
-		float elapsedTime = Time.time - popupPanelTransStart;
+		float elapsedTime = Time.time - infoPanelTransStart;
 		float percentVisible = 0f;
 		
-		if (popupPanelVisible == true && elapsedTime < popupPanelTransTime) {
+		if (infoPanelVisible == true && elapsedTime < infoPanelTransTime) {
 			// sliding in
-			percentVisible = elapsedTime / popupPanelTransTime;			
-			DrawPopupPanel(percentVisible);
+			percentVisible = elapsedTime / infoPanelTransTime;			
+			DrawInfoPanel(percentVisible);
 		}
-		else if (popupPanelVisible == true) {
+		else if (infoPanelVisible == true) {
 			// fully open
-			DrawPopupPanel(1f);
+			DrawInfoPanel(1f);
 		}
-		else if (elapsedTime < popupPanelTransTime) {
+		else if (elapsedTime < infoPanelTransTime) {
 			// sliding out		
-			percentVisible = 1f - elapsedTime / popupPanelTransTime;
-			DrawPopupPanel(percentVisible);
+			percentVisible = 1f - elapsedTime / infoPanelTransTime;
+			DrawInfoPanel(percentVisible);
 		}
 
 
 	}	
  
  
- 	void CreateGameplayDisplay() 
+	public void OpenPopupPanel(int panelNum)
+	{
+		infoPanelPage = panelNum;
+		infoPanelVisible = true;
+		infoPanelTransStart = Time.time;
+	}
+ 
+ 
+ 
+ 	void DrawGameplayDisplay() 
 	{ 
 		float actualGuiOpacity = guiOpacity;
 		float prevGuiOpacity;
 		
-		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught6" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateFeeding8" || guiState == "guiStateFeeding9" || guiState == "guiStateFeeding10" || guiState == "guiStateFeeding11")
 			guiOpacity = 0f;
 	
 		GUIStyle style = new GUIStyle();
@@ -720,9 +796,9 @@ public class GUIManager : MonoBehaviour
 		GUI.Box(new Rect(Screen.width - boxWidth - boxMargin,  Screen.height - boxHeight - boxMargin, boxWidth, boxHeight), "");
 		
 		prevGuiOpacity = guiOpacity;
-		if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateCaught7")
+		if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateFeeding9")
 			guiOpacity = actualGuiOpacity;
-		else if (guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		else if (guiState == "guiStateEnteringGameplay5" || guiState == "guiStateFeeding10" || guiState == "guiStateFeeding11")
 			guiOpacity = 1f;
 
 		// outer edge display
@@ -746,25 +822,25 @@ public class GUIManager : MonoBehaviour
 		
 		
 		prevGuiOpacity = guiOpacity;
-		if (guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught9")
+		if (guiState == "guiStateEnteringGameplay5" || guiState == "guiStateFeeding11")
 			guiOpacity = actualGuiOpacity;
 
 		// level and status displays
-		//if (guiState != "guiStateGameplay" && (levelManager.IsStalkingState() || guiState == "guiStateLeavingGameplay")) {  // || levelManager.IsCaughtState() || guiState == "guiStateCaught1") {
+		//if (guiState != "guiStateGameplay" && (levelManager.IsStalkingState() || guiState == "guiStateLeavingGameplay")) {  // || levelManager.IsCaughtState() || guiState == "guiStateFeeding1") {
 		if (levelManager.IsStalkingState() || levelManager.IsChasingState() || guiState == "guiStateLeavingGameplay") {
-			float levelDisplayX = boxMargin * 0.2f;
-			float levelDisplayY = Screen.height - boxMargin * 0.82f - boxMargin * 0.78f;
-			float levelDisplayWidth = boxWidth * 1.5f;
-			float levelDisplayHeight = boxHeight / 3.03f;
-			levelDisplayOpacity = 0.9f;
-			CreateLevelDisplay(levelDisplayX, levelDisplayY, levelDisplayWidth, levelDisplayHeight, true);
+			float levelPanelX = boxMargin * 0.2f;
+			float levelPanelY = Screen.height - boxMargin * 0.82f - boxMargin * 0.78f;
+			float levelPanelWidth = boxWidth * 1.5f;
+			float levelPanelHeight = boxHeight / 3.03f;
+			levelPanelOpacity = 0.9f;
+			DrawLevelPanel(levelPanelX, levelPanelY, levelPanelWidth, levelPanelHeight, true);
 						
-			float statusDisplayX = Screen.width - (boxMargin * 0.2f) - boxWidth * 1.5f;
-			float statusDisplayY = Screen.height - boxMargin * 1.06f - boxMargin * 0.78f;
-			float statusDisplayWidth = boxWidth * 1.5f;
-			float statusDisplayHeight = boxHeight / 2.7f;
-			statusDisplayOpacity = 0.9f;
-			CreateStatusDisplay(statusDisplayX, statusDisplayY, statusDisplayWidth, statusDisplayHeight, true);
+			float statusPanelX = Screen.width - (boxMargin * 0.2f) - boxWidth * 1.5f;
+			float statusPanelY = Screen.height - boxMargin * 1.06f - boxMargin * 0.78f;
+			float statusPanelWidth = boxWidth * 1.5f;
+			float statusPanelHeight = boxHeight / 2.7f;
+			statusPanelOpacity = 0.9f;
+			DrawStatusPanel(statusPanelX, statusPanelY, statusPanelWidth, statusPanelHeight, true);
 		}
 		
 		// 'exit' button
@@ -805,9 +881,9 @@ public class GUIManager : MonoBehaviour
 		float trayScaleFactor = (8.5f/7f);
 
 		prevGuiOpacity = guiOpacity;
-		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateCaught6")
+		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateFeeding8")
 			guiOpacity = actualGuiOpacity;
-		else if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		else if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateFeeding9" || guiState == "guiStateFeeding10" || guiState == "guiStateFeeding11")
 			guiOpacity = 1f;
 			
 		// lower right paw
@@ -896,9 +972,9 @@ public class GUIManager : MonoBehaviour
 		boxHeight = boxHeight * 0.865f;
 		//boxMargin = boxMargin * 1.2f;
 
-		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateCaught6")
+		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateFeeding8")
 			guiOpacity = actualGuiOpacity;
-		else if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		else if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateFeeding9" || guiState == "guiStateFeeding10" || guiState == "guiStateFeeding11")
 			guiOpacity = 1f;
 
 
@@ -976,7 +1052,7 @@ public class GUIManager : MonoBehaviour
 
 
 	
-	void CreateOverlayPanel() 
+	void DrawOverlayPanel() 
 	{ 
 		// background panel
 		GUI.color = new Color(0f, 0f, 0f, 1f * guiOpacity);
@@ -1031,19 +1107,19 @@ public class GUIManager : MonoBehaviour
 
 		// LEVEL and STATUS DISPLAYS
 
-		float levelDisplayX = overlayRect.x + overlayRect.width * 0.04f;
-		float levelDisplayY = overlayRect.y + overlayRect.width * 0.016f + upperItemsYShift;
-		float levelDisplayWidth = overlayRect.width * 0.30f;
-		float levelDisplayHeight = overlayRect.width * 0.076f;
-		levelDisplayOpacity = 1f;
-		CreateLevelDisplay(levelDisplayX, levelDisplayY, levelDisplayWidth, levelDisplayHeight, false);
+		float levelPanelX = overlayRect.x + overlayRect.width * 0.04f;
+		float levelPanelY = overlayRect.y + overlayRect.width * 0.016f + upperItemsYShift;
+		float levelPanelWidth = overlayRect.width * 0.30f;
+		float levelPanelHeight = overlayRect.width * 0.076f;
+		levelPanelOpacity = 1f;
+		DrawLevelPanel(levelPanelX, levelPanelY, levelPanelWidth, levelPanelHeight, false);
 					
-		float statusDisplayX = overlayRect.x + overlayRect.width * 0.66f;
-		float statusDisplayY = overlayRect.y + overlayRect.width * 0.016f + upperItemsYShift;
-		float statusDisplayWidth = overlayRect.width * 0.30f;
-		float statusDisplayHeight = overlayRect.width * 0.076f;
-		statusDisplayOpacity = 1f;
-		CreateStatusDisplay(statusDisplayX, statusDisplayY, statusDisplayWidth, statusDisplayHeight, false);
+		float statusPanelX = overlayRect.x + overlayRect.width * 0.66f;
+		float statusPanelY = overlayRect.y + overlayRect.width * 0.016f + upperItemsYShift;
+		float statusPanelWidth = overlayRect.width * 0.30f;
+		float statusPanelHeight = overlayRect.width * 0.076f;
+		statusPanelOpacity = 1f;
+		DrawStatusPanel(statusPanelX, statusPanelY, statusPanelWidth, statusPanelHeight, false);
 
 		
 		
@@ -1070,15 +1146,15 @@ public class GUIManager : MonoBehaviour
 		GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
 		GUI.color = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
 		if (GUI.Button(new Rect(helpButtonX, helpButtonY, helpButtonWidth, helpButtonHeight), "")) {
-			popupPanelVisible = true;
-			//popupPanelPage = 1;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			//infoPanelPage = 1;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
 		if (GUI.Button(new Rect(helpButtonX, helpButtonY, helpButtonWidth, helpButtonHeight), "Info...")) {
-			popupPanelVisible = true;
-			//popupPanelPage = 1;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			//infoPanelPage = 1;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 
@@ -1163,16 +1239,16 @@ public class GUIManager : MonoBehaviour
 		// add selected screen
 		switch (currentScreen) {
 		case 0:
-			CreateSelectScreen();
+			DrawSelectScreen();
 			break;		
 		case 1:
-			CreateOptionsScreen();
+			DrawOptionsScreen();
 			break;
 		case 2:
-			CreateStatsScreen();
+			DrawStatsScreen();
 			break;
 		case 3:
-			CreateQuitScreen();
+			DrawQuitScreen();
 			break;
 		}
 		
@@ -1183,7 +1259,7 @@ public class GUIManager : MonoBehaviour
 	
 	bool modifyLayoutFlag = false;
 
-	void CreateSelectScreen() 
+	void DrawSelectScreen() 
 	{ 
 		float textureX;
 		float textureY;
@@ -1257,7 +1333,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Box(new Rect(healthBarX + healthBarWidth - healthBarLabelWidth * 0.985f, healthBarY, healthBarLabelWidth * 0.985f, healthBarHeight), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 
-		CreatePopulationHealthBar(healthBarX + healthBarLabelWidth, healthBarY, healthBarWidth - healthBarLabelWidth * 2f, healthBarHeight, false, false);
+		DrawPopulationHealthBar(guiOpacity, healthBarX + healthBarLabelWidth, healthBarY, healthBarWidth - healthBarLabelWidth * 2f, healthBarHeight, false, false);
 
 		guiOpacity = actualGuiOpacity;
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);		
@@ -1274,7 +1350,7 @@ public class GUIManager : MonoBehaviour
 		Color unselectedTextColor = new Color(0.85f, 0.74f, 0.5f, 0.85f);
 
 		
-		// used in CreateSelectScreen() and CreateSelectScreenDetails()
+		// used in DrawSelectScreen() and DrawSelectScreenDetails()
 		float headUpShift = overlayRect.height * -0.03f;
 		float textUpShift = overlayRect.height * -0.283f;
 		float barsDownShift = overlayRect.height * 0.06f;
@@ -1342,7 +1418,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
 			if (scoringSystem.GetPumaHealth(0) > 0f && scoringSystem.GetPumaHealth(0) < 1f)
-				CreateHealthBar(0, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
+				DrawPumaHealthBar(0, guiOpacity, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
 			GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1417,7 +1493,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		}
 		if (selectedPuma == 0)
-			CreateSelectScreenDetailsPanel(style, textureX, textureWidth, headshot1Texture);
+			DrawSelectScreenDetailsPanel(style, textureX, textureWidth, headshot1Texture);
 		// text
 		if (selectedPuma == 0)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
@@ -1461,7 +1537,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
 			if (scoringSystem.GetPumaHealth(1) > 0f && scoringSystem.GetPumaHealth(1) < 1f)
-				CreateHealthBar(1, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
+				DrawPumaHealthBar(1, guiOpacity, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
 			GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1536,7 +1612,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		}
 		if (selectedPuma == 1)
-			CreateSelectScreenDetailsPanel(style, textureX, textureWidth, headshot2Texture);
+			DrawSelectScreenDetailsPanel(style, textureX, textureWidth, headshot2Texture);
 		// text
 		if (selectedPuma == 1)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
@@ -1578,7 +1654,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
 			if (scoringSystem.GetPumaHealth(2) > 0f && scoringSystem.GetPumaHealth(2) < 1f)
-				CreateHealthBar(2, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
+				DrawPumaHealthBar(2, guiOpacity, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
 			GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1653,7 +1729,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		}
 		if (selectedPuma == 2)
-			CreateSelectScreenDetailsPanel(style, textureX, textureWidth, headshot3Texture);
+			DrawSelectScreenDetailsPanel(style, textureX, textureWidth, headshot3Texture);
 		// text
 		if (selectedPuma == 2)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
@@ -1695,7 +1771,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
 			if (scoringSystem.GetPumaHealth(3) > 0f && scoringSystem.GetPumaHealth(3) < 1f)
-				CreateHealthBar(3, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
+				DrawPumaHealthBar(3, guiOpacity, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
 			GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1770,7 +1846,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		}
 		if (selectedPuma == 3)
-			CreateSelectScreenDetailsPanel(style, textureX, textureWidth, headshot4Texture);
+			DrawSelectScreenDetailsPanel(style, textureX, textureWidth, headshot4Texture);
 		// text
 		if (selectedPuma == 3)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
@@ -1812,7 +1888,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
 			if (scoringSystem.GetPumaHealth(4) > 0f && scoringSystem.GetPumaHealth(4) < 1f)
-				CreateHealthBar(4, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
+				DrawPumaHealthBar(4, guiOpacity, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
 			GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -1887,7 +1963,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		}
 		if (selectedPuma == 4)
-			CreateSelectScreenDetailsPanel(style, textureX, textureWidth, headshot5Texture);
+			DrawSelectScreenDetailsPanel(style, textureX, textureWidth, headshot5Texture);
 		// text
 		if (selectedPuma == 4)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
@@ -1929,7 +2005,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			// health bar
 			if (scoringSystem.GetPumaHealth(5) > 0f && scoringSystem.GetPumaHealth(5) < 1f)
-				CreateHealthBar(5, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
+				DrawPumaHealthBar(5, guiOpacity, textureX, headshotY - headshotHeight * 0.36f + healthDownShift, textureWidth, headshotHeight * 0.26f, true);
 			// background panel for puma middle
 			headshotY = overlayRect.y + overlayRect.height * 0.47f + yOffsetForAddingPopulationBar + barsDownShift;
 			GUI.color = new Color(0f, 0f, 0f, 0.8f * guiOpacity);
@@ -2004,7 +2080,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		}
 		if (selectedPuma == 5)
-			CreateSelectScreenDetailsPanel(style, textureX, textureWidth, headshot6Texture);
+			DrawSelectScreenDetailsPanel(style, textureX, textureWidth, headshot6Texture);
 		// text
 		if (selectedPuma == 5)
 			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
@@ -2024,7 +2100,7 @@ public class GUIManager : MonoBehaviour
 	}	
 	
 
-	void CreateSelectScreenDetailsPanel(GUIStyle style, float textureX, float textureWidth, Texture2D headshotTexture) 
+	void DrawSelectScreenDetailsPanel(GUIStyle style, float textureX, float textureWidth, Texture2D headshotTexture) 
 	{ 
 		float headshotY = overlayRect.y + overlayRect.height * 0.23f;
 		float headshotHeight = overlayRect.height * 0.17f;
@@ -2040,7 +2116,7 @@ public class GUIManager : MonoBehaviour
 		float upperPanelShrinkFactor = 0.05f;
 		
 
-		// used in CreateSelectScreen() and CreateSelectScreenDetailsPanel()
+		// used in DrawSelectScreen() and DrawSelectScreenDetailsPanel()
 		float headUpShift = overlayRect.height * -0.03f;
 		float textUpShift = overlayRect.height * -0.303f;
 		float barsDownShift = overlayRect.height * 0.06f;
@@ -2079,7 +2155,7 @@ public class GUIManager : MonoBehaviour
 		GUI.color = new Color(0f, 0f, 0f, 1f * guiOpacity);
 		GUI.Box(new Rect(detailsPanelX + detailsPanelWidth * 0.03f, origHeadshotYPos - headshotHeight * 0.091f + healthDownShift, detailsPanelWidth - detailsPanelWidth * 0.06f, headshotHeight * 0.17f), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		CreateHealthBar(selectedPuma, detailsPanelX + detailsPanelWidth * 0.03f, origHeadshotYPos - headshotHeight * 0.091f + healthDownShift, detailsPanelWidth - detailsPanelWidth * 0.06f, headshotHeight * 0.17f);
+		DrawPumaHealthBar(selectedPuma, guiOpacity, detailsPanelX + detailsPanelWidth * 0.03f, origHeadshotYPos - headshotHeight * 0.091f + healthDownShift, detailsPanelWidth - detailsPanelWidth * 0.06f, headshotHeight * 0.17f);
 
 		
 		float displayBarsRightShift = headshotWidth * 0.018f;
@@ -2124,20 +2200,20 @@ public class GUIManager : MonoBehaviour
 		customGUISkin.button.fontStyle = FontStyle.Bold;
 		GUI.backgroundColor = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
 		if (GUI.Button(new Rect(headshotX + overlayRect.width * 0.015f - detailsPanelWidth * 0.033f, yOffset + headshotY + headshotHeight + overlayRect.height * 0.008f, detailsPanelWidth * 0.15f, headshotHeight * 0.2f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 1;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 1;
+			infoPanelTransStart = Time.time;
 		}
 		if (GUI.Button(new Rect(headshotX + overlayRect.width * 0.015f - detailsPanelWidth * 0.033f, yOffset + headshotY + headshotHeight + overlayRect.height * 0.008f, detailsPanelWidth * 0.15f, headshotHeight * 0.2f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 1;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 1;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
 		if (GUI.Button(new Rect(headshotX + overlayRect.width * 0.015f - detailsPanelWidth * 0.033f, yOffset + headshotY + headshotHeight + overlayRect.height * 0.008f, detailsPanelWidth * 0.15f, headshotHeight * 0.2f), "?")) {
-			popupPanelVisible = true;
-			popupPanelPage = 1;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 1;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		GUI.backgroundColor = new Color(1f, 1f, 1f, 1f * guiOpacity);
@@ -2154,7 +2230,7 @@ public class GUIManager : MonoBehaviour
 	//======================================================================
 	//======================================================================
 	
-	void CreateOptionsScreen() 
+	void DrawOptionsScreen() 
 	{ 
 		float optionsScreenX = overlayRect.x + overlayRect.width * 0.06f;
 		float optionsScreenY = overlayRect.y + overlayRect.height * 0.205f;
@@ -2193,7 +2269,7 @@ public class GUIManager : MonoBehaviour
 		GUI.Box(new Rect(healthBarX + healthBarWidth - healthBarLabelWidth * 0.985f, healthBarY, healthBarLabelWidth * 0.985f, healthBarHeight), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 
-		CreatePopulationHealthBar(healthBarX + healthBarLabelWidth, healthBarY, healthBarWidth - healthBarLabelWidth * 2f, healthBarHeight, false, false);
+		DrawPopulationHealthBar(guiOpacity, healthBarX + healthBarLabelWidth, healthBarY, healthBarWidth - healthBarLabelWidth * 2f, healthBarHeight, false, false);
 
 		guiOpacity = actualGuiOpacity;
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);		
@@ -2444,20 +2520,20 @@ public class GUIManager : MonoBehaviour
 		GUI.color = new Color(1f, 1f, 1f, 1f);
 		GUI.backgroundColor = new Color(1f, 0f, 0f, 1f);
 		if (GUI.Button(new Rect(overlayRect.width * -0.003f + optionsScreenX + overlayRect.width * 0.025f + overlayRect.width * 0.292f, overlayRect.width * -0.0025f + titleY + overlayRect.height * 0.113f * 3f - overlayRect.height * 0.006f, overlayRect.width * 0.006f + overlayRect.width * 0.25f, overlayRect.width * 0.005f + overlayRect.height * 0.0585f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 0;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 0;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(0.5f, 0.5f, 0.9f, 1f);
 		if (GUI.Button(new Rect(optionsScreenX + overlayRect.width * 0.025f + overlayRect.width * 0.292f, titleY + overlayRect.height * 0.113f * 3f - overlayRect.height * 0.006f, overlayRect.width * 0.25f, overlayRect.height * 0.0585f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 0;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 0;
+			infoPanelTransStart = Time.time;
 		}
 		if (GUI.Button(new Rect(optionsScreenX + overlayRect.width * 0.025f + overlayRect.width * 0.292f, titleY + overlayRect.height * 0.113f * 3f - overlayRect.height * 0.006f, overlayRect.width * 0.25f, overlayRect.height * 0.0585f), "Play Introduction....")) {
-			popupPanelVisible = true;
-			popupPanelPage = 0;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 0;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
 		GUI.color = new Color(1f, 1f, 1f, 1f);
@@ -2487,20 +2563,20 @@ public class GUIManager : MonoBehaviour
 		GUI.color = new Color(1f, 1f, 1f, 1f);
 		GUI.backgroundColor = new Color(1f, 0f, 0f, 1f);
 		if (GUI.Button(new Rect(overlayRect.width * -0.003f + optionsScreenX + overlayRect.width * 0.025f + overlayRect.width * 0.292f, overlayRect.width * -0.0025f + titleY + overlayRect.height * 0.113f * 4f - overlayRect.height * 0.006f, overlayRect.width * 0.006f + overlayRect.width * 0.25f, overlayRect.width * 0.005f + overlayRect.height * 0.0585f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 5;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 5;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(0.5f, 0.5f, 0.9f, 1f);
 		if (GUI.Button(new Rect(optionsScreenX + overlayRect.width * 0.025f + overlayRect.width * 0.292f, titleY + overlayRect.height * 0.113f * 4f - overlayRect.height * 0.006f, overlayRect.width * 0.25f, overlayRect.height * 0.0585f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 5;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 5;
+			infoPanelTransStart = Time.time;
 		}
 		if (GUI.Button(new Rect(optionsScreenX + overlayRect.width * 0.025f + overlayRect.width * 0.292f, titleY + overlayRect.height * 0.113f * 4f - overlayRect.height * 0.006f, overlayRect.width * 0.25f, overlayRect.height * 0.0585f), "Help Protect Pumas....")) {
-			popupPanelVisible = true;
-			popupPanelPage = 5;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 5;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
 		GUI.color = new Color(1f, 1f, 1f, 1f);
@@ -2515,7 +2591,7 @@ public class GUIManager : MonoBehaviour
 	//======================================================================
 	//======================================================================
 	
-	void CreateStatsScreen() 
+	void DrawStatsScreen() 
 	{ 
 		float statsX = overlayRect.x + overlayRect.width * 0.06f;
 		float statsY = overlayRect.y + overlayRect.height * 0.205f;
@@ -2638,7 +2714,7 @@ public class GUIManager : MonoBehaviour
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 		}
 
-		CreatePopulationHealthBar(healthBarX + healthBarLabelWidth, healthBarY, healthBarWidth - healthBarLabelWidth * 2f, healthBarHeight, false, true);
+		DrawPopulationHealthBar(guiOpacity, healthBarX + healthBarLabelWidth, healthBarY, healthBarWidth - healthBarLabelWidth * 2f, healthBarHeight, false, true);
 
 		guiOpacity = actualGuiOpacity;
 		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);		
@@ -3099,12 +3175,12 @@ public class GUIManager : MonoBehaviour
 		
 		float healthBarYFactor = 0.94f;
 
-		CreateHealthBar(0, statsX + columnWidth*0 + columnGap*0, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
-		CreateHealthBar(1, statsX + columnWidth*1 + columnGap*1, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
-		CreateHealthBar(2, statsX + columnWidth*2 + columnGap*2, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
-		CreateHealthBar(3, statsX + columnWidth*4 + columnGap*4 + midColumnSizeIncrease, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
-		CreateHealthBar(4, statsX + columnWidth*5 + columnGap*5 + midColumnSizeIncrease, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
-		CreateHealthBar(5, statsX + columnWidth*6 + columnGap*6 + midColumnSizeIncrease, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
+		DrawPumaHealthBar(0, guiOpacity, statsX + columnWidth*0 + columnGap*0, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
+		DrawPumaHealthBar(1, guiOpacity, statsX + columnWidth*1 + columnGap*1, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
+		DrawPumaHealthBar(2, guiOpacity, statsX + columnWidth*2 + columnGap*2, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
+		DrawPumaHealthBar(3, guiOpacity, statsX + columnWidth*4 + columnGap*4 + midColumnSizeIncrease, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
+		DrawPumaHealthBar(4, guiOpacity, statsX + columnWidth*5 + columnGap*5 + midColumnSizeIncrease, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
+		DrawPumaHealthBar(5, guiOpacity, statsX + columnWidth*6 + columnGap*6 + midColumnSizeIncrease, statsY + statsHeight * healthBarYFactor, columnWidth, statsHeight * 0.04f, true, true);
 
 
 		
@@ -3328,20 +3404,20 @@ public class GUIManager : MonoBehaviour
 		GUI.color = new Color(1f, 1f, 1f, 1f);
 		GUI.backgroundColor = new Color(1f, 0f, 0f, 1f);
 		if (GUI.Button(new Rect(overlayRect.width * -0.003f + statsX + statsWidth * 0.24f, overlayRect.width * -0.0025f + statsY + statsHeight * 0.56f, overlayRect.width * 0.006f + statsWidth * 0.3f, overlayRect.width * 0.005f + statsHeight * 0.098f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 2;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 2;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(0.5f, 0.5f, 0.9f, 1f);
 		if (GUI.Button(new Rect(statsX + statsWidth * 0.24f, statsY + statsHeight * 0.56f, statsWidth * 0.3f, statsHeight * 0.098f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 2;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 2;
+			infoPanelTransStart = Time.time;
 		}
 		if (GUI.Button(new Rect(statsX + statsWidth * 0.24f, statsY + statsHeight * 0.56f, statsWidth * 0.3f, statsHeight * 0.098f), "How Pumas Hunt....")) {
-			popupPanelVisible = true;
-			popupPanelPage = 2;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 2;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
 		GUI.color = new Color(1f, 1f, 1f, 1f);
@@ -3439,20 +3515,20 @@ public class GUIManager : MonoBehaviour
 		GUI.color = new Color(1f, 1f, 1f, 1f);
 		GUI.backgroundColor = new Color(1f, 0f, 0f, 1f);
 		if (GUI.Button(new Rect(overlayRect.width * -0.003f + statsX + statsWidth * 0.24f, overlayRect.width * -0.0025f + statsY + statsHeight * 0.56f, overlayRect.width * 0.006f + statsWidth * 0.3f, overlayRect.width * 0.005f + statsHeight * 0.098f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 4;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 4;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(0.5f, 0.5f, 0.9f, 1f);
 		if (GUI.Button(new Rect(statsX + statsWidth * 0.24f, statsY + statsHeight * 0.56f, statsWidth * 0.3f, statsHeight * 0.098f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 4;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 4;
+			infoPanelTransStart = Time.time;
 		}
 		if (GUI.Button(new Rect(statsX + statsWidth * 0.24f, statsY + statsHeight * 0.56f, statsWidth * 0.3f, statsHeight * 0.098f), "Threats to Pumas....")) {
-			popupPanelVisible = true;
-			popupPanelPage = 4;
-			popupPanelTransStart = Time.time;
+			infoPanelVisible = true;
+			infoPanelPage = 4;
+			infoPanelTransStart = Time.time;
 		}
 		GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
 		GUI.color = new Color(1f, 1f, 1f, 1f);
@@ -3466,7 +3542,7 @@ public class GUIManager : MonoBehaviour
 	}
 
 
-	void CreateQuitScreen() 
+	void DrawQuitScreen() 
 	{ 
 		float quitScreenY = overlayRect.y + overlayRect.height * 0.37f;
 
@@ -3515,25 +3591,25 @@ public class GUIManager : MonoBehaviour
 	}
 
 	
-	void CreateLevelDisplay(float levelDisplayX, float levelDisplayY, float levelDisplayWidth, float levelDisplayHeight, bool bareBonesFlag = false) 
+	void DrawLevelPanel(float levelPanelX, float levelPanelY, float levelPanelWidth, float levelPanelHeight, bool bareBonesFlag = false) 
 	{ 
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
 		
 		float oldGuiOpacity = guiOpacity;
-		guiOpacity = guiOpacity * levelDisplayOpacity;
+		guiOpacity = guiOpacity * levelPanelOpacity;
 		
 		if (bareBonesFlag == false) {
 			GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-			GUI.Box(new Rect(levelDisplayX, levelDisplayY, levelDisplayWidth, levelDisplayHeight), "");
+			GUI.Box(new Rect(levelPanelX, levelPanelY, levelPanelWidth, levelPanelHeight), "");
 			GUI.color = new Color(1f, 1f, 1f, 0.2f * guiOpacity);
-			GUI.Box(new Rect(levelDisplayX, levelDisplayY, levelDisplayWidth, levelDisplayHeight), "");
+			GUI.Box(new Rect(levelPanelX, levelPanelY, levelPanelWidth, levelPanelHeight), "");
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-			//DrawRect(new Rect(levelDisplayX + levelDisplayWidth * 0.33f, levelDisplayY, levelDisplayWidth * 0.005f, levelDisplayHeight), new Color(0f, 0f, 0f, 0.2f));	
-			//DrawRect(new Rect(levelDisplayX + levelDisplayWidth * 0.335f, levelDisplayY, levelDisplayWidth * 0.005f, levelDisplayHeight), new Color(1f, 1f, 1f, 0.2f));	
+			//DrawRect(new Rect(levelPanelX + levelPanelWidth * 0.33f, levelPanelY, levelPanelWidth * 0.005f, levelPanelHeight), new Color(0f, 0f, 0f, 0.2f));	
+			//DrawRect(new Rect(levelPanelX + levelPanelWidth * 0.335f, levelPanelY, levelPanelWidth * 0.005f, levelPanelHeight), new Color(1f, 1f, 1f, 0.2f));	
 		}
 		
-		float fontRef = levelDisplayWidth * 1000f / 320f;
+		float fontRef = levelPanelWidth * 1000f / 320f;
 		string levelLabel = "unknown";
 		float textureX;
 		float textureY;
@@ -3545,9 +3621,9 @@ public class GUIManager : MonoBehaviour
 		if (bareBonesFlag == false) {
 		
 			if (currentLevel == 0) {
-				textureX = levelDisplayX + levelDisplayWidth * 0.74f;
-				textureY = levelDisplayY + levelDisplayHeight * 0.05f;
-				textureWidth = levelDisplayWidth * 0.20f;
+				textureX = levelPanelX + levelPanelWidth * 0.74f;
+				textureY = levelPanelY + levelPanelHeight * 0.05f;
+				textureWidth = levelPanelWidth * 0.20f;
 				textureHeight = buckHeadTexture.height * (textureWidth / buckHeadTexture.width);
 				GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), buckHeadTexture);
@@ -3555,9 +3631,9 @@ public class GUIManager : MonoBehaviour
 			}
 
 			if (currentLevel == 1) {
-				textureX = levelDisplayX + levelDisplayWidth * 0.80f;
-				textureY = levelDisplayY + levelDisplayHeight * 0.12f;
-				textureWidth = levelDisplayWidth * 0.15f;
+				textureX = levelPanelX + levelPanelWidth * 0.80f;
+				textureY = levelPanelY + levelPanelHeight * 0.12f;
+				textureWidth = levelPanelWidth * 0.15f;
 				textureHeight = hunterTexture.height * (textureWidth / hunterTexture.width);
 				//GUI.color = new Color(1f, 1f, 1f, (currentLevel > 0) ? 0.97f : 0.4f);
 				GUI.color = new Color(1f, 1f, 1f, (currentLevel > 0) ? (0.94f  * guiOpacity) : (0f * guiOpacity));
@@ -3566,9 +3642,9 @@ public class GUIManager : MonoBehaviour
 			}
 
 			if (currentLevel == 2) {
-				textureX = levelDisplayX + levelDisplayWidth * 0.75f;
-				textureY = levelDisplayY + levelDisplayHeight * 0.26f;
-				textureWidth = levelDisplayWidth * 0.21f;
+				textureX = levelPanelX + levelPanelWidth * 0.75f;
+				textureY = levelPanelY + levelPanelHeight * 0.26f;
+				textureWidth = levelPanelWidth * 0.21f;
 				textureHeight = vehicleTexture.height * (textureWidth / vehicleTexture.width);
 				//GUI.color = new Color(1f, 1f, 1f, (currentLevel > 1) ? 0.93f : 0.36f);
 				GUI.color = new Color(1f, 1f, 1f, (currentLevel > 1) ? (0.93f  * guiOpacity) : (0f * guiOpacity));
@@ -3585,7 +3661,7 @@ public class GUIManager : MonoBehaviour
 		//style.normal.textColor = new Color(0.99f, 0.7f, 0f, 0.95f);
 		//style.fontStyle = FontStyle.Bold;
 		//style.fontStyle = FontStyle.BoldAndItalic;
-		//GUI.Button(new Rect(levelDisplayX - levelDisplayWidth * 0.053f, levelDisplayY + levelDisplayHeight * 0.29f, levelDisplayWidth * 0.3f, levelDisplayHeight * 0.03f), (currentLevel == 0) ? " " : ((currentLevel == 1) ? " " : " "), style);
+		//GUI.Button(new Rect(levelPanelX - levelPanelWidth * 0.053f, levelPanelY + levelPanelHeight * 0.29f, levelPanelWidth * 0.3f, levelPanelHeight * 0.03f), (currentLevel == 0) ? " " : ((currentLevel == 1) ? " " : " "), style);
 		if (bareBonesFlag == false) {
 			style.fontSize = (int)(fontRef * 0.0185f);
 			style.normal.textColor = new Color(0.99f, 0.7f, 0f, 0.92f);
@@ -3593,7 +3669,7 @@ public class GUIManager : MonoBehaviour
 			style.normal.textColor = new Color(0.99f, 0.66f, 0f, 0.935f);
 			style.fontStyle = FontStyle.BoldAndItalic;
 			style.alignment = TextAnchor.MiddleCenter;
-			GUI.Button(new Rect(levelDisplayX + levelDisplayWidth * 0.07f, levelDisplayY + levelDisplayHeight * 0.26f, levelDisplayWidth * 0.64f, levelDisplayHeight * 0.03f), levelLabel, style);
+			GUI.Button(new Rect(levelPanelX + levelPanelWidth * 0.07f, levelPanelY + levelPanelHeight * 0.26f, levelPanelWidth * 0.64f, levelPanelHeight * 0.03f), levelLabel, style);
 			style.alignment = TextAnchor.MiddleCenter;
 		}
 
@@ -3601,58 +3677,58 @@ public class GUIManager : MonoBehaviour
 		guiOpacity = (oldGuiOpacity + guiOpacity) / 2;		
 		if (bareBonesFlag == true) {
 			GUI.color = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
-			GUI.Box(new Rect(levelDisplayX + levelDisplayWidth * 0.07f, levelDisplayY + levelDisplayHeight * 0.525f, levelDisplayWidth * 0.64f, levelDisplayHeight * 0.35f), "");
+			GUI.Box(new Rect(levelPanelX + levelPanelWidth * 0.07f, levelPanelY + levelPanelHeight * 0.525f, levelPanelWidth * 0.64f, levelPanelHeight * 0.35f), "");
 		}
-		CreateFeedingBar(levelDisplayX + levelDisplayWidth * 0.07f, levelDisplayY + levelDisplayHeight * 0.525f, levelDisplayWidth * 0.64f, levelDisplayHeight * 0.35f);
+		CreateMeatBar(guiOpacity, levelPanelX + levelPanelWidth * 0.07f, levelPanelY + levelPanelHeight * 0.525f, levelPanelWidth * 0.64f, levelPanelHeight * 0.35f);
 		guiOpacity = oldGuiOpacity;
 
 
 		// invisible button
-		if (GUI.Button(new Rect(levelDisplayX + levelDisplayWidth * 0.7f, levelDisplayY, levelDisplayWidth * 0.3f, levelDisplayHeight), "", style)) {
+		if (GUI.Button(new Rect(levelPanelX + levelPanelWidth * 0.7f, levelPanelY, levelPanelWidth * 0.3f, levelPanelHeight), "", style)) {
 			currentLevel += 1;
 			if (currentLevel > 2)
 				currentLevel = 0;
 		}
-		//GUI.Box(new Rect(levelDisplayX + levelDisplayWidth * 0.7f, levelDisplayY, levelDisplayWidth * 0.3f, levelDisplayHeight), "");
+		//GUI.Box(new Rect(levelPanelX + levelPanelWidth * 0.7f, levelPanelY, levelPanelWidth * 0.3f, levelPanelHeight), "");
 
 
 
 	}
 	
 	
-	void CreateStatusDisplay(float statusDisplayX, float statusDisplayY, float statusDisplayWidth, float statusDisplayHeight, bool bareBonesFlag = false) 
+	void DrawStatusPanel(float statusPanelX, float statusPanelY, float statusPanelWidth, float statusPanelHeight, bool bareBonesFlag = false) 
 	{ 
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
 		
 		float oldGuiOpacity = guiOpacity;
-		guiOpacity = guiOpacity * statusDisplayOpacity;
+		guiOpacity = guiOpacity * statusPanelOpacity;
 
 		if (bareBonesFlag == false) {
 			GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-			GUI.Box(new Rect(statusDisplayX, statusDisplayY, statusDisplayWidth, statusDisplayHeight), "");
+			GUI.Box(new Rect(statusPanelX, statusPanelY, statusPanelWidth, statusPanelHeight), "");
 			GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-			GUI.Box(new Rect(statusDisplayX, statusDisplayY, statusDisplayWidth, statusDisplayHeight), "");
+			GUI.Box(new Rect(statusPanelX, statusPanelY, statusPanelWidth, statusPanelHeight), "");
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-			//DrawRect(new Rect(statusDisplayX + statusDisplayWidth * 0.33f, statusDisplayY, statusDisplayWidth * 0.005f, statusDisplayHeight), new Color(0f, 0f, 0f, 0.2f));	
-			//DrawRect(new Rect(statusDisplayX + statusDisplayWidth * 0.335f, statusDisplayY, statusDisplayWidth * 0.005f, statusDisplayHeight), new Color(1f, 1f, 1f, 0.2f));	
-			//DrawRect(new Rect(statusDisplayX + statusDisplayWidth * 0f, statusDisplayY + statusDisplayHeight * 0.50f, statusDisplayWidth * 1f, statusDisplayWidth * 0.005f), new Color(0f, 0f, 0f, 0.3f));	
-			//DrawRect(new Rect(statusDisplayX + statusDisplayWidth * 0f, statusDisplayY + statusDisplayHeight * 0.50f + statusDisplayWidth * 0.005f, statusDisplayWidth * 1f, statusDisplayWidth * 0.005f), new Color(1f, 1f, 1f, 0.2f));	
+			//DrawRect(new Rect(statusPanelX + statusPanelWidth * 0.33f, statusPanelY, statusPanelWidth * 0.005f, statusPanelHeight), new Color(0f, 0f, 0f, 0.2f));	
+			//DrawRect(new Rect(statusPanelX + statusPanelWidth * 0.335f, statusPanelY, statusPanelWidth * 0.005f, statusPanelHeight), new Color(1f, 1f, 1f, 0.2f));	
+			//DrawRect(new Rect(statusPanelX + statusPanelWidth * 0f, statusPanelY + statusPanelHeight * 0.50f, statusPanelWidth * 1f, statusPanelWidth * 0.005f), new Color(0f, 0f, 0f, 0.3f));	
+			//DrawRect(new Rect(statusPanelX + statusPanelWidth * 0f, statusPanelY + statusPanelHeight * 0.50f + statusPanelWidth * 0.005f, statusPanelWidth * 1f, statusPanelWidth * 0.005f), new Color(1f, 1f, 1f, 0.2f));	
 		}
 		
-		float fontRef = statusDisplayWidth * 1000f / 320f;
+		float fontRef = statusPanelWidth * 1000f / 320f;
 				
 		style.fontSize = (int)(fontRef * 0.020f);
 		style.normal.textColor = new Color(0f, 0.68f, 0f, 1f);
 		style.normal.textColor =  (pumasAlive >= 5) ? new Color(0f, 0.66f, 0f, 1f) : ((pumasAlive >= 3) ? new Color(0.83f, 0.78f, 0f, 1f) : new Color(0.8f, 0f, 0f, 1f));
 		//style.normal.textColor = new Color(0.99f, 0.66f, 0f, 1f);
 		style.fontStyle = FontStyle.Bold;
-		//GUI.Button(new Rect(statusDisplayX + statusDisplayWidth * 0.018f, statusDisplayY + statusDisplayHeight * 0.19f, statusDisplayWidth * 0.3f, statusDisplayHeight * 0.03f), (pumasAlive >= 5) ? "STATUS" : ((pumasAlive >= 3) ? "CAUTION" : "WARNING"), style);
+		//GUI.Button(new Rect(statusPanelX + statusPanelWidth * 0.018f, statusPanelY + statusPanelHeight * 0.19f, statusPanelWidth * 0.3f, statusPanelHeight * 0.03f), (pumasAlive >= 5) ? "STATUS" : ((pumasAlive >= 3) ? "CAUTION" : "WARNING"), style);
 		style.fontSize = (int)(fontRef * 0.015f);
 		style.normal.textColor =   (pumasAlive >= 5) ? new Color(0f, 0.70f, 0f, 1f) : ((pumasAlive >= 3) ? new Color(0.85f, 0.80f, 0f, 1f) : new Color(0.82f, 0f, 0f, 1f));
 		style.fontStyle = FontStyle.BoldAndItalic;
-		//GUI.Button(new Rect(statusDisplayX + statusDisplayWidth * 0.018f, statusDisplayY + statusDisplayHeight * 0.12f, statusDisplayWidth * 0.3f, statusDisplayHeight * 0.03f), (pumasAlive >= 5) ? "Healthy" : ((pumasAlive >= 3) ? "Dwindling" : "Threat of"), style);
-		//GUI.Button(new Rect(statusDisplayX + statusDisplayWidth * 0.018f, statusDisplayY + statusDisplayHeight * 0.34f, statusDisplayWidth * 0.3f, statusDisplayHeight * 0.03f), (pumasAlive >= 5) ? "Population" : ((pumasAlive >= 3) ? "Population" : "Extinction"), style);
+		//GUI.Button(new Rect(statusPanelX + statusPanelWidth * 0.018f, statusPanelY + statusPanelHeight * 0.12f, statusPanelWidth * 0.3f, statusPanelHeight * 0.03f), (pumasAlive >= 5) ? "Healthy" : ((pumasAlive >= 3) ? "Dwindling" : "Threat of"), style);
+		//GUI.Button(new Rect(statusPanelX + statusPanelWidth * 0.018f, statusPanelY + statusPanelHeight * 0.34f, statusPanelWidth * 0.3f, statusPanelHeight * 0.03f), (pumasAlive >= 5) ? "Population" : ((pumasAlive >= 3) ? "Population" : "Extinction"), style);
 
 		float textureX;
 		float textureY;
@@ -3692,23 +3768,23 @@ public class GUIManager : MonoBehaviour
 			}
 
 
-			float statusDisplayOpacityDrop = 1f - statusDisplayOpacity;
+			float statusPanelOpacityDrop = 1f - statusPanelOpacity;
 
 			// puma head
 			if (bareBonesFlag == false) {
-				guiOpacity = oldGuiOpacity * (1f - (statusDisplayOpacityDrop * 0.25f));
+				guiOpacity = oldGuiOpacity * (1f - (statusPanelOpacityDrop * 0.25f));
 				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-				textureX = statusDisplayX + statusDisplayWidth * 0.05f;
-				textureY = statusDisplayY + statusDisplayHeight * 0.20f;
-				textureHeight = statusDisplayHeight * 0.62f;
+				textureX = statusPanelX + statusPanelWidth * 0.05f;
+				textureY = statusPanelY + statusPanelHeight * 0.20f;
+				textureHeight = statusPanelHeight * 0.62f;
 				textureWidth = headshotTexture.width * (textureHeight / headshotTexture.height);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
-				guiOpacity = oldGuiOpacity * statusDisplayOpacity;
+				guiOpacity = oldGuiOpacity * statusPanelOpacity;
 				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			}
 
 			// puma name
-			guiOpacity = oldGuiOpacity * (1f - (statusDisplayOpacityDrop * 0.75f));
+			guiOpacity = oldGuiOpacity * (1f - (statusPanelOpacityDrop * 0.75f));
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 			//style.normal.textColor = new Color(0.99f, 0.62f, 0f, 0.95f);
 			style.normal.textColor = new Color(0.99f, 0.66f, 0f, 0.935f);
@@ -3720,7 +3796,7 @@ public class GUIManager : MonoBehaviour
 			//style.normal.textColor = new Color(0.93f, 0.57f, 0f, 0.95f);
 			//style.normal.textColor = new Color(0.063f, 0.059f, 0.161f, 1f);
 			//GUI.Button(new Rect(textureX, textureY + textureHeight + textureHeight * 0.1f, textureWidth, textureHeight), pumaVitals, style);
-			guiOpacity = oldGuiOpacity * statusDisplayOpacity;
+			guiOpacity = oldGuiOpacity * statusPanelOpacity;
 			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
 
 
@@ -3732,9 +3808,9 @@ public class GUIManager : MonoBehaviour
 			style.normal.textColor = new Color(0.99f, 0.66f, 0f, 0.935f);
 			style.fontSize = (int)(fontRef * 0.016f);
 			style.alignment = TextAnchor.UpperCenter;
-			GUI.Button(new Rect(statusDisplayX + statusDisplayWidth * 0.045f, statusDisplayY + statusDisplayHeight * 0.2f, statusDisplayWidth * 0.2f, statusDisplayWidth * 0.3f), "No", style);
-			GUI.Button(new Rect(statusDisplayX + statusDisplayWidth * 0.045f, statusDisplayY + statusDisplayHeight * 0.4f, statusDisplayWidth * 0.2f, statusDisplayWidth * 0.3f), "Puma", style);
-			GUI.Button(new Rect(statusDisplayX + statusDisplayWidth * 0.045f, statusDisplayY + statusDisplayHeight * 0.6f, statusDisplayWidth * 0.2f, statusDisplayWidth * 0.3f), "Selected", style);
+			GUI.Button(new Rect(statusPanelX + statusPanelWidth * 0.045f, statusPanelY + statusPanelHeight * 0.2f, statusPanelWidth * 0.2f, statusPanelWidth * 0.3f), "No", style);
+			GUI.Button(new Rect(statusPanelX + statusPanelWidth * 0.045f, statusPanelY + statusPanelHeight * 0.4f, statusPanelWidth * 0.2f, statusPanelWidth * 0.3f), "Puma", style);
+			GUI.Button(new Rect(statusPanelX + statusPanelWidth * 0.045f, statusPanelY + statusPanelHeight * 0.6f, statusPanelWidth * 0.2f, statusPanelWidth * 0.3f), "Selected", style);
 			style.alignment = TextAnchor.MiddleCenter;
 		
 		}
@@ -3750,9 +3826,9 @@ public class GUIManager : MonoBehaviour
 			Color pumaDeadColor = new Color(0.1f, 0.1f, 0.1f, 0.6f * guiOpacity);
 
 
-			textureX = statusDisplayX + statusDisplayWidth * 0.280f;
-			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
-			textureWidth = statusDisplayWidth * 0.12f;
+			textureX = statusPanelX + statusPanelWidth * 0.280f;
+			textureY = statusPanelY + statusPanelHeight * 0.1f;
+			textureWidth = statusPanelWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (scoringSystem.GetPumaHealth(0) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -3765,9 +3841,9 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 			
-			textureX = statusDisplayX + statusDisplayWidth * 0.388f;
-			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
-			textureWidth = statusDisplayWidth * 0.12f;
+			textureX = statusPanelX + statusPanelWidth * 0.388f;
+			textureY = statusPanelY + statusPanelHeight * 0.1f;
+			textureWidth = statusPanelWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (scoringSystem.GetPumaHealth(1) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -3780,9 +3856,9 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
-			textureX = statusDisplayX + statusDisplayWidth * 0.496f;
-			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
-			textureWidth = statusDisplayWidth * 0.12f;
+			textureX = statusPanelX + statusPanelWidth * 0.496f;
+			textureY = statusPanelY + statusPanelHeight * 0.1f;
+			textureWidth = statusPanelWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (scoringSystem.GetPumaHealth(2) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -3795,9 +3871,9 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
-			textureX = statusDisplayX + statusDisplayWidth * 0.604f;
-			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
-			textureWidth = statusDisplayWidth * 0.12f;
+			textureX = statusPanelX + statusPanelWidth * 0.604f;
+			textureY = statusPanelY + statusPanelHeight * 0.1f;
+			textureWidth = statusPanelWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (scoringSystem.GetPumaHealth(3) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -3810,9 +3886,9 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
-			textureX = statusDisplayX + statusDisplayWidth * 0.712f;
-			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
-			textureWidth = statusDisplayWidth * 0.12f;
+			textureX = statusPanelX + statusPanelWidth * 0.712f;
+			textureY = statusPanelY + statusPanelHeight * 0.1f;
+			textureWidth = statusPanelWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (scoringSystem.GetPumaHealth(4) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -3825,9 +3901,9 @@ public class GUIManager : MonoBehaviour
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			//}
 
-			textureX = statusDisplayX + statusDisplayWidth * 0.820f;
-			textureY = statusDisplayY + statusDisplayHeight * 0.1f;
-			textureWidth = statusDisplayWidth * 0.12f;
+			textureX = statusPanelX + statusPanelWidth * 0.820f;
+			textureY = statusPanelY + statusPanelHeight * 0.1f;
+			textureWidth = statusPanelWidth * 0.12f;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (scoringSystem.GetPumaHealth(0) >= 1f) {
 				GUI.color = new Color(1f, 1f, 1f, 0.7f * guiOpacity);
@@ -3845,535 +3921,17 @@ public class GUIManager : MonoBehaviour
 		guiOpacity = (oldGuiOpacity + guiOpacity) / 2;		
 		if (bareBonesFlag == true) {
 			GUI.color = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
-			GUI.Box(new Rect(statusDisplayX + statusDisplayWidth * 0.29f, statusDisplayY + statusDisplayHeight * 0.59f, statusDisplayWidth * 0.64f, statusDisplayHeight * 0.3f), "");
+			GUI.Box(new Rect(statusPanelX + statusPanelWidth * 0.29f, statusPanelY + statusPanelHeight * 0.59f, statusPanelWidth * 0.64f, statusPanelHeight * 0.3f), "");
 		}
-		CreateHealthBar(selectedPuma, statusDisplayX + statusDisplayWidth * 0.29f, statusDisplayY + statusDisplayHeight * 0.59f, statusDisplayWidth * 0.64f, statusDisplayHeight * 0.3f);
+		DrawPumaHealthBar(selectedPuma, guiOpacity, statusPanelX + statusPanelWidth * 0.29f, statusPanelY + statusPanelHeight * 0.59f, statusPanelWidth * 0.64f, statusPanelHeight * 0.3f);
 		guiOpacity = oldGuiOpacity;
 	}
 	
 
-	void CreateFeedingDisplay(float feedingDisplayX, float feedingDisplayY, float feedingDisplayWidth, float feedingDisplayHeight) 
-	{ 
-		GUIStyle style = new GUIStyle();
-		style.alignment = TextAnchor.MiddleCenter;
-		
-		// panel background
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX, feedingDisplayY + feedingDisplayHeight * 0.06f, feedingDisplayWidth, feedingDisplayHeight * 1.2f - feedingDisplayHeight * 0.06f), "");
-		GUI.color = new Color(1f, 1f, 1f, 0.3f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX, feedingDisplayY + feedingDisplayHeight * 0.06f, feedingDisplayWidth, feedingDisplayHeight * 1.2f - feedingDisplayHeight * 0.06f), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-	
-		// main text
-		Color topColor;
-		Color midColor;
-		Color bottomColor;
-		string topString;
-		string midString;
-		int efficiencyLevel;
-		string bottomString1;
-		string bottomString2;
-		float title1Offset = feedingDisplayWidth * -0.215f;
-		float title2Offset = feedingDisplayWidth * 0.06f;
-		float backgroundOffset = feedingDisplayWidth * 0f;
-
-		float lastKillExpense = scoringSystem.GetLastKillExpense(selectedPuma);
-		float lastKillCaloriesEaten = scoringSystem.GetLastKillCaloriesEaten();
-		
-		if (lastKillExpense > 1.2f * lastKillCaloriesEaten)
-			efficiencyLevel = 0;
-		else if (lastKillExpense > lastKillCaloriesEaten)
-			efficiencyLevel = 1;
-		else if (lastKillExpense > 0.8 * lastKillCaloriesEaten)
-			efficiencyLevel = 2;
-		else
-			efficiencyLevel = 3;
-				
-		float calorieChange = lastKillCaloriesEaten - lastKillExpense;
-		if (calorieChange < 0)
-			calorieChange = -calorieChange;
-		int calorieDisplay = (int)calorieChange;
-
-		switch (efficiencyLevel) {
-		case 0:
-			topColor = new Color(0.8f, 0f, 0f, 1f);
-			midColor = new Color(0.82f, 0f, 0f, 1f);
-			bottomColor = new Color(0.8f, 0f, 0f, 1f);
-			topString = "WARNING:";
-			midString = "WARNING: Your hunt was very inefficient";
-			bottomString1 = "NET  LOSS -";
-			bottomString2 = calorieDisplay.ToString("n0"); // + " calories";
-			title1Offset = feedingDisplayWidth * -0.163f;
-			title2Offset = feedingDisplayWidth * 0.075f;
-			backgroundOffset = feedingDisplayWidth * 0.03f;
-			break;
-		
-		case 1:
-			topColor = new Color(0.83f, 0.78f, 0f, 1f);
-			midColor = new Color(0.85f, 0.80f, 0f, 1f);
-			bottomColor = new Color(0.8f, 0f, 0f, 1f);
-			topString = "CAREFUL -";
-			midString = "CAREFUL - Your hunt was somewhat inefficient";
-			bottomString1 = "NET  LOSS -";
-			bottomString2 = calorieDisplay.ToString("n0"); // + " calories";
-			title1Offset = feedingDisplayWidth * -0.195f;
-			title2Offset = feedingDisplayWidth * 0.08f;
-			break;
-		
-		case 2:
-			topColor = new Color(0.83f, 0.78f, 0f, 1f);
-			midColor = new Color(0.85f, 0.80f, 0f, 1f);
-			bottomColor = new Color(0f, 0.66f, 0f, 1f);
-			topString = "WELL DONE -";
-			midString = "WELL DONE - Your hunt was slightly efficient";
-			bottomString1 = "NET  GAIN +";
-			bottomString2 = calorieDisplay.ToString("n0"); // + " calories";
-			title1Offset = feedingDisplayWidth * -0.18f;
-			title2Offset = feedingDisplayWidth * 0.09f;
-			backgroundOffset = feedingDisplayWidth * 0.01f;
-			break;
-		
-		default:
-			topColor = new Color(0f, 0.66f, 0f, 1f);
-			midColor = new Color(0f, 0.70f, 0f, 1f);
-			bottomColor = new Color(0f, 0.66f, 0f, 1f);
-			topString = "CONGRATS!";
-			midString = "CONGRATS! Your hunt was very efficient";
-			bottomString1 = "NET  GAIN +";
-			bottomString2 = calorieDisplay.ToString("n0"); // + " calories";
-			title1Offset = feedingDisplayWidth * -0.158f;
-			title2Offset = feedingDisplayWidth * 0.0845f;
-			backgroundOffset = feedingDisplayWidth * 0.035f;
-			break;
-		}
-		
-		float fontRef = feedingDisplayHeight * 0.5f;
-		style.fontStyle = FontStyle.BoldAndItalic;
-
-		// main title
-
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX, feedingDisplayY + feedingDisplayHeight * 0.06f, feedingDisplayWidth, feedingDisplayHeight * 0.17f), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-		GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.22f + backgroundOffset, feedingDisplayY + feedingDisplayHeight * 0.1f, feedingDisplayWidth * 0.56f - backgroundOffset * 02f, feedingDisplayHeight * 0.11f), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-		GUI.color = new Color(1f, 1f, 1f, 0.1f * guiOpacity);
-		//GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.23f + backgroundOffset, feedingDisplayY + feedingDisplayHeight * 0.1f, feedingDisplayWidth * 0.54f - backgroundOffset * 02f, feedingDisplayHeight * 0.11f), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-		style.fontSize = (int)(fontRef * 0.22f);
-		style.normal.textColor =  topColor;
-		style.fontStyle = FontStyle.Bold;
-		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.3f + title1Offset, feedingDisplayY + feedingDisplayHeight * 0.135f, feedingDisplayWidth * 0.4f, feedingDisplayHeight * 0.03f), topString, style);
-		style.fontSize = (int)(fontRef * 0.18f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.3f, feedingDisplayY + feedingDisplayHeight * 0.136f, feedingDisplayWidth * 0.4f, feedingDisplayHeight * 0.03f), midString, style);
-
-		style.normal.textColor = midColor;
-		style.fontStyle = FontStyle.BoldAndItalic;
-		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.25f, feedingDisplayY + feedingDisplayHeight * 0.18f, feedingDisplayWidth * 0.5f, feedingDisplayHeight * 0.03f), midString, style);
-
-		
-		// "main menu" and "hunting tips" buttons
-		
-		GUI.skin = customGUISkin;
-		customGUISkin.button.fontSize = (int)(feedingDisplayHeight * 0.067);
-		customGUISkin.button.fontStyle = FontStyle.Normal;
-		customGUISkin.button.fontStyle = FontStyle.Bold;
-		customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-
-		if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f,  feedingDisplayY + feedingDisplayHeight * 0.095f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.11f), "")) {
-			SetGuiState("guiStateLeavingGameplay");
-			levelManager.SetGameState("gameStateLeavingGameplay");
-		}	
-		if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f,  feedingDisplayY + feedingDisplayHeight * 0.095f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.11f), "Main Menu")) {
-			SetGuiState("guiStateLeavingGameplay");
-			levelManager.SetGameState("gameStateLeavingGameplay");
-		}	
-		
-		GUI.skin = customGUISkin;
-		customGUISkin.button.fontSize = (int)(feedingDisplayHeight * 0.0635);
-		customGUISkin.button.fontStyle = FontStyle.Normal;
-		customGUISkin.button.fontStyle = FontStyle.Bold;
-		if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.825f,  feedingDisplayY + feedingDisplayHeight * 0.095f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.11f), "")) {
-			popupPanelVisible = true;
-			popupPanelPage = 3;
-			popupPanelTransStart = Time.time;
-		}
-		if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.825f,  feedingDisplayY + feedingDisplayHeight * 0.095f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.11f), "Hunting Tips")) {
-			popupPanelVisible = true;
-			popupPanelPage = 3;
-			popupPanelTransStart = Time.time;
-		}
-		
-		customGUISkin.button.normal.textColor = new Color(1f, 0f, 0f, 1f);
-		
-		customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-		
-		
-
-		// center panel
-
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.30f), "");
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.33f, feedingDisplayHeight * 0.30f), "");
-		GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.43f, feedingDisplayY + feedingDisplayHeight * 0.43f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.127f), "");
-		//GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-		//GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.43f, feedingDisplayY + feedingDisplayHeight * 0.43f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.127f), "");
-
-		style.fontSize = (int)(fontRef * 0.145f);
-		style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-		style.normal.textColor =  bottomColor;
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.255f, feedingDisplayY + feedingDisplayHeight * 0.355f, feedingDisplayWidth * 0.5f, feedingDisplayHeight * 0.03f), bottomString1, style);
-
-		style.fontSize = (int)(fontRef * 0.197f);
-		style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-		style.normal.textColor =  midColor;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.25f, feedingDisplayY + feedingDisplayHeight * 0.478f, feedingDisplayWidth * 0.5f, feedingDisplayHeight * 0.03f), bottomString2, style);
-		
-		// deer head & status info
-		
-		float panelOffsetY = -0.1f;
-
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
-		GUI.color = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-		//style.fontSize = (int)(fontRef * 0.28f);
-		//style.normal.textColor = new Color(0.99f, 0.63f, 0f, 0.95f);
-		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.15f, feedingDisplayY + feedingDisplayHeight * 0.6f, feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "|", style);
-		//style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-		style.normal.textColor = new Color(0.90f, 0.65f, 0f,  0.9f);
-		style.fontSize = (int)(fontRef * 0.16f);
-		int meatJustEaten = (int)scoringSystem.GetLastKillMeatEaten();
-		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.220f, feedingDisplayY + feedingDisplayHeight * (0.60f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), meatJustEaten.ToString() + " lbs", style);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.220f, feedingDisplayY + feedingDisplayHeight * (0.6f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "Meat", style);
-		style.fontSize = (int)(fontRef * 0.12f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.220f, feedingDisplayY + feedingDisplayHeight * (0.678f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), meatJustEaten.ToString() + " lbs", style);
-
-		Texture2D displayHeadTexture = buckHeadTexture;
-		string displayHeadLabel = "unnamed";
-				
-		switch (scoringSystem.GetLastKillDeerType()) {
-			case "Buck":
-				displayHeadTexture = buckHeadTexture;
-				displayHeadLabel = "Buck";
-				break;
-			case "Doe":
-				displayHeadTexture = doeHeadTexture;
-				displayHeadLabel = "Doe";
-				break;
-			case "Fawn":
-				displayHeadTexture = fawnHeadTexture;
-				displayHeadLabel = "Fawn";
-				break;		
-		}
-
-		
-		float textureX = feedingDisplayX + feedingDisplayWidth * 0.125f;
-		float textureWidth = feedingDisplayHeight * 0.4f;
-		float textureHeight = displayHeadTexture.height * (textureWidth / displayHeadTexture.width);
-		float textureY = feedingDisplayY + feedingDisplayHeight * (0.32f + panelOffsetY);
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), displayHeadTexture);
-
-		style.normal.textColor = new Color(0.99f * 0.9f, 0.63f * 0.8f, 0f, 1f);
-		style.fontSize = (int)(fontRef * 0.13f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.137f, feedingDisplayY + feedingDisplayHeight * (0.78f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), displayHeadLabel, style);
-
-		//style.fontSize = (int)(fontRef * 0.28f);
-		//style.normal.textColor = new Color(0.99f, 0.63f, 0f, 0.95f);
-		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.35f, feedingDisplayY + feedingDisplayHeight * 0.6f, feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "|", style);
-		//style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-		style.normal.textColor = new Color(0.1f, 0.80f, 0.1f, 1f);
-		//style.fontSize = (int)(fontRef * 0.33f);
-		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.30f, feedingDisplayY + feedingDisplayHeight * 0.50f, feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "+", style);
-		style.fontSize = (int)(fontRef * 0.18f);
-		int caloriesGained = (int)scoringSystem.GetLastKillCaloriesEaten();
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.040f, feedingDisplayY + feedingDisplayHeight * (0.60f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), caloriesGained.ToString("n0"), style);
-		style.fontSize = (int)(fontRef * 0.12f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.045f, feedingDisplayY + feedingDisplayHeight * (0.68f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "calories +", style);
-		
-		CreateFeedingBar(feedingDisplayX + feedingDisplayWidth * 0.040f + feedingDisplayHeight * 0.03f, feedingDisplayY + feedingDisplayHeight * 0.77f, feedingDisplayWidth * 0.29f - feedingDisplayHeight * 0.06f, feedingDisplayHeight * 0.12f);
-		
-		// puma head & status info
-
-		
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
-		GUI.color = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY + feedingDisplayHeight * 0.3f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.62f), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-		style.normal.textColor = new Color(0.90f, 0.65f, 0f, 0.9f);
-		style.fontSize = (int)(fontRef * 0.15f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.668f, feedingDisplayY + feedingDisplayHeight * (0.596f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "Energy", style);
-		style.fontSize = (int)(fontRef * 0.14f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.668f, feedingDisplayY + feedingDisplayHeight * (0.678f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "Spent", style);
-
-
-		// puma identity
-		Texture2D headshotTexture = closeup1Texture;
-		string pumaName = "no name";
-		switch (selectedPuma) {
-		case 0:
-			headshotTexture = closeup1Texture;
-			pumaName = "Eric";
-			break;
-		case 1:
-			headshotTexture = closeup2Texture;
-			pumaName = "Palo";
-			break;
-		case 2:
-			headshotTexture = closeup3Texture;
-			pumaName = "Mitch";
-			break;
-		case 3:
-			headshotTexture = closeup4Texture;
-			pumaName = "Trish";
-			break;
-		case 4:
-			headshotTexture = closeup5Texture;
-			pumaName = "Liam";
-			break;
-		case 5:
-			headshotTexture = closeup6Texture;
-			pumaName = "Barb";
-			break;
-		}
-
-
-		// puma head
-		//float statusDisplayOpacityDrop = 1f - statusDisplayOpacity;
-		//guiOpacity = 1f - (statusDisplayOpacityDrop * 0.25f);
-		//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.76f;
-		textureY = feedingDisplayY + feedingDisplayHeight * (0.42f + panelOffsetY);
-		textureWidth = feedingDisplayHeight * 0.39f;
-		textureHeight = headshotTexture.height * (textureWidth / headshotTexture.width);
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), headshotTexture);
-		//guiOpacity = guiOpacity * statusDisplayOpacity;
-		//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-		// puma name
-		//guiOpacity = 1f - (statusDisplayOpacityDrop * 0.75f);
-		//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		style.normal.textColor = new Color(0.99f * 0.9f, 0.63f * 0.8f, 0f, 1f);
-		style.fontSize = (int)(fontRef * 0.13f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.767f, feedingDisplayY + feedingDisplayHeight * (0.78f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), pumaName, style);
-		//guiOpacity = guiOpacity * statusDisplayOpacity;
-		//GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-		
-		style.normal.textColor = new Color(0.78f, 0f, 0f, 1f);
-		//style.fontSize = (int)(fontRef * 0.12f);
-		//GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.85f, feedingDisplayY + feedingDisplayHeight * 0.51f, feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "minus", style);
-		style.fontSize = (int)(fontRef * 0.18f);
-		int caloriesExpended = (int)scoringSystem.GetLastKillExpense(selectedPuma);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.855f, feedingDisplayY + feedingDisplayHeight * (0.60f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), caloriesExpended.ToString("n0"), style);
-		style.fontSize = (int)(fontRef * 0.125f);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.86f, feedingDisplayY + feedingDisplayHeight * (0.68f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "points -", style);
-		
-		CreateHealthBar(selectedPuma, feedingDisplayX + feedingDisplayWidth * 0.670f + feedingDisplayHeight * 0.03f, feedingDisplayY + feedingDisplayHeight * 0.775f, feedingDisplayWidth * 0.29f - feedingDisplayHeight * 0.06f, feedingDisplayHeight * 0.11f);
-
-		
-		// population bar
-		
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.70f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
-		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.70f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
-		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.37f, feedingDisplayY + feedingDisplayHeight * 0.70f, feedingDisplayWidth * 0.26f, feedingDisplayHeight * 0.29f), "");
-	
-		GUI.color = new Color(1f, 1f, 1f, 0.4f * guiOpacity);
-		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.99f, feedingDisplayWidth * 0.93f, feedingDisplayHeight * 0.145f), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		CreatePopulationHealthBar(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.99f, feedingDisplayWidth * 0.93f, feedingDisplayHeight * 0.145f, true, true);
-		
-
-		// 'Go' button
-		
-		if (guiState != "guiStateCaught3") {
-
-			float storedGuiOpacity = guiOpacity;
-			float elapsedTime = Time.time - guiStateStartTime;
-
-			if (guiState == "guiStateCaught4") {
-				if (elapsedTime <= 1f)
-					guiOpacity = 0;
-				else if (elapsedTime < 2f)
-					guiOpacity = elapsedTime - 1f;
-			}
-			
-			feedingDisplayX -= feedingDisplayWidth * 0.02f;
-			feedingDisplayY += feedingDisplayHeight * 1.3f; // 1.5f;
-
-			GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-			GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.78f, feedingDisplayY + feedingDisplayHeight * 0.67f, feedingDisplayWidth * 0.20f, feedingDisplayHeight * 0.37f), "");
-			GUI.color = new Color(1f, 1f, 1f, 0.6f * guiOpacity);
-			GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.78f, feedingDisplayY + feedingDisplayHeight * 0.67f, feedingDisplayWidth * 0.20f, feedingDisplayHeight * 0.37f), "");
-			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-			GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-			GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.81f,  feedingDisplayY + feedingDisplayHeight * 0.727f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.25f), "");
-			GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-			GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.81f,  feedingDisplayY + feedingDisplayHeight * 0.727f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.25f), "");
-			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontSize = (int)(feedingDisplayHeight * 0.14);
-			customGUISkin.button.fontStyle = FontStyle.Normal;
-			if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.81f,  feedingDisplayY + feedingDisplayHeight * 0.727f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.25f), "Go")) {
-				SetGuiState("guiStateCaught5");
-				levelManager.SetGameState("gameStateCaught5");
-			}	
-			
-			guiOpacity = storedGuiOpacity;
-		
-		}
-		
-		
-		
-/*		
-		// health meter
-		float healthMeterX = feedingDisplayX + feedingDisplayWidth * 0.05f;
-		float healthMeterY = feedingDisplayY + feedingDisplayHeight * 0.75f;
-		float healthMeterWidth = feedingDisplayWidth * 0.9f;
-		float healthMeterHeight = feedingDisplayHeight * 0.17f;
-		GUI.color = new Color(0f, 0f, 0f, 1f * guiOpacity);
-		GUI.Box(new Rect(healthMeterX,  healthMeterY, healthMeterWidth, healthMeterHeight), "");
-		GUI.Box(new Rect(healthMeterX,  healthMeterY, healthMeterWidth, healthMeterHeight), "");
-		GUI.color = new Color(0f, 0f, 0f, 0.3f * guiOpacity);
-		//GUI.Box(new Rect(healthMeterX,  healthMeterY, boxWidth * 0.8f, boxHeight * 0.12f), "");
-		//GUI.Box(new Rect(healthMeterX,  healthMeterY, feedingDisplayWidth * 0.8f, feedingDisplayHeight * 0.15f), "");
-		// health meter
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		float health = GetCurrentHealth();
-		if (health >= 0.5f)
-			health = 0.5f + (1f - health);
-		Color healthColor = (health > 0.75f) ? new Color(0f, 1f, 0f, 0.7f) : ((health > 0.25f) ? new Color(1f, 1f, 0f, 0.81f) : new Color(1f, 0f, 0f, 1f));
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.015f,  healthMeterY + healthMeterWidth * 0.015f, healthMeterWidth - healthMeterWidth * 0.03f, healthMeterHeight - healthMeterWidth * 0.03f), new Color(0f, 0f, 0f, 0.4f));	
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.025f,  healthMeterY + healthMeterWidth * 0.025f, healthMeterWidth - healthMeterWidth * 0.05f, healthMeterHeight - healthMeterWidth * 0.05f), new Color(0.47f, 0.5f, 0.45f, 0.5f));	
-		if (health >= 0.5f) {
-			DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.5f,  healthMeterY + healthMeterWidth * 0.025f, (healthMeterWidth*0.5f - healthMeterWidth * 0.025f) * ((health-0.5f) / 0.5f), healthMeterHeight - healthMeterWidth * 0.05f), healthColor);			
-		}
-		else {
-			float rectRight = healthMeterX + healthMeterWidth * 0.5f;
-			float rectWidth = (healthMeterWidth * 0.5f - healthMeterWidth * 0.025f) * ((0.5f - health) / 0.5f);
-			DrawRect(new Rect(rectRight - rectWidth,  healthMeterY + healthMeterWidth * 0.025f, rectWidth, healthMeterHeight - healthMeterWidth * 0.05f), healthColor);			
-		}
-		// health meter graduations
-		float barHeight = (healthMeterHeight - healthMeterWidth * 0.05f) * 3f;
-		float barY = (healthMeterY + healthMeterWidth * 0.025f) - ((healthMeterHeight - healthMeterWidth * 0.05f) * 2f);
-		float barWidth = healthMeterWidth * 0.016f;
-		Color barColor = new Color(1f, 1f, 0f, 0.81f);
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.5f - barWidth * 0.5f,  barY, barWidth, barHeight), barColor);			
-		barColor = new Color(0f, 1f, 0f, 0.7f);
-		DrawRect(new Rect(healthMeterX + healthMeterWidth  - healthMeterWidth * 0.025f - barWidth,  barY, barWidth, barHeight), barColor);			
-		barColor = new Color(1f, 0f, 0f, 1f);
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.025f,  barY, barWidth, barHeight), barColor);			
-*/		
-		
-		
-		
-/*
-		
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.33f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight), new Color(0f, 0f, 0f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight), new Color(1f, 1f, 1f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.66f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight * 0.52f), new Color(0f, 0f, 0f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight * 0.52f), new Color(1f, 1f, 1f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.340f, feedingDisplayY + feedingDisplayHeight * 0.52f, feedingDisplayWidth * 0.660f, feedingDisplayWidth * 0.005f), new Color(0f, 0f, 0f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.340f, feedingDisplayY + feedingDisplayHeight * 0.52f + feedingDisplayWidth * 0.005f, feedingDisplayWidth * 0.660f, feedingDisplayWidth * 0.005f), new Color(1f, 1f, 1f, 0.2f));	
-
-		style.fontSize = (int)(overlayRect.width * 0.020f);
-		style.normal.textColor = new Color(0f, 0.68f, 0f, 1f);
-		style.normal.textColor =  (pumasAlive >= 5) ? new Color(0f, 0.66f, 0f, 1f) : ((pumasAlive >= 3) ? new Color(0.83f, 0.78f, 0f, 1f) : new Color(0.8f, 0f, 0f, 1f));
-		//style.normal.textColor = new Color(0.99f, 0.66f, 0f, 1f);
-		style.fontStyle = FontStyle.Bold;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.018f, feedingDisplayY + feedingDisplayHeight * 0.19f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), (pumasAlive >= 5) ? "STATUS" : ((pumasAlive >= 3) ? "CAUTION" : "WARNING"), style);
-		style.fontSize = (int)(overlayRect.width * 0.018f);
-		style.normal.textColor =   (pumasAlive >= 5) ? new Color(0f, 0.70f, 0f, 1f) : ((pumasAlive >= 3) ? new Color(0.85f, 0.80f, 0f, 1f) : new Color(0.82f, 0f, 0f, 1f));
-		style.fontStyle = FontStyle.BoldAndItalic;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.018f, feedingDisplayY + feedingDisplayHeight * 0.48f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), (pumasAlive >= 5) ? "Healthy" : ((pumasAlive >= 3) ? "Dwindling" : "Threat of"), style);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.018f, feedingDisplayY + feedingDisplayHeight * 0.75f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), (pumasAlive >= 5) ? "Population" : ((pumasAlive >= 3) ? "Population" : "Extinction"), style);
-
-		style.fontSize = (int)(overlayRect.width * 0.0135f);
-		style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-		style.fontStyle = FontStyle.Bold;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.35f, feedingDisplayY + feedingDisplayHeight * 0.14f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "CALORIES", style);
-
-		style.fontSize = (int)(overlayRect.width * 0.019f);
-		style.normal.textColor = new Color(0.94f, 0.7f, 0f, 1f);
-		style.fontStyle = FontStyle.BoldAndItalic;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.35f, feedingDisplayY + feedingDisplayHeight * 0.35f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "11,700", style);
-
-		style.fontSize = (int)(overlayRect.width * 0.0135f);
-		style.normal.textColor = new Color(0f, 0.67f, 0f, 1f);
-		style.fontStyle = FontStyle.Bold;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.67f, feedingDisplayY + feedingDisplayHeight * 0.14f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "TARGET", style);
-
-		style.fontSize = (int)(overlayRect.width * 0.019f);
-		style.normal.textColor = new Color(0f, 0.70f, 0f, 1f);
-		style.fontStyle = FontStyle.BoldAndItalic;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.67f, feedingDisplayY + feedingDisplayHeight * 0.35f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "100,000", style);
-
-		float pumaAliveOpacity = 0.95f;
-		
-		float textureX = feedingDisplayX + feedingDisplayWidth * 0.34f;
-		float textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		float textureWidth = feedingDisplayWidth * 0.12f;
-		float textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 1) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.44f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 2) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.54f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 3) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.64f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 4) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.74f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 5) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.84f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 6) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-		
-		
-		*/
-	}
 	
 
 
-	void CreateFeedingBar(float feedingBarX, float feedingBarY, float feedingBarWidth, float feedingBarHeight) 
+	public void CreateMeatBar(float meatBarOpacity, float meatBarX, float meatBarY, float meatBarWidth, float meatBarHeight) 
 	{ 
 		float meatLevel = scoringSystem.GetMeatLevel();
 		if (meatLevel > 1f)
@@ -4383,45 +3941,45 @@ public class GUIManager : MonoBehaviour
 		style.alignment = TextAnchor.MiddleCenter;
 		
 		// panel background
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
-		GUI.Box(new Rect(feedingBarX, feedingBarY, feedingBarWidth, feedingBarHeight), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 0.8f * meatBarOpacity);
+		GUI.Box(new Rect(meatBarX, meatBarY, meatBarWidth, meatBarHeight), "");
+		GUI.color = new Color(1f, 1f, 1f, 1f * meatBarOpacity);
 	
 		// meter label
-		float fontRef = feedingBarHeight * 2f;
+		float fontRef = meatBarHeight * 2f;
 		style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 		style.fontSize = (int)(fontRef * 0.22f);
 		style.fontStyle = FontStyle.Bold;
-		GUI.Button(new Rect(feedingBarX + feedingBarWidth * 0.058f, feedingBarY + feedingBarHeight * 0.46f, feedingBarWidth * 0.1f, feedingBarHeight * 0.03f), "MEAT", style);
+		GUI.Button(new Rect(meatBarX + meatBarWidth * 0.058f, meatBarY + meatBarHeight * 0.46f, meatBarWidth * 0.1f, meatBarHeight * 0.03f), "MEAT", style);
 		style.fontSize = (int)(fontRef * 0.2f);
-		//GUI.Button(new Rect(feedingBarX + feedingBarWidth * 0.055f, feedingBarY + feedingBarHeight * 0.65f, feedingBarWidth * 0.1f, feedingBarHeight * 0.03f), "Eaten", style);
+		//GUI.Button(new Rect(meatBarX + meatBarWidth * 0.055f, meatBarY + meatBarHeight * 0.65f, meatBarWidth * 0.1f, meatBarHeight * 0.03f), "Eaten", style);
 
 
 		// feeding meter
 		float meterLeft = 0.2075f;
 		float meterRight = 0.2075f;
 		float meterTop = 0.27f;		
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		GUI.Box(new Rect(feedingBarX + feedingBarWidth * meterLeft, feedingBarY + feedingBarHeight * meterTop, feedingBarWidth - feedingBarWidth * (meterLeft + meterRight), feedingBarHeight - feedingBarHeight * meterTop * 2), "");
-		GUI.Box(new Rect(feedingBarX + feedingBarWidth * meterLeft, feedingBarY + feedingBarHeight * meterTop, feedingBarWidth - feedingBarWidth * (meterLeft + meterRight), feedingBarHeight - feedingBarHeight * meterTop * 2), "");
+		GUI.color = new Color(1f, 1f, 1f, 1f * meatBarOpacity);
+		GUI.Box(new Rect(meatBarX + meatBarWidth * meterLeft, meatBarY + meatBarHeight * meterTop, meatBarWidth - meatBarWidth * (meterLeft + meterRight), meatBarHeight - meatBarHeight * meterTop * 2), "");
+		GUI.Box(new Rect(meatBarX + meatBarWidth * meterLeft, meatBarY + meatBarHeight * meterTop, meatBarWidth - meatBarWidth * (meterLeft + meterRight), meatBarHeight - meatBarHeight * meterTop * 2), "");
 
 		meterLeft += 0.017f;
 		meterRight += 0.017f;
 		meterTop += 0.12f;		
 
-		float meterWidth = feedingBarWidth - feedingBarWidth * (meterLeft + meterRight);
+		float meterWidth = meatBarWidth - meatBarWidth * (meterLeft + meterRight);
 		float meterStatWidth = meterWidth * (meatLevel >= 0.1f ? 0.24f : 0.18f);
 		Color feedingColor = new Color(0.99f, 0.6f, 0f, 1f);
-		DrawRect(new Rect(feedingBarX + feedingBarWidth * meterLeft, feedingBarY + feedingBarHeight * meterTop, feedingBarWidth - feedingBarWidth * (meterLeft + meterRight), feedingBarHeight - feedingBarHeight * meterTop * 2), new Color(0.47f, 0.5f, 0.45f, 0.5f));	
-		DrawRect(new Rect(feedingBarX + feedingBarWidth * meterLeft, feedingBarY + feedingBarHeight * meterTop, ((feedingBarWidth - feedingBarWidth * (meterLeft + meterRight)) - meterStatWidth) * meatLevel, feedingBarHeight - feedingBarHeight * meterTop * 2), feedingColor);			
+		DrawRect(new Rect(meatBarX + meatBarWidth * meterLeft, meatBarY + meatBarHeight * meterTop, meatBarWidth - meatBarWidth * (meterLeft + meterRight), meatBarHeight - meatBarHeight * meterTop * 2), new Color(0.47f, 0.5f, 0.45f, 0.5f));	
+		DrawRect(new Rect(meatBarX + meatBarWidth * meterLeft, meatBarY + meatBarHeight * meterTop, ((meatBarWidth - meatBarWidth * (meterLeft + meterRight)) - meterStatWidth) * meatLevel, meatBarHeight - meatBarHeight * meterTop * 2), feedingColor);			
 
 
 		if (meatLevel > 0f) {
 			// current value display
 			meterTop -= 0.12f;		
-			float meterX = feedingBarX + feedingBarWidth * meterLeft;
-			float meterY = feedingBarY + feedingBarHeight * meterTop;
-			float meterHeight = feedingBarHeight - feedingBarHeight * meterTop * 2;
+			float meterX = meatBarX + meatBarWidth * meterLeft;
+			float meterY = meatBarY + meatBarHeight * meterTop;
+			float meterHeight = meatBarHeight - meatBarHeight * meterTop * 2;
 			int meatLevelInt = (int)(meatLevel * 1000f);
 			float meterStatX = meterX + (meterWidth - meterStatWidth) * meatLevel;
 			GUI.Box(new Rect(meterStatX, meterY - meterHeight * 0.15f, meterStatWidth, meterHeight + meterHeight * 0.3f), "");
@@ -4437,9 +3995,9 @@ public class GUIManager : MonoBehaviour
 
 		// meter label 2
 
-		float textureX = feedingBarX + feedingBarWidth * 0.91f;
-		float textureY = feedingBarY + feedingBarHeight * 0.1f;
-		float textureWidth = feedingBarHeight * 0.67f;
+		float textureX = meatBarX + meatBarWidth * 0.91f;
+		float textureY = meatBarY + meatBarHeight * 0.1f;
+		float textureWidth = meatBarHeight * 0.67f;
 		float textureHeight = greenCheckTexture.height * (textureWidth / greenCheckTexture.width);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), greenCheckTexture);
 
@@ -4447,15 +4005,15 @@ public class GUIManager : MonoBehaviour
 		style.normal.textColor = new Color(0f, 0.70f, 0f, 1f);
 		style.fontSize = (int)(fontRef * 0.2f);
 		style.fontStyle = FontStyle.BoldAndItalic;
-		GUI.Button(new Rect(feedingBarX + feedingBarWidth * 0.8f, feedingBarY + feedingBarHeight * 0.30f, feedingBarWidth * 0.1f, feedingBarHeight * 0.03f), "1000", style);
+		GUI.Button(new Rect(meatBarX + meatBarWidth * 0.8f, meatBarY + meatBarHeight * 0.30f, meatBarWidth * 0.1f, meatBarHeight * 0.03f), "1000", style);
 		style.fontSize = (int)(fontRef * 0.18f);
-		GUI.Button(new Rect(feedingBarX + feedingBarWidth * 0.805f, feedingBarY + feedingBarHeight * 0.65f, feedingBarWidth * 0.1f, feedingBarHeight * 0.03f), "Lbs", style);
+		GUI.Button(new Rect(meatBarX + meatBarWidth * 0.805f, meatBarY + meatBarHeight * 0.65f, meatBarWidth * 0.1f, meatBarHeight * 0.03f), "Lbs", style);
 
 
 	}
 
 	
-	void CreateHealthBar(int pumaNum, float healthBarX, float healthBarY, float healthBarWidth, float healthBarHeight, bool hideStatFlag = false, bool shiftStatFlag = false) 
+	public void DrawPumaHealthBar(int pumaNum, float healthBarOpacity, float healthBarX, float healthBarY, float healthBarWidth, float healthBarHeight, bool hideStatFlag = false, bool shiftStatFlag = false) 
 	{ 
 		float health = scoringSystem.GetPumaHealth(pumaNum); 
 		float textureX;
@@ -4467,9 +4025,9 @@ public class GUIManager : MonoBehaviour
 		style.alignment = TextAnchor.MiddleCenter;
 		
 		// panel background
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 		GUI.Box(new Rect(healthBarX, healthBarY, healthBarWidth, healthBarHeight), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 	
 		// puma crossbones
 		if (health < 1f) {
@@ -4478,9 +4036,9 @@ public class GUIManager : MonoBehaviour
 			textureY = healthBarY + healthBarHeight * 0.15f;
 			textureWidth = healthBarHeight * .8f;
 			textureHeight = crossboneTexture.height * (textureWidth / crossboneTexture.width) * 1f;
-			GUI.color = new Color(1f, 1f, 1f, ((health > 0.66f || health < 0f) ? 0.9f : (health > 0.33f ? 0.975f : 1f)) * guiOpacity);
+			GUI.color = new Color(1f, 1f, 1f, ((health > 0.66f || health < 0f) ? 0.9f : (health > 0.33f ? 0.975f : 1f)) * healthBarOpacity);
 			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), crossboneTexture);
-			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+			GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 		}
 
 		// health meter
@@ -4490,7 +4048,7 @@ public class GUIManager : MonoBehaviour
 		float meterLeft = 0.2075f;
 		float meterRight = 0.2075f;
 		float meterTop = 0.27f;		
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 		GUI.Box(new Rect(healthBarX + healthBarWidth * meterLeft, healthBarY + healthBarHeight * meterTop, healthBarWidth - healthBarWidth * (meterLeft + meterRight), healthBarHeight - healthBarHeight * meterTop * 2), "");
 		GUI.Box(new Rect(healthBarX + healthBarWidth * meterLeft, healthBarY + healthBarHeight * meterTop, healthBarWidth - healthBarWidth * (meterLeft + meterRight), healthBarHeight - healthBarHeight * meterTop * 2), "");
 
@@ -4538,7 +4096,7 @@ public class GUIManager : MonoBehaviour
 		float meterY = healthBarY + healthBarHeight * meterTop;
 		float meterHeight = healthBarHeight - healthBarHeight * meterTop * 2;
 		float meterWidth = healthBarWidth - healthBarWidth * (meterLeft + meterRight);
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 		GUI.Box(new Rect(meterX, meterY, meterWidth, meterHeight), "");
 		GUI.Box(new Rect(meterX, meterY, meterWidth, meterHeight), "");
 
@@ -4607,9 +4165,9 @@ public class GUIManager : MonoBehaviour
 				float checkMarkHeight = greenCheckTexture.height * (checkMarkWidth / greenCheckTexture.width);
 				float checkMarkX = meterStatX + meterStatWidth * 0.8f;
 				float checkMarkY = meterY - meterHeight * 0.2f;
-				GUI.color = new Color(1f, 1f, 1f, 0.75f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.75f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(checkMarkX, checkMarkY, checkMarkWidth, checkMarkHeight), greenCheckTexture);
-				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 				textLeftShift = meterStatWidth * 0.04f;
 			}
 			else {
@@ -4628,16 +4186,16 @@ public class GUIManager : MonoBehaviour
 			textureY = healthBarY + healthBarHeight * 0.19f;
 			textureWidth = healthBarHeight * 0.64f;
 			textureHeight = greenHeartTexture.height * (textureWidth / greenHeartTexture.width) * 1f;
-			GUI.color = new Color(1f, 1f, 1f, (health > 0.66f ? 0.8f : (health > 0.33f ? 0.68f : 0.5f)) * guiOpacity);
+			GUI.color = new Color(1f, 1f, 1f, (health > 0.66f ? 0.8f : (health > 0.33f ? 0.68f : 0.5f)) * healthBarOpacity);
 			if (health >= 1f)
-				GUI.color = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.9f * healthBarOpacity);
 			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), greenHeartTexture);
-			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+			GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 		}
 	}
 
 	
-	void CreatePopulationHealthBar(float healthBarX, float healthBarY, float healthBarWidth, float healthBarHeight, bool showPumaIcons, bool centerLabels) 
+	public void DrawPopulationHealthBar(float healthBarOpacity, float healthBarX, float healthBarY, float healthBarWidth, float healthBarHeight, bool showPumaIcons, bool centerLabels) 
 	{ 
 		float health = 0; 
 		health += scoringSystem.GetPumaHealth(0); 
@@ -4652,10 +4210,10 @@ public class GUIManager : MonoBehaviour
 		style.alignment = TextAnchor.MiddleCenter;
 
 		// panel background
-		GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 		GUI.Box(new Rect(healthBarX, healthBarY, healthBarWidth, healthBarHeight), "");
 		GUI.Box(new Rect(healthBarX, healthBarY, healthBarWidth, healthBarHeight), "");
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 	
 
 		float textureX;
@@ -4675,13 +4233,13 @@ public class GUIManager : MonoBehaviour
 			if (centerLabels == true)
 				pumaIconY += healthBarHeight * 0.4f;
 			
-			//Color pumaAliveColor = new Color(1f, 1f, 1f, 0.85f * guiOpacity);
-			//Color pumaDeadColor = new Color(0.5f, 0.05f, 0f, 0.9f * guiOpacity);
+			//Color pumaAliveColor = new Color(1f, 1f, 1f, 0.85f * healthBarOpacity);
+			//Color pumaDeadColor = new Color(0.5f, 0.05f, 0f, 0.9f * healthBarOpacity);
 		
 
-			Color pumaAliveColor = new Color(1f, 1f, 1f, 0.9f * guiOpacity);
-			Color pumaFullHealthColor = new Color(0.32f, 0.99f, 0f, 0.9f * guiOpacity);
-			Color pumaDeadColor = new Color(0.6f, 0.05f, 0f, 0.8f * guiOpacity);
+			Color pumaAliveColor = new Color(1f, 1f, 1f, 0.9f * healthBarOpacity);
+			Color pumaFullHealthColor = new Color(0.32f, 0.99f, 0f, 0.9f * healthBarOpacity);
+			Color pumaDeadColor = new Color(0.6f, 0.05f, 0f, 0.8f * healthBarOpacity);
 
 
 			textureX = healthBarX + healthBarWidth * 0.383f;
@@ -4689,9 +4247,9 @@ public class GUIManager : MonoBehaviour
 			textureWidth = pumaIconWidth;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (selectedPuma == -1) {
-				GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
-				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
@@ -4704,9 +4262,9 @@ public class GUIManager : MonoBehaviour
 			textureWidth = pumaIconWidth;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (selectedPuma == -1) {
-				GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
-				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
@@ -4719,9 +4277,9 @@ public class GUIManager : MonoBehaviour
 			textureWidth = pumaIconWidth;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (selectedPuma == -1) {
-				GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
-				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
@@ -4734,9 +4292,9 @@ public class GUIManager : MonoBehaviour
 			textureWidth = pumaIconWidth;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (selectedPuma == -1) {
-				GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
-				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
@@ -4749,9 +4307,9 @@ public class GUIManager : MonoBehaviour
 			textureWidth = pumaIconWidth;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (selectedPuma == -1) {
-				GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
-				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
@@ -4764,9 +4322,9 @@ public class GUIManager : MonoBehaviour
 			textureWidth = pumaIconWidth;
 			textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
 			if (selectedPuma == -1) {
-				GUI.color = new Color(1f, 1f, 1f, 0.8f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 0.8f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX - (textureWidth * 0.1f), textureY - (textureHeight * 0.11f), textureWidth * 1.2f, textureHeight * 1.2f), pumaIconShadowYellowTexture);
-				GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+				GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
 			}
 			else {
@@ -4775,7 +4333,7 @@ public class GUIManager : MonoBehaviour
 			}
 		}
 
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 
 		Color labelColor;
 		Color barColor;
@@ -4867,9 +4425,9 @@ public class GUIManager : MonoBehaviour
 		textureY = healthBarY + healthBarHeight * 0.14f;
 		textureWidth = healthBarHeight * .76f;
 		textureHeight = crossboneTexture.height * (textureWidth / crossboneTexture.width) * 1f;
-		GUI.color = new Color(1f, 1f, 1f, ((health > 0.66f || health < 0f) ? 0.9f : (health > 0.33f ? 0.975f : 1f)) * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, ((health > 0.66f || health < 0f) ? 0.9f : (health > 0.33f ? 0.975f : 1f)) * healthBarOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), crossboneTexture);
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 
 
 		// health meter
@@ -4880,7 +4438,7 @@ public class GUIManager : MonoBehaviour
 		float meterWidth = healthBarWidth - healthBarWidth * (meterLeft + meterRight);
 		float meterY = healthBarY + healthBarHeight * meterTop;
 		float meterHeight = healthBarHeight - healthBarHeight * meterTop * 2;
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 		GUI.Box(new Rect(meterX, meterY, meterWidth, meterHeight), "");
 
 		meterLeft += 0.007f;
@@ -4917,9 +4475,9 @@ public class GUIManager : MonoBehaviour
 		textureY = healthBarY + healthBarHeight * 0.17f;
 		textureWidth = healthBarHeight * 0.64f;
 		textureHeight = greenHeartTexture.height * (textureWidth / greenHeartTexture.width) * 1f;
-		GUI.color = new Color(1f, 1f, 1f, (health > 0.66f ? 0.8f : (health > 0.33f ? 0.65f : 0.5f)) * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, (health > 0.66f ? 0.8f : (health > 0.33f ? 0.65f : 0.5f)) * healthBarOpacity);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), greenHeartTexture);
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		GUI.color = new Color(1f, 1f, 1f, 1f * healthBarOpacity);
 	}
 
 	
@@ -4928,24 +4486,24 @@ public class GUIManager : MonoBehaviour
 	/////////////////////
 	
 
-	void DrawPopupPanel(float percentVisible) 
+	void DrawInfoPanel(float infoPanelOpacity) 
 	{ 
 		GUIStyle style = new GUIStyle();
 
-		float popupPanelX = Screen.width * 0.5f - Screen.height * 0.75f;
-		float popupPanelWidth = Screen.height * 1.5f;
-		float popupPanelY = Screen.height * 0.025f;
-		float popupPanelHeight = Screen.height * 0.95f;
+		float infoPanelX = Screen.width * 0.5f - Screen.height * 0.75f;
+		float infoPanelWidth = Screen.height * 1.5f;
+		float infoPanelY = Screen.height * 0.025f;
+		float infoPanelHeight = Screen.height * 0.95f;
 
-		float popupInnerRectX = popupPanelX + popupPanelWidth * 0.01f;
-		float popupInnerRectY = popupPanelY + popupPanelWidth * 0.01f;
-		float popupInnerRectWidth = popupPanelWidth - popupPanelWidth * 0.02f;
-		float popupInnerRectHeight = popupPanelHeight - popupPanelWidth * 0.02f;
+		float popupInnerRectX = infoPanelX + infoPanelWidth * 0.01f;
+		float popupInnerRectY = infoPanelY + infoPanelWidth * 0.01f;
+		float popupInnerRectWidth = infoPanelWidth - infoPanelWidth * 0.02f;
+		float popupInnerRectHeight = infoPanelHeight - infoPanelWidth * 0.02f;
 
 		//backdrop
-		GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
-		GUI.Box(new Rect(popupPanelX, popupPanelY, popupPanelWidth, popupPanelHeight), "");
-		//DrawRect(new Rect(popupPanelX + popupPanelWidth * 0.01f, popupPanelY + popupPanelWidth * 0.01f, popupPanelWidth * 0.98f, popupPanelHeight - popupPanelWidth * 0.02f), new Color(0.22f, 0.21f, 0.20f, 1f));	
+		GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
+		GUI.Box(new Rect(infoPanelX, infoPanelY, infoPanelWidth, infoPanelHeight), "");
+		//DrawRect(new Rect(infoPanelX + infoPanelWidth * 0.01f, infoPanelY + infoPanelWidth * 0.01f, infoPanelWidth * 0.98f, infoPanelHeight - infoPanelWidth * 0.02f), new Color(0.22f, 0.21f, 0.20f, 1f));	
 		DrawRect(new Rect(popupInnerRectX, popupInnerRectY, popupInnerRectWidth, popupInnerRectHeight * 0.07f), new Color(0.205f, 0.21f, 0.19f, 1f));	
 		DrawRect(new Rect(popupInnerRectX, popupInnerRectY + popupInnerRectHeight * 0.11f, popupInnerRectWidth, popupInnerRectHeight - popupInnerRectHeight * 0.11f - popupInnerRectHeight * 0.09f), new Color(0.205f, 0.21f, 0.19f, 1f));	
 				
@@ -4958,7 +4516,7 @@ public class GUIManager : MonoBehaviour
 		float textureWidth;
 		
 		string titleString = "not specified";
-		switch (popupPanelPage) {
+		switch (infoPanelPage) {
 
 		case 0:
 			titleString = "";
@@ -4993,13 +4551,13 @@ public class GUIManager : MonoBehaviour
 			style.normal.textColor = new Color(0.65f * 1.05f, 0.60f * 1.05f, 0.50f * 1.05f, 1f);
 			GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.49f, popupInnerRectY + popupInnerRectHeight * 0.28f, popupInnerRectWidth * 0.5f, popupInnerRectHeight * 0.093f), "Catch prey efficiently to survive and thrive", style);	
 			// puma heads
-			GUI.color = new Color(1f, 1f, 1f, 0.4f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 0.4f * infoPanelOpacity);
 			textureX = popupInnerRectX + popupInnerRectWidth * 0.052f;
 			textureY = popupInnerRectY + popupInnerRectHeight * 0.32f;
 			textureHeight = popupInnerRectHeight * 0.55f;
 			textureWidth = forestTexture.width * (textureHeight / forestTexture.height);
 			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), forestTexture);
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			textureX = popupInnerRectX + popupInnerRectWidth * 0.08f;
 			textureY = popupInnerRectY + popupInnerRectHeight * 0.38f;
 			textureHeight = popupInnerRectHeight * 0.15f;
@@ -5031,13 +4589,13 @@ public class GUIManager : MonoBehaviour
 			textureWidth = closeup6Texture.width * (textureHeight / closeup6Texture.height);
 			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), closeup6Texture);
 			// deer heads
-			GUI.color = new Color(1f, 1f, 1f, 0.4f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 0.4f * infoPanelOpacity);
 			textureX = popupInnerRectX + popupInnerRectWidth * 0.53f;
 			textureY = popupInnerRectY + popupInnerRectHeight * 0.32f;
 			textureHeight = popupInnerRectHeight * 0.55f;
 			textureWidth = forestTexture.width * (textureHeight / forestTexture.height);
 			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), forestTexture);
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			textureX = popupInnerRectX + popupInnerRectWidth * 0.56f;
 			textureY = popupInnerRectY + popupInnerRectHeight * 0.39f;
 			textureHeight = popupInnerRectHeight * 0.28f;
@@ -5119,7 +4677,7 @@ public class GUIManager : MonoBehaviour
 		float buttonWidth = (popupInnerRectWidth - buttonGap * 6 - buttonSideGap * 2) / 7;
 		float buttonHeight = overlayRect.height * 0.06f;
 
-		if (popupPanelIntroFlag == false) {
+		if (infoPanelIntroFlag == false) {
 		
 			// DRAW SELECT BUTTONS AT BOTTOM
 		
@@ -5127,170 +4685,170 @@ public class GUIManager : MonoBehaviour
 		
 			// introduction
 			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 0)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 0)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (popupPanelPage != 0)
+			if (infoPanelPage != 0)
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelPage = 0;
+				infoPanelPage = 0;
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Overview")) {
-				popupPanelPage = 0;
+				infoPanelPage = 0;
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 
 			// puma biology
 			
 			buttonX += buttonWidth + buttonGap;
 			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 1)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 1)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (popupPanelPage != 1)
+			if (infoPanelPage != 1)
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelPage = 1;
+				infoPanelPage = 1;
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Biology")) {
-				popupPanelPage = 1;
+				infoPanelPage = 1;
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 
 			// puma ecology
 			
 			buttonX += buttonWidth + buttonGap;
 			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 2)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 2)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (popupPanelPage != 2)
+			if (infoPanelPage != 2)
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelPage = 2;
+				infoPanelPage = 2;
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Ecology")) {
-				popupPanelPage = 2;
+				infoPanelPage = 2;
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 
 			// catching prey
 			
 			buttonX += buttonWidth + buttonGap;
 			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 3)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 3)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (popupPanelPage != 3)
+			if (infoPanelPage != 3)
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelPage = 3;
+				infoPanelPage = 3;
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Predation")) {
-				popupPanelPage = 3;
+				infoPanelPage = 3;
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 
 			// survival threats
 			
 			buttonX += buttonWidth + buttonGap;
 			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 4)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 4)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (popupPanelPage != 4)
+			if (infoPanelPage != 4)
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelPage = 4;
+				infoPanelPage = 4;
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Mortality")) {
-				popupPanelPage = 4;
+				infoPanelPage = 4;
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 
 			// help pumas
 			
 			buttonX += buttonWidth + buttonGap;
 			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 5)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 5)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (popupPanelPage != 5)
+			if (infoPanelPage != 5)
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelPage = 5;
+				infoPanelPage = 5;
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "How to Help")) {
-				popupPanelPage = 5;
+				infoPanelPage = 5;
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 			
 			// DONE
 			
 			buttonX += buttonWidth + buttonGap;
 			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 6)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 6)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (popupPanelPage != 6)
+			if (infoPanelPage != 6)
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelVisible = false;
-				popupPanelTransStart = Time.time;
+				infoPanelVisible = false;
+				infoPanelTransStart = Time.time;
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "CLOSE   X")) {
-				popupPanelVisible = false;
-				popupPanelTransStart = Time.time;
+				infoPanelVisible = false;
+				infoPanelTransStart = Time.time;
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 			
 		}
@@ -5304,36 +4862,36 @@ public class GUIManager : MonoBehaviour
 			buttonWidth *= 1.2f;
 			buttonX = popupInnerRectX + popupInnerRectWidth * 0.5f - buttonWidth * 0.5f;
 
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * percentVisible);
-			if (popupPanelPage != 0)
+			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
+			if (infoPanelPage != 0)
 				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
 			GUI.skin = customGUISkin;
 			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.026);
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				popupPanelVisible = false;
-				popupPanelTransTime = 0.6f;
-				popupPanelTransStart = Time.time;
+				infoPanelVisible = false;
+				infoPanelTransTime = 0.6f;
+				infoPanelTransStart = Time.time;
 				SetGuiState("guiStateStartApp2");
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "GO")) {
-				popupPanelVisible = false;
-				popupPanelTransTime = 0.6f;
-				popupPanelTransStart = Time.time;
+				infoPanelVisible = false;
+				infoPanelTransTime = 0.6f;
+				infoPanelTransStart = Time.time;
 				SetGuiState("guiStateStartApp2");
 			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 		}
 		
 		
-		if (popupPanelIntroFlag == true || popupPanelPage == 0) {
+		if (infoPanelIntroFlag == true || infoPanelPage == 0) {
 		
 		
 		
 		}
-		else if (popupPanelPage != 5) {
+		else if (infoPanelPage != 5) {
 		
 			// vertical divider
 			//DrawRect(new Rect(popupInnerRectX + popupInnerRectWidth * 0.4965f, popupInnerRectY + popupInnerRectHeight * 0.19f, popupInnerRectWidth * 0.0035f, popupInnerRectHeight * 0.69f), new Color(0.31f, 0.305f, 0.30f, 1f));	
@@ -5380,11 +4938,11 @@ public class GUIManager : MonoBehaviour
 
 		// "learn more" section
 
-		if (popupPanelIntroFlag == false && popupPanelPage != 0) {
+		if (infoPanelIntroFlag == false && infoPanelPage != 0) {
 		
-			float yOffsetForPage5 = popupPanelPage == 5 ? (popupInnerRectHeight * -0.12f) : 0f;
+			float yOffsetForPage5 = infoPanelPage == 5 ? (popupInnerRectHeight * -0.12f) : 0f;
 		
-			if (popupPanelPage == 5)
+			if (infoPanelPage == 5)
 				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
 			else
 				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
@@ -5393,12 +4951,12 @@ public class GUIManager : MonoBehaviour
 			style.alignment = TextAnchor.MiddleCenter;
 			style.fontSize = (int)(popupInnerRectWidth * 0.014f);
 			style.normal.textColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-			if (popupPanelPage == 5)
+			if (infoPanelPage == 5)
 				GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.4f, popupInnerRectY + popupInnerRectHeight * 0.765f + yOffsetForPage5, popupInnerRectWidth * 0.2f, popupInnerRectHeight * 0.06f), "Get involved...", style);
 			else
 				GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.4f, popupInnerRectY + popupInnerRectHeight * 0.765f, popupInnerRectWidth * 0.2f, popupInnerRectHeight * 0.06f), "Learn more at...", style);
 
-			GUI.color = new Color(1f, 1f, 1f, 0.9f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 0.9f * infoPanelOpacity);
 
 			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.016);
 			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
@@ -5412,11 +4970,11 @@ public class GUIManager : MonoBehaviour
 				Application.OpenURL("http://www.bapp.org");
 			}	
 			
-			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
+			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
 			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 
 
-			if (popupPanelPage == 5) {
+			if (infoPanelPage == 5) {
 
 				// facebook
 				textureHeight = popupInnerRectHeight * 0.055f;
