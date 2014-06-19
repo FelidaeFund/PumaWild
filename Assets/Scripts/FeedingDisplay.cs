@@ -12,7 +12,9 @@ public class FeedingDisplay : MonoBehaviour
 	//===================================
 	//===================================
 
-	private GUIManager guiManager;
+	// external modules
+	private GuiManager guiManager;
+	private GuiComponents guiComponents;
 	private LevelManager levelManager;
 	private ScoringSystem scoringSystem;
 
@@ -25,7 +27,8 @@ public class FeedingDisplay : MonoBehaviour
 	void Start() 
 	{	
 		// connect to external modules
-		guiManager = GetComponent<GUIManager>();
+		guiManager = GetComponent<GuiManager>();
+		guiComponents = GetComponent<GuiComponents>();
 		levelManager = GetComponent<LevelManager>();
 		scoringSystem = GetComponent<ScoringSystem>();
 	}
@@ -284,7 +287,7 @@ public class FeedingDisplay : MonoBehaviour
 		style.fontSize = (int)(fontRef * 0.12f);
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.045f, feedingDisplayY + feedingDisplayHeight * (0.68f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "calories +", style);
 		
-		guiManager.CreateMeatBar(mainPanelOpacity, feedingDisplayX + feedingDisplayWidth * 0.040f + feedingDisplayHeight * 0.03f, feedingDisplayY + feedingDisplayHeight * 0.77f, feedingDisplayWidth * 0.29f - feedingDisplayHeight * 0.06f, feedingDisplayHeight * 0.12f);
+		guiComponents.DrawMeatBar(mainPanelOpacity, feedingDisplayX + feedingDisplayWidth * 0.040f + feedingDisplayHeight * 0.03f, feedingDisplayY + feedingDisplayHeight * 0.77f, feedingDisplayWidth * 0.29f - feedingDisplayHeight * 0.06f, feedingDisplayHeight * 0.12f);
 		
 		// puma head & status info
 
@@ -364,7 +367,7 @@ public class FeedingDisplay : MonoBehaviour
 		style.fontSize = (int)(fontRef * 0.125f);
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.86f, feedingDisplayY + feedingDisplayHeight * (0.68f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), "points -", style);
 		
-		guiManager.DrawPumaHealthBar(guiManager.selectedPuma, mainPanelOpacity, feedingDisplayX + feedingDisplayWidth * 0.670f + feedingDisplayHeight * 0.03f, feedingDisplayY + feedingDisplayHeight * 0.775f, feedingDisplayWidth * 0.29f - feedingDisplayHeight * 0.06f, feedingDisplayHeight * 0.11f);
+		guiComponents.DrawPumaHealthBar(guiManager.selectedPuma, mainPanelOpacity, feedingDisplayX + feedingDisplayWidth * 0.670f + feedingDisplayHeight * 0.03f, feedingDisplayY + feedingDisplayHeight * 0.775f, feedingDisplayWidth * 0.29f - feedingDisplayHeight * 0.06f, feedingDisplayHeight * 0.11f);
 
 		
 		// population bar
@@ -379,7 +382,7 @@ public class FeedingDisplay : MonoBehaviour
 		GUI.color = new Color(1f, 1f, 1f, 0.4f * mainPanelOpacity);
 		GUI.Box(new Rect(feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.99f, feedingDisplayWidth * 0.93f, feedingDisplayHeight * 0.145f), "");
 		GUI.color = new Color(1f, 1f, 1f, 1f * mainPanelOpacity);
-		guiManager.DrawPopulationHealthBar(mainPanelOpacity, feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.99f, feedingDisplayWidth * 0.93f, feedingDisplayHeight * 0.145f, true, true);
+		guiComponents.DrawPopulationHealthBar(mainPanelOpacity, feedingDisplayX + feedingDisplayWidth * 0.035f, feedingDisplayY + feedingDisplayHeight * 0.99f, feedingDisplayWidth * 0.93f, feedingDisplayHeight * 0.145f, true, true);
 		
 
 		// 'Go' button
@@ -407,137 +410,6 @@ public class FeedingDisplay : MonoBehaviour
 			levelManager.SetGameState("gameStateCaught5");
 		}	
 				
-		
-		
-/*		
-		// health meter
-		float healthMeterX = feedingDisplayX + feedingDisplayWidth * 0.05f;
-		float healthMeterY = feedingDisplayY + feedingDisplayHeight * 0.75f;
-		float healthMeterWidth = feedingDisplayWidth * 0.9f;
-		float healthMeterHeight = feedingDisplayHeight * 0.17f;
-		GUI.color = new Color(0f, 0f, 0f, 1f * guiOpacity);
-		GUI.Box(new Rect(healthMeterX,  healthMeterY, healthMeterWidth, healthMeterHeight), "");
-		GUI.Box(new Rect(healthMeterX,  healthMeterY, healthMeterWidth, healthMeterHeight), "");
-		GUI.color = new Color(0f, 0f, 0f, 0.3f * guiOpacity);
-		//GUI.Box(new Rect(healthMeterX,  healthMeterY, boxWidth * 0.8f, boxHeight * 0.12f), "");
-		//GUI.Box(new Rect(healthMeterX,  healthMeterY, feedingDisplayWidth * 0.8f, feedingDisplayHeight * 0.15f), "");
-		// health meter
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-		float health = GetCurrentHealth();
-		if (health >= 0.5f)
-			health = 0.5f + (1f - health);
-		Color healthColor = (health > 0.75f) ? new Color(0f, 1f, 0f, 0.7f) : ((health > 0.25f) ? new Color(1f, 1f, 0f, 0.81f) : new Color(1f, 0f, 0f, 1f));
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.015f,  healthMeterY + healthMeterWidth * 0.015f, healthMeterWidth - healthMeterWidth * 0.03f, healthMeterHeight - healthMeterWidth * 0.03f), new Color(0f, 0f, 0f, 0.4f));	
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.025f,  healthMeterY + healthMeterWidth * 0.025f, healthMeterWidth - healthMeterWidth * 0.05f, healthMeterHeight - healthMeterWidth * 0.05f), new Color(0.47f, 0.5f, 0.45f, 0.5f));	
-		if (health >= 0.5f) {
-			DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.5f,  healthMeterY + healthMeterWidth * 0.025f, (healthMeterWidth*0.5f - healthMeterWidth * 0.025f) * ((health-0.5f) / 0.5f), healthMeterHeight - healthMeterWidth * 0.05f), healthColor);			
-		}
-		else {
-			float rectRight = healthMeterX + healthMeterWidth * 0.5f;
-			float rectWidth = (healthMeterWidth * 0.5f - healthMeterWidth * 0.025f) * ((0.5f - health) / 0.5f);
-			DrawRect(new Rect(rectRight - rectWidth,  healthMeterY + healthMeterWidth * 0.025f, rectWidth, healthMeterHeight - healthMeterWidth * 0.05f), healthColor);			
-		}
-		// health meter graduations
-		float barHeight = (healthMeterHeight - healthMeterWidth * 0.05f) * 3f;
-		float barY = (healthMeterY + healthMeterWidth * 0.025f) - ((healthMeterHeight - healthMeterWidth * 0.05f) * 2f);
-		float barWidth = healthMeterWidth * 0.016f;
-		Color barColor = new Color(1f, 1f, 0f, 0.81f);
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.5f - barWidth * 0.5f,  barY, barWidth, barHeight), barColor);			
-		barColor = new Color(0f, 1f, 0f, 0.7f);
-		DrawRect(new Rect(healthMeterX + healthMeterWidth  - healthMeterWidth * 0.025f - barWidth,  barY, barWidth, barHeight), barColor);			
-		barColor = new Color(1f, 0f, 0f, 1f);
-		DrawRect(new Rect(healthMeterX + healthMeterWidth * 0.025f,  barY, barWidth, barHeight), barColor);			
-*/		
-		
-		
-		
-/*
-		
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.33f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight), new Color(0f, 0f, 0f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.335f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight), new Color(1f, 1f, 1f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.66f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight * 0.52f), new Color(0f, 0f, 0f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.665f, feedingDisplayY, feedingDisplayWidth * 0.005f, feedingDisplayHeight * 0.52f), new Color(1f, 1f, 1f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.340f, feedingDisplayY + feedingDisplayHeight * 0.52f, feedingDisplayWidth * 0.660f, feedingDisplayWidth * 0.005f), new Color(0f, 0f, 0f, 0.2f));	
-		DrawRect(new Rect(feedingDisplayX + feedingDisplayWidth * 0.340f, feedingDisplayY + feedingDisplayHeight * 0.52f + feedingDisplayWidth * 0.005f, feedingDisplayWidth * 0.660f, feedingDisplayWidth * 0.005f), new Color(1f, 1f, 1f, 0.2f));	
-
-		style.fontSize = (int)(overlayRect.width * 0.020f);
-		style.normal.textColor = new Color(0f, 0.68f, 0f, 1f);
-		style.normal.textColor =  (pumasAlive >= 5) ? new Color(0f, 0.66f, 0f, 1f) : ((pumasAlive >= 3) ? new Color(0.83f, 0.78f, 0f, 1f) : new Color(0.8f, 0f, 0f, 1f));
-		//style.normal.textColor = new Color(0.99f, 0.66f, 0f, 1f);
-		style.fontStyle = FontStyle.Bold;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.018f, feedingDisplayY + feedingDisplayHeight * 0.19f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), (pumasAlive >= 5) ? "STATUS" : ((pumasAlive >= 3) ? "CAUTION" : "WARNING"), style);
-		style.fontSize = (int)(overlayRect.width * 0.018f);
-		style.normal.textColor =   (pumasAlive >= 5) ? new Color(0f, 0.70f, 0f, 1f) : ((pumasAlive >= 3) ? new Color(0.85f, 0.80f, 0f, 1f) : new Color(0.82f, 0f, 0f, 1f));
-		style.fontStyle = FontStyle.BoldAndItalic;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.018f, feedingDisplayY + feedingDisplayHeight * 0.48f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), (pumasAlive >= 5) ? "Healthy" : ((pumasAlive >= 3) ? "Dwindling" : "Threat of"), style);
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.018f, feedingDisplayY + feedingDisplayHeight * 0.75f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), (pumasAlive >= 5) ? "Population" : ((pumasAlive >= 3) ? "Population" : "Extinction"), style);
-
-		style.fontSize = (int)(overlayRect.width * 0.0135f);
-		style.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-		style.fontStyle = FontStyle.Bold;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.35f, feedingDisplayY + feedingDisplayHeight * 0.14f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "CALORIES", style);
-
-		style.fontSize = (int)(overlayRect.width * 0.019f);
-		style.normal.textColor = new Color(0.94f, 0.7f, 0f, 1f);
-		style.fontStyle = FontStyle.BoldAndItalic;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.35f, feedingDisplayY + feedingDisplayHeight * 0.35f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "11,700", style);
-
-		style.fontSize = (int)(overlayRect.width * 0.0135f);
-		style.normal.textColor = new Color(0f, 0.67f, 0f, 1f);
-		style.fontStyle = FontStyle.Bold;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.67f, feedingDisplayY + feedingDisplayHeight * 0.14f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "TARGET", style);
-
-		style.fontSize = (int)(overlayRect.width * 0.019f);
-		style.normal.textColor = new Color(0f, 0.70f, 0f, 1f);
-		style.fontStyle = FontStyle.BoldAndItalic;
-		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.67f, feedingDisplayY + feedingDisplayHeight * 0.35f, feedingDisplayWidth * 0.3f, feedingDisplayHeight * 0.03f), "100,000", style);
-
-		float pumaAliveOpacity = 0.95f;
-		
-		float textureX = feedingDisplayX + feedingDisplayWidth * 0.34f;
-		float textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		float textureWidth = feedingDisplayWidth * 0.12f;
-		float textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 1) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.44f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 2) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.54f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 3) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.64f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 4) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.74f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 5) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-
-		textureX = feedingDisplayX + feedingDisplayWidth * 0.84f;
-		textureY = feedingDisplayY + feedingDisplayHeight * 0.58f;
-		textureWidth = feedingDisplayWidth * 0.12f;
-		textureHeight = pumaIconTexture.height * (textureWidth / pumaIconTexture.width);
-		GUI.color = new Color(1f, 1f, 1f, (pumasAlive >= 6) ? (pumaAliveOpacity * guiOpacity) : (0.4f * guiOpacity));
-		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), pumaIconTexture);
-		
-		
-		*/
 	}
 	
 }
