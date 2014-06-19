@@ -8,7 +8,8 @@ public class GUIManager : MonoBehaviour
 {
 	// DEBUGGING OPTIONS
 	private bool displayFrameRate = false;
-	private int startCount = 0;
+	private bool skipStraightToLevel = false;
+	private int  skipStraightToLevelFrameCount = 0;
 
 	//===================================
 	//===================================
@@ -23,16 +24,14 @@ public class GUIManager : MonoBehaviour
 	private float[] powerArray = new float[] {0.15f, 0.25f, 0.45f, 0.55f, 0.75f, 0.85f};
 
 	public string guiState;
-	private float stateStartTime;
-	private float guiFadeTime;
+	private float guiStateStartTime;
+	private float guiStateDuration;
 	private float guiFadePercentComplete;
 	
 	public GUISkin customGUISkin;
 	private float guiOpacity = 1f;
-	private float guiBackdropOpacity = 1f;
 	private float levelDisplayOpacity = 1f;
 	private float statusDisplayOpacity = 1f;
-	private float feedingDisplayStartTime;
 	
 	private bool popupPanelVisible = false;
 	private int popupPanelPage = 0;
@@ -144,6 +143,7 @@ public class GUIManager : MonoBehaviour
 	private LevelManager levelManager;
 	private PositionIndicator positionIndicator;
 	private ScoringSystem scoringSystem;
+	private InputControls inputControls;
 
 	//===================================
 	//===================================
@@ -157,18 +157,15 @@ public class GUIManager : MonoBehaviour
 		levelManager = GetComponent<LevelManager>();
 		positionIndicator = GetComponent<PositionIndicator>();
 		scoringSystem = GetComponent<ScoringSystem>();
+		inputControls = GetComponent<InputControls>();
 		
 		// initialize state
-		SetGuiState("guiStateEnteringApp1");
+		SetGuiState("guiStateStartApp1");
 		popupPanelVisible = true;
 		popupPanelTransStart = Time.time - 100000;
 		popupPanelTransTime = 0.3f;
 		popupPanelIntroFlag = true;
-		//SetGuiState("guiStateEnteringApp1");
-		//SetGuiState("guiStateCaught4");
-		startCount = 1;
 		
-
 		// basic rect
 		rectTexture = new Texture2D(2,2);
 		rectStyle = new GUIStyle();
@@ -183,8 +180,6 @@ public class GUIManager : MonoBehaviour
 
 		customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 		customGUISkin.button.hover.textColor = new Color(0.99f, 0.75f, 0.21f, 1f);
-
-
 
 		// custom button
 		buttonStyle = new GUIStyle();
@@ -236,8 +231,6 @@ public class GUIManager : MonoBehaviour
 		bigButtonStyle.normal.textColor = new Color(0.99f, 0.7f, 0.2f, 1f);
 		bigButtonStyle.hover.textColor = new Color(0.99f, 0.8f, 0.4f, 1f);
 		
-		
-		
 		// custom slider
 		sliderBarStyle = new GUIStyle();
 		sliderThumbStyle = new GUIStyle();
@@ -251,225 +244,164 @@ public class GUIManager : MonoBehaviour
 	public void SetGuiState(string newState) 
 	{	
 		guiState = newState;
-		stateStartTime = Time.time;
-		
-		
-		//System.Console.WriteLine("SET STATE: " + newState);	
-		
+		guiStateStartTime = Time.time;
+		Update();
+		Debug.Log("NEW GUI STATE: " + newState);
 	}
+
+	
+	//======================================
+	//
+	//	Update() - SET PARAMS PRIOR TO DRAW
+	//
+	//	This function is where any params 
+	//	get changed prior to the draw code
+	//	being called; all the param changes 
+	//	must happen here because the draw
+	//	code gets called twice (layout+render),
+	//	and therefore must not change params
+	//
+	//======================================
 	
 	void Update() 
-	{	
+	{
+		// clean handling for modifier keys
 		DebounceKeyboardInput();
-	
-		// initial state override
-	
-		if (false && startCount > 10) {
-			SetGuiState("guiStateLeavingOverlay");
-			levelManager.SetGameState("gameStateLeavingGui");
-			startCount = 0;
-		}
-		else if (startCount != 0) {
-			startCount++;
+
+		// debug option (enabled at top of file)
+		if (skipStraightToLevel == true) {
+			SetGuiState("guiStateStartApp1");
+			popupPanelVisible = false;
+			if (++skipStraightToLevelFrameCount == 10) {
+				SetGuiState("guiStateGameplay");
+				levelManager.SetGameState("gameStateLeavingGui");
+				skipStraightToLevel = false;
+			}
 		}
 		
 		// detect caught condition
-	
-		if (guiState != "guiStateCaught1" && guiState != "guiStateCaught2" && levelManager.IsCaughtState() == true) {
+		if (levelManager.IsCaughtState() == true && guiState != "guiStateCaught1" && guiState != "guiStateCaught2") {
 			SetGuiState("guiStateCaught1");
 		}
 		
-		// MAIN PROCESSING
+		//======================================
+		// GUI STATE MACHINE
+		//
+		// Processing for GUI state machine
+		//======================================
 		
 		switch (guiState) {
+		
+		//---------------------
+		// StartApp States
+		//
+		// game launch
+		//---------------------
 
-		case "guiStateEnteringApp1":
-			guiFadeTime = 0f;
-			if (Time.time - stateStartTime < guiFadeTime) {
+		case "guiStateStartApp1":
+			break;
 
-			}
-			else {
-				SetGuiState("guiStateEnteringApp2");
+		case "guiStateStartApp2":
+			// fade-out of popup panel
+			guiStateDuration = 1.1f;
+			if (Time.time > guiStateStartTime + guiStateDuration) {
+				popupPanelTransTime = 0.3f;
+				popupPanelIntroFlag = false;
+				SetGuiState("guiStateEnteringOverlay");
 			}
 			break;
 
-		case "guiStateEnteringApp2":
-			popupPanelTransTime = 0.6f;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to go to overlay screen
-				popupPanelVisible = false;
-				popupPanelTransStart = Time.time;
-				SetGuiState("guiStateEnteringApp3");
-			}	
+		//-----------------------
+		// Overlay States
+		//
+		// entering, viewing and
+		// leaving the main GUI
+		//-----------------------
+
+		case "guiStateEnteringOverlay":
+			// fade-in of overlay panel
+			guiStateDuration = 1.6f;
+			FadeInOpacityLogarithmic();		
+			CheckForKeyboardEscapeFromOverlay();
+			CheckForKeyboardSelectionOfPuma();
+			if (Time.time > guiStateStartTime + guiStateDuration)
+				SetGuiState("guiStateOverlay");
 			break;
 
-		case "guiStateEnteringApp3":
-			guiFadeTime = 1.2f;
-			if (Time.time - stateStartTime < guiFadeTime) {
-
-			}
-			else {
-				guiOpacity = 0f;
-				guiBackdropOpacity = 0f;
-				SetGuiState("guiStateEnteringOverlay1");
-			}
+		case "guiStateOverlay":
+			// ongoing overlay state
+			CheckForKeyboardEscapeFromOverlay();
+			CheckForKeyboardSelectionOfPuma();
 			break;
+
+		case "guiStateLeavingOverlay":
+			// fade-out of overlay panel
+			guiStateDuration = 1f;
+			FadeOutOpacityLogarithmic();
+			if (Time.time > guiStateStartTime + guiStateDuration)
+				SetGuiState("guiStateEnteringGameplay1");
+			break;
+			
+		//-----------------------
+		// Gameplay States
+		//
+		// entering, viewing and
+		// leaving the 3D world
+		//-----------------------
 
 		case "guiStateEnteringGameplay1":
-			popupPanelTransTime = 0.3f;
-			guiFadeTime = 1.5f;
-			if (Time.time - stateStartTime > guiFadeTime) {
+			// no GUI during initial camera zoom
+			guiStateDuration = 1.9f;
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateEnteringGameplay2");
-				guiOpacity = 0f;
-			}
 			break;
 			
 		case "guiStateEnteringGameplay2":
-			guiFadeTime = 0.4f;
-			if (Time.time - stateStartTime > guiFadeTime) {
+			// fade-in of movement controls
+			guiStateDuration = 1.8f;
+			FadeInOpacityLogarithmic();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateEnteringGameplay3");
-				guiOpacity = 0f;
-			}
 			break;
 			
 		case "guiStateEnteringGameplay3":
-			guiFadeTime = 1.8f;
-			if (Time.time - stateStartTime < (guiFadeTime * 0.5f)) {
-				guiFadePercentComplete = (Time.time - stateStartTime) / (guiFadeTime * 0.5f);
-				guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
-				guiOpacity = guiFadePercentComplete * 0.5f;
-			}
-			else if (Time.time - stateStartTime < guiFadeTime) {
-				guiFadePercentComplete = ((Time.time - stateStartTime) - (guiFadeTime * 0.5f)) / (guiFadeTime * 0.5f);				
-				guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
-				guiOpacity = 0.5f + guiFadePercentComplete * 0.5f;
-			}
-			else {
+			// fade-in of position indicators
+			guiStateDuration = 0.7f;
+			FadeInOpacityLogarithmic();
+			CheckForKeyboardEscapeFromGameplay();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateEnteringGameplay4");
-			}
 			break;
 			
 		case "guiStateEnteringGameplay4":
-			guiFadeTime = 0.0f;
-			if (Time.time - stateStartTime < (guiFadeTime * 0.5f)) {
-				guiFadePercentComplete = (Time.time - stateStartTime) / (guiFadeTime * 0.5f);
-				guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
-				guiOpacity = guiFadePercentComplete * 0.5f;
-			}
-			else if (Time.time - stateStartTime < guiFadeTime) {
-				guiFadePercentComplete = ((Time.time - stateStartTime) - (guiFadeTime * 0.5f)) / (guiFadeTime * 0.5f);				
-				guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
-				guiOpacity = 0.5f + guiFadePercentComplete * 0.5f;
-			}
-			else {
+			// brief pause
+			guiStateDuration = 0.2f;
+			CheckForKeyboardEscapeFromGameplay();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateEnteringGameplay5");
-			}
 			break;
 			
 		case "guiStateEnteringGameplay5":
-			guiFadeTime = 0.0f;
-			if (Time.time - stateStartTime > guiFadeTime) {
-				SetGuiState("guiStateEnteringGameplay6");
-				guiOpacity = 0f;
-			}
-			break;
-			
-		case "guiStateEnteringGameplay6":
-			guiFadeTime = 0.7f;
-			if (spacePressed || rightShiftPressed) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
-			if (Time.time - stateStartTime < (guiFadeTime * 0.5f)) {
-				guiFadePercentComplete = (Time.time - stateStartTime) / (guiFadeTime * 0.5f);
-				guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
-				guiOpacity = guiFadePercentComplete * 0.5f;
-			}
-			else if (Time.time - stateStartTime < guiFadeTime) {
-				guiFadePercentComplete = ((Time.time - stateStartTime) - (guiFadeTime * 0.5f)) / (guiFadeTime * 0.5f);				
-				guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
-				guiOpacity = 0.5f + guiFadePercentComplete * 0.5f;
-			}
-			else {
-				SetGuiState("guiStateEnteringGameplay7");
-			}
-			break;
-			
-		case "guiStateEnteringGameplay7":
-			guiFadeTime = 0.2f;
-			if (spacePressed || rightShiftPressed) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
-			if (Time.time - stateStartTime > guiFadeTime) {
-				SetGuiState("guiStateEnteringGameplay8");
-				guiOpacity = 0f;
-			}
-			break;
-			
-		case "guiStateEnteringGameplay8":
-			//float guiFadeInTime = 1.2f;
-			//float guiFadeOutTime = 3.2f;
-			//float fadeOutStartTime = stateStartTime + guiFadeInTime;
-			guiFadeTime = 1.2f;
-			if (spacePressed || rightShiftPressed) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
-			if (Time.time - stateStartTime < guiFadeTime) {
-				guiOpacity = (Time.time - stateStartTime) / guiFadeTime;
-			}
-			//if (Time.time - stateStartTime < guiFadeInTime) {
-				//guiOpacity = (Time.time - stateStartTime) / guiFadeInTime;
-			//}
-			//else if (Time.time - stateStartTime < (guiFadeInTime + guiFadeOutTime)) {
-				//guiOpacity = 1f - (Time.time - fadeOutStartTime) / guiFadeOutTime;
-			//}
-			
-			/*
-			if (Time.time - stateStartTime < (guiFadeTime * 0.5f)) {
-				guiFadePercentComplete = (Time.time - stateStartTime) / (guiFadeTime * 0.5f);
-				guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
-				guiOpacity = guiFadePercentComplete * 0.5f;
-			}
-			else if (Time.time - stateStartTime < guiFadeTime) {
-				guiFadePercentComplete = ((Time.time - stateStartTime) - (guiFadeTime * 0.5f)) / (guiFadeTime * 0.5f);				
-				guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
-				guiOpacity = 0.5f + guiFadePercentComplete * 0.5f;
-			}
-			*/
-			else {
-				//guiOpacity = 1.0f;
+			// fade-in of status displays
+			guiStateDuration = 1.2f;
+			FadeInOpacityLinear();
+			CheckForKeyboardEscapeFromGameplay();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateGameplay");
-			}
 			break;
 			
 		case "guiStateGameplay":
-			if (spacePressed || rightShiftPressed) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
+			// ongoing game-play state
+			CheckForKeyboardEscapeFromGameplay();
 			break;
 			
 		case "guiStateLeavingGameplay":
-			guiFadeTime = 0.7f;
-			if (currentScreen == 0 || currentScreen == 2) {
-				// select or stat screen
-				if (leftArrowPressed)
-					DecrementPuma();
-				if (rightArrowPressed)
-					IncrementPuma();
-			}
-			if (Time.time - stateStartTime < guiFadeTime) {		
-				guiFadePercentComplete = (Time.time - stateStartTime) / guiFadeTime;
-				guiOpacity = 1f - guiFadePercentComplete;
-			}
-			else {
-				SetGuiState("guiStateEnteringOverlay1");
+			// fade-out of game-play controls
+			guiStateDuration = 0.7f;
+			FadeOutOpacityLinear();
+			CheckForKeyboardSelectionOfPuma();
+			if (Time.time > guiStateStartTime + guiStateDuration) {
+				SetGuiState("guiStateEnteringOverlay");
 				if (currentScreen == 3) {
 					// return to select screen rather than quit screen
 					currentScreen = 0;
@@ -479,253 +411,217 @@ public class GUIManager : MonoBehaviour
 					selectedPuma = -1;
 					currentScreen = 0;
 				}
-				guiFadePercentComplete = 0f;
-				guiBackdropOpacity = 0f;
 			}
 			break;
 		
-		case "guiStateEnteringOverlay1":
-			guiFadeTime = 1.6f;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to leave overlay
-				SetGuiState("guiStateLeavingOverlay");
-				levelManager.SetGameState("gameStateLeavingGui");
-			}	
-			if (currentScreen == 0 || currentScreen == 2) {
-				// select or stat screen
-				if (leftArrowPressed)
-					DecrementPuma();
-				if (rightArrowPressed)
-					IncrementPuma();
-			}
-			if (Time.time - stateStartTime < (guiFadeTime * 0.5f)) {
-				guiBackdropOpacity = (Time.time - stateStartTime) / guiFadeTime;
-				guiFadePercentComplete = (Time.time - stateStartTime) / (guiFadeTime * 0.5f);
-				guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
-				guiOpacity = guiFadePercentComplete * 0.5f;
-			}
-			else if (Time.time - stateStartTime < guiFadeTime) {
-				guiBackdropOpacity = (Time.time - stateStartTime) / guiFadeTime;
-				guiFadePercentComplete = ((Time.time - stateStartTime) - (guiFadeTime * 0.5f)) / (guiFadeTime * 0.5f);				
-				guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
-				guiOpacity = 0.5f + guiFadePercentComplete * 0.5f;
-			}
-			else {
-				SetGuiState("guiStateEnteringOverlay2");
-				guiFadePercentComplete = 0f;
-			}
-			break;
+		//------------------------------
+		// Feeding States
+		//
+		// entering, viewing and
+		// leaving the feeding display
+		//------------------------------
 
-		case "guiStateEnteringOverlay2":
-			guiFadeTime = 0.4f;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to leave overlay
-				SetGuiState("guiStateLeavingOverlay");
-				levelManager.SetGameState("gameStateLeavingGui");
-			}
-			if (currentScreen == 0 || currentScreen == 2) {
-				// select or stat screen
-				if (leftArrowPressed)
-					DecrementPuma();
-				if (rightArrowPressed)
-					IncrementPuma();
-			}
-			if (Time.time - stateStartTime < guiFadeTime) {		
-				guiFadePercentComplete = (Time.time - stateStartTime) / guiFadeTime;
-			}
-			else {
-				guiFadePercentComplete = 1f;
-				guiOpacity = 1f;
-				GUI.color = new Color(1f, 1f, 1f, 1f);
-				SetGuiState("guiStateOverlay");
-			}
-			break;
-
-		case "guiStateOverlay":
-			popupPanelIntroFlag = false;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to leave overlay
-				SetGuiState("guiStateLeavingOverlay");
-				levelManager.SetGameState("gameStateLeavingGui");
-			}	
-			if (currentScreen == 0 || currentScreen == 2) {
-				// select or stat screen
-				if (leftArrowPressed)
-					DecrementPuma();
-				if (rightArrowPressed)
-					IncrementPuma();
-			}
-			break;
-
-		case "guiStateLeavingOverlay":
-			guiFadeTime = 1f;
-			if (Time.time - stateStartTime < (guiFadeTime * 0.5f)) {
-				guiBackdropOpacity = 1f - (Time.time - stateStartTime) / guiFadeTime;
-				guiFadePercentComplete = (Time.time - stateStartTime) / (guiFadeTime * 0.5f);
-				guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
-				guiOpacity =  1f - (guiFadePercentComplete * 0.5f);
-			}
-			else if (Time.time - stateStartTime < guiFadeTime) {
-				guiBackdropOpacity =  1f - (Time.time - stateStartTime) / guiFadeTime;
-				guiFadePercentComplete = ((Time.time - stateStartTime) - (guiFadeTime * 0.5f)) / (guiFadeTime * 0.5f);				
-				guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
-				guiOpacity =  1f - (0.5f + guiFadePercentComplete * 0.5f);
-			}
-			else {
-				guiFadePercentComplete = 1f;
-				guiOpacity = 1f;
-				GUI.color = new Color(1f, 1f, 1f, 1f);
-				SetGuiState("guiStateEnteringGameplay1");
-			}
-			break;
-			
-		//=============
-		//=============		
-		
 		case "guiStateCaught1":
-			guiFadeTime = 1f;
-			if (Time.time - stateStartTime < guiFadeTime) {		
-				guiFadePercentComplete = (Time.time - stateStartTime) / guiFadeTime;
-				guiOpacity = 1f - guiFadePercentComplete;
-			}
-			else {
-				guiOpacity = 0f;
+			// fade-out of game-play controls
+			guiStateDuration = 1f;
+			FadeOutOpacityLinear();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateCaught2");
-			}
 			break;
 
 		case "guiStateCaught2":
-			guiFadeTime = 2f;
-			if (Time.time - stateStartTime > guiFadeTime) {		
+			// pause during attack on deer
+			guiStateDuration = 2f;
+			if (Time.time - guiStateStartTime > guiStateDuration)
 				SetGuiState("guiStateCaught3");
-				feedingDisplayStartTime = Time.time;
-			}
 			break;
 
 		case "guiStateCaught3":
-			guiFadeTime = 1f;
-			if (spacePressed || leftShiftPressed || rightShiftPressed) {
-				// use keyboard to resume gameplay
-				SetGuiState("guiStateCaught5");
-				levelManager.SetGameState("gameStateCaught5");
-			}
-			if (Time.time - stateStartTime < guiFadeTime) {		
-				guiFadePercentComplete = (Time.time - stateStartTime) / guiFadeTime;
-				guiOpacity = guiFadePercentComplete;
-			}
-			else {
-				guiOpacity = 1f;
+			// fade-in of feeding display
+			guiStateDuration = 1f;
+			FadeInOpacityLinear();
+			CheckForKeyboardEscapeFromFeeding();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateCaught4");
-			}
 			break;
 
 		case "guiStateCaught4":
-			if (spacePressed || leftShiftPressed || rightShiftPressed) {
-				// use keyboard to resume gameplay
-				SetGuiState("guiStateCaught5");
-				levelManager.SetGameState("gameStateCaught5");
-			}
+			// ongoing view of feeding display
+			CheckForKeyboardEscapeFromFeeding();
 			break;
 
 		case "guiStateCaught5":
-			guiFadeTime = 2f;
-			if (Time.time - stateStartTime < guiFadeTime) {		
-				guiFadePercentComplete = (Time.time - stateStartTime) / guiFadeTime;
-				guiOpacity = 1f - guiFadePercentComplete;
-			}
-			else {
-				guiOpacity = 0f;
+			// fade-out of feeding display
+			guiStateDuration = 2f;
+			FadeOutOpacityLinear();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateCaught6");
-			}
 			break;
 
 		case "guiStateCaught6":
-			guiFadeTime = 0.5f;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
-			if (Time.time - stateStartTime < guiFadeTime) {		
-				guiFadePercentComplete = (Time.time - stateStartTime) / guiFadeTime;
-				guiOpacity = guiFadePercentComplete;
-			}
-			else {
-				guiOpacity = 0f;
+			// fade-in of movement controls
+			guiStateDuration = 0.9f;
+			FadeInOpacityLinear();
+			CheckForKeyboardEscapeFromGameplay();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateCaught7");
-			}
 			break;
 
 		case "guiStateCaught7":
-			guiFadeTime = 1f;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
-			if (Time.time - stateStartTime < (guiFadeTime * 0.5f)) {
-				guiFadePercentComplete = (Time.time - stateStartTime) / (guiFadeTime * 0.5f);
-				guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
-				guiOpacity = guiFadePercentComplete * 0.5f;
-			}
-			else if (Time.time - stateStartTime < guiFadeTime) {
-				guiFadePercentComplete = ((Time.time - stateStartTime) - (guiFadeTime * 0.5f)) / (guiFadeTime * 0.5f);				
-				guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
-				guiOpacity = 0.5f + guiFadePercentComplete * 0.5f;
-			}
-			else {
+			// fade-in of position indicators
+			guiStateDuration = 1f;
+			FadeInOpacityLogarithmic();
+			CheckForKeyboardEscapeFromGameplay();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateCaught8");
-			}
 			break;
 			
 		case "guiStateCaught8":
-			guiFadeTime = 0.1f;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
-			if (Time.time - stateStartTime > guiFadeTime) {
+			// brief pause
+			guiStateDuration = 0.1f;
+			CheckForKeyboardEscapeFromGameplay();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateCaught9");
-				guiOpacity = 0f;
-			}
 			break;
 			
 		case "guiStateCaught9":
-			guiFadeTime = 0.7f;
-			if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
-				// use keyboard to leave gameplay
-				SetGuiState("guiStateLeavingGameplay");
-				levelManager.SetGameState("gameStateLeavingGameplay");
-			}	
-			if (Time.time - stateStartTime < guiFadeTime) {
-				guiOpacity = (Time.time - stateStartTime) / guiFadeTime;
-			}
-			else {
+			// fade-in of status indicators
+			guiStateDuration = 0.7f;
+			FadeInOpacityLinear();
+			CheckForKeyboardEscapeFromGameplay();
+			if (Time.time > guiStateStartTime + guiStateDuration)
 				SetGuiState("guiStateGameplay");
-			}
 			break;
-		//=============
-		//=============		
+			
+		//------------------
+		// Error Check
+		//------------------
 		
+		default:
+			Debug.Log("ERROR - GUIManager.Update() got bad state: " + guiState);
+			break;
 		}
 	}
 
 
+	//------------------------------
+	//
+	//	Utilities used by Update()
+	//
+	//------------------------------
+
+	private void CheckForKeyboardEscapeFromGameplay()
+	{
+		if (spacePressed || leftShiftPressed || rightShiftPressed) {
+			// use keyboard to leave gameplay
+			SetGuiState("guiStateLeavingGameplay");
+			levelManager.SetGameState("gameStateLeavingGameplay");
+		}	
+	}
+	
+	private void CheckForKeyboardEscapeFromOverlay()
+	{
+		if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
+			// use keyboard to leave overlay
+			SetGuiState("guiStateLeavingOverlay");
+			levelManager.SetGameState("gameStateLeavingGui");
+		}	
+	}
+	
+	private void CheckForKeyboardEscapeFromFeeding()
+	{
+		if (spacePressed || leftShiftPressed || rightShiftPressed) {
+			// use keyboard to resume gameplay
+			SetGuiState("guiStateCaught5");
+			levelManager.SetGameState("gameStateCaught5");
+		}
+	}
+
+	private void CheckForKeyboardSelectionOfPuma()
+	{
+		if (currentScreen == 0 || currentScreen == 2) {
+			// we are in 'select' or 'stats' screen
+			if (leftArrowPressed)
+				DecrementPuma();
+			if (rightArrowPressed)
+				IncrementPuma();
+		}
+	}
+	
+	private void FadeInOpacityLogarithmic()
+	{
+		// logarithmic curve 
+		if (Time.time - guiStateStartTime < (guiStateDuration * 0.5f)) {
+			guiFadePercentComplete = (Time.time - guiStateStartTime) / (guiStateDuration * 0.5f);
+			guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
+			guiOpacity = guiFadePercentComplete * 0.5f;
+		}
+		else if (Time.time - guiStateStartTime < guiStateDuration) {
+			guiFadePercentComplete = ((Time.time - guiStateStartTime) - (guiStateDuration * 0.5f)) / (guiStateDuration * 0.5f);				
+			guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
+			guiOpacity = 0.5f + guiFadePercentComplete * 0.5f;
+		}
+	}
+
+	private void FadeInOpacityLinear()
+	{
+		// linear curve
+		guiFadePercentComplete = (Time.time - guiStateStartTime) / guiStateDuration;
+		guiOpacity = guiFadePercentComplete;
+	}
+
+	private void FadeOutOpacityLogarithmic()
+	{
+		// logarithmic curve
+		if (Time.time - guiStateStartTime < (guiStateDuration * 0.5f)) {
+			guiFadePercentComplete = (Time.time - guiStateStartTime) / (guiStateDuration * 0.5f);
+			guiFadePercentComplete = guiFadePercentComplete * guiFadePercentComplete;
+			guiOpacity =  1f - (guiFadePercentComplete * 0.5f);
+		}
+		else if (Time.time - guiStateStartTime < guiStateDuration) {
+			guiFadePercentComplete = ((Time.time - guiStateStartTime) - (guiStateDuration * 0.5f)) / (guiStateDuration * 0.5f);				
+			guiFadePercentComplete = guiFadePercentComplete + (guiFadePercentComplete - (guiFadePercentComplete * guiFadePercentComplete));
+			guiOpacity =  1f - (0.5f + guiFadePercentComplete * 0.5f);
+		}
+	}
+
+	private void FadeOutOpacityLinear()
+	{
+		// linear curve
+		guiFadePercentComplete = (Time.time - guiStateStartTime) / guiStateDuration;
+		guiOpacity =  1f - guiFadePercentComplete;
+	}
+
+	
+	
+	//======================================
+	//
+	//	OnGUI() - DRAW THE USER INTERFACE
+	//
+	//	This function is the top level
+	//	draw routine for rendering the UI;
+	//	it's called twice: once to do the
+	//	layout, and once to draw the UI
+	//
+	//======================================
+	
 	void OnGUI()
 	{	
 		CalculateOverlayRect();
 
 		switch (guiState) {
 	
+		case "guiStateEnteringOverlay":
+		case "guiStateOverlay":
+		case "guiStateLeavingOverlay":
+			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
+				CreateOverlayPanel();
+			break;
+
 		case "guiStateEnteringGameplay2":
 		case "guiStateEnteringGameplay3":
 		case "guiStateEnteringGameplay4":
 		case "guiStateEnteringGameplay5":
-		case "guiStateEnteringGameplay6":
-		case "guiStateEnteringGameplay7":
-		case "guiStateEnteringGameplay8":
-		case "guiStateEnteringGameplay9":
 		case "guiStateGameplay":
 		case "guiStateLeavingGameplay":
 		case "guiStateCaught1":
@@ -737,42 +633,11 @@ public class GUIManager : MonoBehaviour
 				CreateGameplayDisplay();
 			break;
 
-
 		case "guiStateCaught3":
 		case "guiStateCaught4":
 		case "guiStateCaught5":
 			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
 				CreateFeedingDisplay((Screen.width / 2) - (Screen.height * 0.7f), Screen.height * 0.025f, Screen.height * 1.4f, Screen.height * 0.37f);
-			break;
-			
-		case "guiStateEnteringOverlay1":
-			GUI.color = new Color(1f, 1f, 1f, 1f * ((guiBackdropOpacity > 0.5f) ? ((guiBackdropOpacity - 0.5f) * 1.5f) : 0f));
-			//DrawRect(new Rect(0,0,Screen.width,Screen.height), new Color(0.06f, 0.07f, 0.06f, 0.6f));
-			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
-				CreateOverlayPanel();
-			break;
-
-		case "guiStateEnteringOverlay2":
-			guiOpacity = 0.75f + (guiFadePercentComplete * 0.25f);
-			GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
-			//DrawRect(new Rect(0,0,Screen.width,Screen.height), new Color(0.06f, 0.07f, 0.06f, 0.6f));
-			guiOpacity = 1f;
-			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
-				CreateOverlayPanel();
-			break;
-
-		case "guiStateOverlay":
-			GUI.color = new Color(1f, 1f, 1f, 1f);
-			//DrawRect(new Rect(0,0,Screen.width,Screen.height), new Color(0.06f, 0.07f, 0.06f, 0.6f));
-			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
-				CreateOverlayPanel();
-			break;
-
-		case "guiStateLeavingOverlay":
-			GUI.color = new Color(1f, 1f, 1f,  1f * guiOpacity);
-			//DrawRect(new Rect(0,0,Screen.width,Screen.height), new Color(0.06f, 0.07f, 0.06f, 0.6f));
-			if (popupPanelVisible == false || Time.time - popupPanelTransStart < popupPanelTransTime * 0.5f)
-				CreateOverlayPanel();
 			break;
 		}
 
@@ -823,7 +688,7 @@ public class GUIManager : MonoBehaviour
 		float actualGuiOpacity = guiOpacity;
 		float prevGuiOpacity;
 		
-		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateEnteringGameplay6" || guiState == "guiStateEnteringGameplay7" || guiState == "guiStateEnteringGameplay8" || guiState == "guiStateCaught6" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught6" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
 			guiOpacity = 0f;
 	
 		GUIStyle style = new GUIStyle();
@@ -855,9 +720,9 @@ public class GUIManager : MonoBehaviour
 		GUI.Box(new Rect(Screen.width - boxWidth - boxMargin,  Screen.height - boxHeight - boxMargin, boxWidth, boxHeight), "");
 		
 		prevGuiOpacity = guiOpacity;
-		if (guiState == "guiStateEnteringGameplay6" || guiState == "guiStateEnteringGameplay7" || guiState == "guiStateCaught7")
+		if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateCaught7")
 			guiOpacity = actualGuiOpacity;
-		else if (guiState == "guiStateEnteringGameplay8" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		else if (guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
 			guiOpacity = 1f;
 
 		// outer edge display
@@ -871,9 +736,9 @@ public class GUIManager : MonoBehaviour
 
 		// deer head indicators
 		if (levelManager.buck != null && levelManager.doe != null && levelManager.fawn != null ) {
-			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.buck.gameObj, levelManager.buck.type, borderThickness, guiOpacity);
-			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.doe.gameObj, levelManager.doe.type, borderThickness, guiOpacity);
-			positionIndicator.DrawIndicator(levelManager.cameraRotY, levelManager.pumaObj, levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.buck.gameObj, levelManager.buck.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.doe.gameObj, levelManager.doe.type, borderThickness, guiOpacity);
+			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, guiOpacity);
 		}
 		guiOpacity = prevGuiOpacity;
 		
@@ -881,7 +746,7 @@ public class GUIManager : MonoBehaviour
 		
 		
 		prevGuiOpacity = guiOpacity;
-		if (guiState == "guiStateEnteringGameplay8" || guiState == "guiStateCaught9")
+		if (guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught9")
 			guiOpacity = actualGuiOpacity;
 
 		// level and status displays
@@ -940,9 +805,9 @@ public class GUIManager : MonoBehaviour
 		float trayScaleFactor = (8.5f/7f);
 
 		prevGuiOpacity = guiOpacity;
-		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateEnteringGameplay3" || guiState == "guiStateCaught6")
+		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateCaught6")
 			guiOpacity = actualGuiOpacity;
-		else if (guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateEnteringGameplay6" || guiState == "guiStateEnteringGameplay7" || guiState == "guiStateEnteringGameplay8" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		else if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
 			guiOpacity = 1f;
 			
 		// lower right paw
@@ -962,6 +827,7 @@ public class GUIManager : MonoBehaviour
 		float rightBoxY = textureY + textureHeight * 0.4f;
 		float rightBoxWidth = textureWidth * 0.8f;
 		float rightBoxHeight = textureHeight * 0.6f;
+		inputControls.SetRectTurnRight(new Rect(rightBoxX, rightBoxY, rightBoxWidth, rightBoxHeight));
 		
 		// upper right paw
 	
@@ -980,26 +846,11 @@ public class GUIManager : MonoBehaviour
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), arrowRightTexture);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), arrowUpTexture);
 		GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), arrowDownTexture);
-		GUI.color = new Color(1f, 1f, 1f, 0f);
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.45f, textureWidth * 0.24f, textureHeight * 0.24f), "")) {
-			levelManager.forwardClicked = true;
-		}
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.69f, textureWidth * 0.24f, textureHeight * 0.24f), "")) {
-			levelManager.backClicked = true;
-		}
-		//if (GUI.Button(new Rect(textureX + textureWidth * 0.24f, textureY + textureHeight * 0.53f, textureWidth * 0.13f, textureHeight * 0.40f), "")) {
-			//levelManager.diagLeftClicked = true;
-		//}
-		//if (GUI.Button(new Rect(textureX + textureWidth * 0.61f, textureY + textureHeight * 0.53f, textureWidth * 0.13f, textureHeight * 0.40f), "")) {
-			//levelManager.diagRightClicked = true;
-		//}
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.11f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f), "")) {
-			levelManager.sideLeftClicked = true;
-		}
-		if (GUI.Button(new Rect(textureX + textureWidth * 0.61f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f), "")) {
-			levelManager.sideRightClicked = true;
-		}
-		GUI.color = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		inputControls.SetRectForward(   new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.45f, textureWidth * 0.24f, textureHeight * 0.24f));
+		inputControls.SetRectBack(      new Rect(textureX + textureWidth * 0.37f, textureY + textureHeight * 0.69f, textureWidth * 0.24f, textureHeight * 0.24f));
+		inputControls.SetRectDiagLeft(  new Rect(textureX + textureWidth * 0.11f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f));
+		inputControls.SetRectDiagRight( new Rect(textureX + textureWidth * 0.61f, textureY + textureHeight * 0.63f, textureWidth * 0.26f, textureHeight * 0.3f));
+		
 		
 		// upper left paw
 	
@@ -1035,41 +886,7 @@ public class GUIManager : MonoBehaviour
 		float leftBoxY = textureY + textureHeight * 0.4f;
 		float leftBoxWidth = textureWidth * 0.8f;
 		float leftBoxHeight = textureHeight * 0.6f;
-
-
-			
-				
-		
-		
-		if (Event.current != null) {
-			if (Event.current.type == EventType.mouseDown || Event.current.type == EventType.mouseDrag) {
-				float mouseX = Event.current.mousePosition.x;
-				float mouseY = Event.current.mousePosition.y;
-				if (mouseX >= leftBoxX && mouseX <= leftBoxX+leftBoxWidth && mouseY >= leftBoxY && mouseY <= leftBoxY+leftBoxHeight) {
-					levelManager.leftArrowMouseEvent = true;
-					levelManager.rightArrowMouseEvent = false;
-				}
-				else if (mouseX >= rightBoxX && mouseX <= rightBoxX+rightBoxWidth && mouseY >= rightBoxY && mouseY <= rightBoxY+rightBoxHeight) {
-					levelManager.leftArrowMouseEvent = false;
-					levelManager.rightArrowMouseEvent = true;
-				}
-				else {
-					levelManager.leftArrowMouseEvent = false;
-					levelManager.rightArrowMouseEvent = false;	
-				}
-			}
-			else if (Event.current.type == EventType.mouseUp) {
-				levelManager.leftArrowMouseEvent = false;
-				levelManager.rightArrowMouseEvent = false;	
-			}	
-		}	
-		if (levelManager.leftArrowMouseEvent == true) {
-			//GUI.Button(new Rect(leftBoxX, leftBoxY, leftBoxWidth, leftBoxHeight), "");
-		}
-		if (levelManager.rightArrowMouseEvent == true) {
-			//GUI.Button(new Rect(rightBoxX, rightBoxY, rightBoxWidth, rightBoxHeight), "");
-		}
-		
+		inputControls.SetRectTurnLeft(new Rect(leftBoxX, leftBoxY, leftBoxWidth, leftBoxHeight));
 		
 		guiOpacity = prevGuiOpacity;
 
@@ -1079,9 +896,9 @@ public class GUIManager : MonoBehaviour
 		boxHeight = boxHeight * 0.865f;
 		//boxMargin = boxMargin * 1.2f;
 
-		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateEnteringGameplay3" || guiState == "guiStateCaught6")
+		if (guiState == "guiStateEnteringGameplay2" || guiState == "guiStateCaught6")
 			guiOpacity = actualGuiOpacity;
-		else if (guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateEnteringGameplay6" || guiState == "guiStateEnteringGameplay7" || guiState == "guiStateEnteringGameplay8" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
+		else if (guiState == "guiStateEnteringGameplay3" || guiState == "guiStateEnteringGameplay4" || guiState == "guiStateEnteringGameplay5" || guiState == "guiStateCaught7" || guiState == "guiStateCaught8" || guiState == "guiStateCaught9")
 			guiOpacity = 1f;
 
 
@@ -3137,11 +2954,6 @@ public class GUIManager : MonoBehaviour
 		style.alignment = TextAnchor.MiddleCenter;
 
 		
-		
-		
-		
-		
-
 		// deer heads
 
 		float headstackBaseY = statsY + statsHeight * 0.291f;
@@ -4390,7 +4202,7 @@ public class GUIManager : MonoBehaviour
 		if (guiState != "guiStateCaught3") {
 
 			float storedGuiOpacity = guiOpacity;
-			float elapsedTime = Time.time - stateStartTime;
+			float elapsedTime = Time.time - guiStateStartTime;
 
 			if (guiState == "guiStateCaught4") {
 				if (elapsedTime <= 1f)
@@ -5308,7 +5120,9 @@ public class GUIManager : MonoBehaviour
 		float buttonHeight = overlayRect.height * 0.06f;
 
 		if (popupPanelIntroFlag == false) {
-
+		
+			// DRAW SELECT BUTTONS AT BOTTOM
+		
 			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.0196);
 		
 			// introduction
@@ -5481,7 +5295,8 @@ public class GUIManager : MonoBehaviour
 			
 		}
 		else {
-			// skip intro
+		
+			// DRAW 'OK' BUTTON FOR WELCOME SCREEN
 			
 			buttonY -= buttonHeight * 0.15f;
 			buttonHeight *= 1.3f;
@@ -5499,13 +5314,15 @@ public class GUIManager : MonoBehaviour
 			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
 				popupPanelVisible = false;
+				popupPanelTransTime = 0.6f;
 				popupPanelTransStart = Time.time;
-				SetGuiState("guiStateEnteringApp3");
+				SetGuiState("guiStateStartApp2");
 			}
 			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "GO")) {
 				popupPanelVisible = false;
+				popupPanelTransTime = 0.6f;
 				popupPanelTransStart = Time.time;
-				SetGuiState("guiStateEnteringApp3");
+				SetGuiState("guiStateStartApp2");
 			}
 			GUI.color = new Color(1f, 1f, 1f, 1f * percentVisible);
 		}
