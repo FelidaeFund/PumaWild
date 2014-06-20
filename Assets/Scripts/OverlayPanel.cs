@@ -46,7 +46,6 @@ public class OverlayPanel : MonoBehaviour
 	private Texture2D swapButtonHoverTexture;
 	private Texture2D sliderBarTexture;
 	private Texture2D sliderThumbTexture;
-	private Texture2D closeupBackgroundTexture;
 	private Texture2D buckHeadTexture;
 	private Texture2D doeHeadTexture;
 	private Texture2D fawnHeadTexture;
@@ -62,6 +61,7 @@ public class OverlayPanel : MonoBehaviour
 	private Texture2D closeup4Texture;
 	private Texture2D closeup5Texture;
 	private Texture2D closeup6Texture;
+	private Texture2D closeupBackgroundTexture;
 
 	// external modules
 	private GuiManager guiManager;
@@ -102,7 +102,6 @@ public class OverlayPanel : MonoBehaviour
 		swapButtonHoverTexture = guiManager.swapButtonHoverTexture;
 		sliderBarTexture = guiManager.sliderBarTexture;
 		sliderThumbTexture = guiManager.sliderThumbTexture;
-		closeupBackgroundTexture = guiManager.closeupBackgroundTexture;
 		buckHeadTexture = guiManager.buckHeadTexture;
 		doeHeadTexture = guiManager.doeHeadTexture;
 		fawnHeadTexture = guiManager.fawnHeadTexture;
@@ -118,6 +117,7 @@ public class OverlayPanel : MonoBehaviour
 		closeup4Texture = guiManager.closeup4Texture;
 		closeup5Texture = guiManager.closeup5Texture;
 		closeup6Texture = guiManager.closeup6Texture;
+		closeupBackgroundTexture = guiManager.closeupBackgroundTexture;
 		
 		// custom button styling
 		buttonStyle = new GUIStyle();

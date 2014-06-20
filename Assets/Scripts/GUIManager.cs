@@ -17,26 +17,44 @@ public class GuiManager : MonoBehaviour
 	//===================================
 	//===================================
 
+	// STATE MACHINE FOR GUI
+	public string guiState;
+	private float guiStateStartTime;
+	private float guiStateDuration;
+	private float guiFadePercentComplete;
+	private float guiOpacity;
+	
+	// INFO PANEL MANAGEMENT
+	private bool infoPanelVisible = false;
+	private float infoPanelTransStart;
+	private float infoPanelTransTime;
+
+	// MISC VARIABLES
+	public int selectedPuma = -1;			// TEMP: !!! should not be public; need to consolidate in either LevelManager or GUIManager, with function call to get it	
+	public GUISkin customGUISkin;
+	private Rect overlayRect;
+	
+	// KEYBOARD TRACKING
+	private bool spacePressed = false;
+	private bool leftShiftPressed = false;
+	private bool rightShiftPressed = false;
+	private bool leftArrowPressed = false;
+	private bool rightArrowPressed = false;
+	
+	// KEYBOARD DEBOUNCING
+	private bool debounceSpace = false;
+	private bool debounceLeftShift = false;
+	private bool debounceRightShift = false;
+	private bool debounceLeftArrow = false;
+	private bool debounceRightArrow = false;
+
 	// PUMA CHARACTERISTICS
 	private float[] speedArray = new float[] {0.85f, 0.75f, 0.55f, 0.45f, 0.25f, 0.15f};
 	private float[] stealthArray = new float[] {0.15f, 0.25f, 0.45f, 0.55f, 0.75f, 0.85f};
 	private float[] enduranceArray = new float[] {0.85f, 0.75f, 0.55f, 0.45f, 0.25f, 0.15f};
 	private float[] powerArray = new float[] {0.15f, 0.25f, 0.45f, 0.55f, 0.75f, 0.85f};
 
-	public string guiState;
-	private float guiStateStartTime;
-	private float guiStateDuration;
-	private float guiFadePercentComplete;
-	
-	public GUISkin customGUISkin;
-	private float guiOpacity = 1f;
-	
-	private bool infoPanelVisible = false;
-	private int infoPanelPage = 0;
-	private float infoPanelTransStart;
-	private float infoPanelTransTime;
-	private bool infoPanelIntroFlag;
-
+	// EXTERNAL IMAGE FILES 
 	public Texture2D logoTexture; 
 	public Texture2D backgroundTexture; 
 	public Texture2D pumaIconTexture; 
@@ -49,7 +67,6 @@ public class GuiManager : MonoBehaviour
 	public Texture2D hunterTexture; 
 	public Texture2D vehicleTexture; 
 	public Texture2D forestTexture; 
-	
 	public Texture2D buttonTexture; 
 	public Texture2D buttonHoverTexture; 
 	public Texture2D buttonDownTexture; 
@@ -64,14 +81,12 @@ public class GuiManager : MonoBehaviour
 	public Texture2D pumaCrossbonesRedTexture; 
 	public Texture2D pumaCrossbonesDarkRedTexture; 
 	public Texture2D greenHeartTexture; 
-
 	public Texture2D headshot1Texture; 
 	public Texture2D headshot2Texture; 
 	public Texture2D headshot3Texture; 
 	public Texture2D headshot4Texture; 
 	public Texture2D headshot5Texture; 
 	public Texture2D headshot6Texture; 
-
 	public Texture2D closeup1Texture; 
 	public Texture2D closeup2Texture; 
 	public Texture2D closeup3Texture; 
@@ -79,7 +94,6 @@ public class GuiManager : MonoBehaviour
 	public Texture2D closeup5Texture; 
 	public Texture2D closeup6Texture; 
 	public Texture2D closeupBackgroundTexture; 
-
 	public Texture2D arrowTrayTexture; 
 	public Texture2D arrowTrayTopTexture; 
 	public Texture2D arrowLeftTexture; 
@@ -92,12 +106,10 @@ public class GuiManager : MonoBehaviour
 	public Texture2D arrowDownOnTexture; 
 	public Texture2D arrowTurnLeftTexture; 
 	public Texture2D arrowTurnRightTexture; 
-
 	public Texture2D indicatorBuck; 
 	public Texture2D indicatorDoe; 
 	public Texture2D indicatorFawn; 
 	public Texture2D indicatorBkgnd; 
-
 	public Texture2D iconFacebookTexture; 
 	public Texture2D iconTwitterTexture; 
 	public Texture2D iconGoogleTexture; 
@@ -105,40 +117,13 @@ public class GuiManager : MonoBehaviour
 	public Texture2D iconYouTubeTexture; 
 	public Texture2D iconLinkedInTexture; 
 
-	public int selectedPuma = -1;			// TEMP: !!! should not be public; need to consolidate in either LevelManager or GUIManager, with function call to get it
-	
-	private bool spacePressed = false;
-	private bool leftShiftPressed = false;
-	private bool rightShiftPressed = false;
-	private bool leftArrowPressed = false;
-	private bool rightArrowPressed = false;
-	
-	private bool debounceSpace = false;
-	private bool debounceLeftShift = false;
-	private bool debounceRightShift = false;
-	private bool debounceLeftArrow = false;
-	private bool debounceRightArrow = false;
-	
-	private Rect overlayRect;
-	private Texture2D rectTexture;				// TEMP: remove when code using this is gone	
-	private GUIStyle rectStyle;					// TEMP: remove when code using this is gone	
-	private GUIStyle buttonStyle;				// TEMP: remove when code using this is gone	
-	private GUIStyle buttonDownStyle;			// TEMP: remove when code using this is gone	
-	private GUIStyle buttonDisabledStyle;		// TEMP: remove when code using this is gone	
-	private GUIStyle bigButtonStyle;			// TEMP: remove when code using this is gone	
-	private GUIStyle bigButtonDisabledStyle;	// TEMP: remove when code using this is gone	
-	private GUIStyle swapButtonStyle;			// TEMP: remove when code using this is gone	
-	private GUIStyle buttonSimpleStyle;			// TEMP: remove when code using this is gone	
-	private GUISkin customSkin;					// TEMP: remove when code using this is gone	
-	private GUIStyle sliderBarStyle;			// TEMP: remove when code using this is gone	
-	private GUIStyle sliderThumbStyle;			// TEMP: remove when code using this is gone	
-
 	// EXTERNAL MODULES
 	private GuiComponents guiComponents;		// TEMP: may not need this when this file has been fully pruned
 	private LevelManager levelManager;
 	private ScoringSystem scoringSystem;
 	private InputControls inputControls;
 	private OverlayPanel overlayPanel;	
+	private InfoPanel infoPanel;	
 	private FeedingDisplay feedingDisplay;
 	private GameplayDisplay gameplayDisplay;	
 
@@ -156,99 +141,18 @@ public class GuiManager : MonoBehaviour
 		scoringSystem = GetComponent<ScoringSystem>();
 		inputControls = GetComponent<InputControls>();
 		overlayPanel = GetComponent<OverlayPanel>();
+		infoPanel = GetComponent<InfoPanel>();
 		feedingDisplay = GetComponent<FeedingDisplay>();
 		gameplayDisplay = GetComponent<GameplayDisplay>();
 		
-		// initialize state
+		// additional initialization
 		SetGuiState("guiStateStartApp1");
 		infoPanelVisible = true;
 		infoPanelTransStart = Time.time - 100000;
-		infoPanelTransTime = 0.3f;
-		infoPanelIntroFlag = true;
-		
-		// basic rect
-		rectTexture = new Texture2D(2,2);
-		rectStyle = new GUIStyle();
-
-
-		customGUISkin.button.normal.textColor = new Color(0.99f, 0.75f, 0.21f, 1f);
-		customGUISkin.button.hover.textColor = new Color(0.99f, 0.75f, 0.21f, 1f);
-
-
-		customGUISkin.button.normal.textColor = new Color(1f, 1f, 1f, 1f);
-		customGUISkin.button.hover.textColor = new Color(1f, 1f, 1f, 1f);
-
 		customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
 		customGUISkin.button.hover.textColor = new Color(0.99f, 0.75f, 0.21f, 1f);
-
-		// custom button
-		buttonStyle = new GUIStyle();
-		buttonStyle.normal.textColor = Color.white;
-		//buttonStyle.normal.background = buttonTexture;
-		buttonStyle.hover.textColor = Color.white;
-		//buttonStyle.hover.background = buttonHoverTexture;
-		buttonStyle.alignment = TextAnchor.MiddleCenter;
-
-		buttonDownStyle = new GUIStyle();
-		buttonDownStyle.normal.textColor = new Color(0.99f, 0.88f, 0.6f, 1f);
-		//buttonDownStyle.normal.background = buttonDownTexture;
-		buttonDownStyle.hover.textColor = new Color(0.99f, 0.88f, 0.6f, 1f);
-		//buttonDownStyle.hover.background = buttonDownTexture;
-		buttonDownStyle.alignment = TextAnchor.MiddleCenter;
-
-		buttonDisabledStyle = new GUIStyle();
-		buttonDisabledStyle.normal.textColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-		//buttonDisabledStyle.normal.background = buttonTexture;
-		buttonDisabledStyle.hover.textColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-		//buttonDisabledStyle.hover.background = buttonTexture;
-		buttonDisabledStyle.alignment = TextAnchor.MiddleCenter;
-
-		swapButtonStyle = new GUIStyle();
-		swapButtonStyle.normal.textColor = Color.white;
-		swapButtonStyle.normal.background = swapButtonTexture;
-		swapButtonStyle.hover.textColor = Color.white;
-		swapButtonStyle.hover.background = swapButtonHoverTexture;
-		swapButtonStyle.alignment = TextAnchor.MiddleCenter;
-
-		buttonSimpleStyle = new GUIStyle();
-		buttonSimpleStyle.normal.textColor = Color.white;
-		buttonSimpleStyle.hover.textColor = Color.white;
-		buttonSimpleStyle.alignment = TextAnchor.MiddleCenter;
-
-		buttonStyle.normal.textColor = new Color(0.99f, 0.7f, 0.2f, 1f);
-		buttonStyle.hover.textColor = new Color(0.99f, 0.8f, 0.4f, 1f);
-
-		bigButtonStyle = new GUIStyle();
-		bigButtonStyle.normal.textColor = Color.white;
-		bigButtonStyle.hover.textColor = Color.white;
-		bigButtonStyle.alignment = TextAnchor.MiddleCenter;
-
-		bigButtonDisabledStyle = new GUIStyle();
-		bigButtonDisabledStyle.normal.textColor = new Color(0.4f, 0.4f, 0.4f, 1f);
-		bigButtonDisabledStyle.hover.textColor = new Color(0.4f, 0.4f, 0.4f, 1f);
-		bigButtonDisabledStyle.alignment = TextAnchor.MiddleCenter;
-		
-		bigButtonStyle.normal.textColor = new Color(0.99f, 0.7f, 0.2f, 1f);
-		bigButtonStyle.hover.textColor = new Color(0.99f, 0.8f, 0.4f, 1f);
-		
-		// custom slider
-		sliderBarStyle = new GUIStyle();
-		sliderThumbStyle = new GUIStyle();
-		sliderThumbStyle.normal.background = sliderThumbTexture;
-		sliderThumbStyle.padding = new RectOffset(10,10,10,10);
-		customSkin = (GUISkin)ScriptableObject.CreateInstance("GUISkin");
-		customSkin.horizontalSlider = sliderBarStyle;
-		customSkin.horizontalSliderThumb = sliderThumbStyle;	
 	}
 	
-	public void SetGuiState(string newState) 
-	{	
-		guiState = newState;
-		guiStateStartTime = Time.time;
-		Update();
-		Debug.Log("NEW GUI STATE: " + newState);
-	}
-
 	
 	//======================================
 	//
@@ -305,8 +209,7 @@ public class GuiManager : MonoBehaviour
 			// fade-out of popup panel
 			guiStateDuration = 1.1f;
 			if (Time.time > guiStateStartTime + guiStateDuration) {
-				infoPanelTransTime = 0.3f;
-				infoPanelIntroFlag = false;
+				infoPanel.ClearIntroFlag();
 				SetGuiState("guiStateEnteringOverlay");
 			}
 			break;
@@ -521,11 +424,12 @@ public class GuiManager : MonoBehaviour
 	}
 
 
-	//------------------------------
-	//
-	//	Utilities used by Update()
-	//
-	//------------------------------
+	//=====================================
+	//=====================================
+	//	  UTILITIES USED BY UPDATE()
+	//=====================================
+	//=====================================
+
 
 	private void CheckForKeyboardEscapeFromGameplay()
 	{
@@ -609,8 +513,6 @@ public class GuiManager : MonoBehaviour
 		guiOpacity =  1f - guiFadePercentComplete;
 	}
 
-	
-	
 	//======================================
 	//
 	//	OnGUI() - DRAW THE USER INTERFACE
@@ -625,142 +527,152 @@ public class GuiManager : MonoBehaviour
 	void OnGUI()
 	{	
 		CalculateOverlayRect();
-
-		switch (guiState) {
 	
-		//-----------------------
-		// Overlay States
-		//
-		// entering, viewing and
-		// leaving the main GUI
-		//-----------------------
-
-		case "guiStateEnteringOverlay":
-		case "guiStateOverlay":
-		case "guiStateLeavingOverlay":
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				overlayPanel.Draw(guiOpacity);
-			break;
-						
-		//-----------------------
-		// Gameplay States
-		//
-		// entering, viewing and
-		// leaving the 3D world
-		//-----------------------
-
-		case "guiStateEnteringGameplay1":
-			// no GUI during initial camera zoom
-			break;
-			
-		case "guiStateEnteringGameplay2":
-			// fade-in of movement controls
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				gameplayDisplay.Draw(guiOpacity, 0f, 0f);
-			break;
-			
-		case "guiStateEnteringGameplay3":
-			// fade-in of position indicators
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				gameplayDisplay.Draw(1f, guiOpacity, 0f);
-			break;
-			
-		case "guiStateEnteringGameplay4":
-			// brief pause
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				gameplayDisplay.Draw(1f, 1f, 0f);
-			break;
-			
-		case "guiStateEnteringGameplay5":
-			// fade-in of status displays
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				gameplayDisplay.Draw(1f, 1f, guiOpacity);
-			break;
-			
-		case "guiStateGameplay":
-			// ongoing game-play state
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				gameplayDisplay.Draw(1f, 1f, 1f);
-			break;
-			
-		case "guiStateLeavingGameplay":
-			// fade-out of game-play controls
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				gameplayDisplay.Draw(guiOpacity, guiOpacity, guiOpacity);
-			break;
+		if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f) {
 		
-		//------------------------------
-		// Feeding States
-		//
-		// entering, viewing and
-		// leaving the feeding display
-		//------------------------------
+			// DRAW SOMETHING - info panel is either not showing, or in first half of fade-in
 
-		case "guiStateFeeding1":
-			// fade-out of game-play controls
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				gameplayDisplay.Draw(guiOpacity, guiOpacity, guiOpacity);
-			break;
+			switch (guiState) {
+		
+			//-----------------------
+			// Overlay States
+			//
+			// entering, viewing and
+			// leaving the main GUI
+			//-----------------------
 
-		case "guiStateFeeding2":
-			// no GUI display during attack on deer
-			break;
+			case "guiStateEnteringOverlay":
+			case "guiStateOverlay":
+			case "guiStateLeavingOverlay":
+				overlayPanel.Draw(guiOpacity);
+				break;
+							
+			//-----------------------
+			// Gameplay States
+			//
+			// entering, viewing and
+			// leaving the 3D world
+			//-----------------------
 
-		case "guiStateFeeding3":
-			// fade-in of feeding display main panel
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				feedingDisplay.Draw(guiOpacity, 0f);
-			break;
-
-		case "guiStateFeeding4":
-			// brief pause
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				feedingDisplay.Draw(1f, 0f);
-			break;
-
-		case "guiStateFeeding5":
-			// fade-in of feeding display 'ok' button
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				feedingDisplay.Draw(1f, guiOpacity);
-			break;
-
-		case "guiStateFeeding6":
-			// ongoing view of feeding display
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				feedingDisplay.Draw(1f, 1f);
-			break;
-
-		case "guiStateFeeding7":
-			// fade-out of feeding display
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
-				feedingDisplay.Draw(guiOpacity, guiOpacity);
-			break;
-
-		case "guiStateFeeding8":
-			// fade-in of movement controls
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+			case "guiStateEnteringGameplay1":
+				// no GUI during initial camera zoom
+				break;
+				
+			case "guiStateEnteringGameplay2":
+				// fade-in of movement controls
 				gameplayDisplay.Draw(guiOpacity, 0f, 0f);
-			break;
-			
-		case "guiStateFeeding9":
-			// fade-in of position indicators
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				break;
+				
+			case "guiStateEnteringGameplay3":
+				// fade-in of position indicators
 				gameplayDisplay.Draw(1f, guiOpacity, 0f);
-			break;
-			
-		case "guiStateFeeding10":
-			// brief pause
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				break;
+				
+			case "guiStateEnteringGameplay4":
+				// brief pause
 				gameplayDisplay.Draw(1f, 1f, 0f);
-			break;
-			
-		case "guiStateFeeding11":
-			// fade-in of status indicators
-			if (infoPanelVisible == false || Time.time - infoPanelTransStart < infoPanelTransTime * 0.5f)
+				break;
+				
+			case "guiStateEnteringGameplay5":
+				// fade-in of status displays
 				gameplayDisplay.Draw(1f, 1f, guiOpacity);
-			break;
+				break;
+				
+			case "guiStateGameplay":
+				// ongoing game-play state
+				gameplayDisplay.Draw(1f, 1f, 1f);
+				break;
+				
+			case "guiStateLeavingGameplay":
+				// fade-out of game-play controls
+				gameplayDisplay.Draw(guiOpacity, guiOpacity, guiOpacity);
+				break;
+			
+			//------------------------------
+			// Feeding States
+			//
+			// entering, viewing and
+			// leaving the feeding display
+			//------------------------------
+
+			case "guiStateFeeding1":
+				// fade-out of game-play controls
+				gameplayDisplay.Draw(guiOpacity, guiOpacity, guiOpacity);
+				break;
+
+			case "guiStateFeeding2":
+				// no GUI display during attack on deer
+				break;
+
+			case "guiStateFeeding3":
+				// fade-in of feeding display main panel
+				feedingDisplay.Draw(guiOpacity, 0f);
+				break;
+
+			case "guiStateFeeding4":
+				// brief pause
+				feedingDisplay.Draw(1f, 0f);
+				break;
+
+			case "guiStateFeeding5":
+				// fade-in of feeding display 'ok' button
+				feedingDisplay.Draw(1f, guiOpacity);
+				break;
+
+			case "guiStateFeeding6":
+				// ongoing view of feeding display
+				feedingDisplay.Draw(1f, 1f);
+				break;
+
+			case "guiStateFeeding7":
+				// fade-out of feeding display
+				feedingDisplay.Draw(guiOpacity, guiOpacity);
+				break;
+
+			case "guiStateFeeding8":
+				// fade-in of movement controls
+				gameplayDisplay.Draw(guiOpacity, 0f, 0f);
+				break;
+				
+			case "guiStateFeeding9":
+				// fade-in of position indicators
+				gameplayDisplay.Draw(1f, guiOpacity, 0f);
+				break;
+				
+			case "guiStateFeeding10":
+				// brief pause
+				gameplayDisplay.Draw(1f, 1f, 0f);
+				break;
+				
+			case "guiStateFeeding11":
+				// fade-in of status indicators
+				gameplayDisplay.Draw(1f, 1f, guiOpacity);
+				break;
+			}
 		}
 		
+		//------------------------------
+		// Draw Info Panel
+		//------------------------------
+				
+		float elapsedTime = Time.time - infoPanelTransStart;
+		float percentVisible = 0f;
+		
+		if (infoPanelVisible == true && elapsedTime < infoPanelTransTime) {
+			// sliding in
+			percentVisible = elapsedTime / infoPanelTransTime;			
+			infoPanel.Draw(percentVisible);
+		}
+		else if (infoPanelVisible == true) {
+			// fully open
+			infoPanel.Draw(1f);
+		}
+		else if (elapsedTime < infoPanelTransTime) {
+			// sliding out		
+			percentVisible = 1f - elapsedTime / infoPanelTransTime;
+			infoPanel.Draw(percentVisible);
+		}
+
 		//------------------------------
 		// Frame Rate Display
 		//------------------------------
@@ -779,592 +691,46 @@ public class GuiManager : MonoBehaviour
 			GUI.Box(new Rect(Screen.width * 0.24f - 80f, Screen.height - 24, 160, 24), "displayVar1:  " + levelManager.displayVar1.ToString());		
 			GUI.Box(new Rect(Screen.width * 0.50f - 80f, Screen.height - 24, 160, 24), "displayVar2:  " + levelManager.displayVar2.ToString());				
 			GUI.Box(new Rect(Screen.width * 0.76f - 80f, Screen.height - 24, 160, 24), "displayVar3:  " + levelManager.displayVar3.ToString());		
-		}
-			
-		//------------------------------
-		// Draw Popup Panel
-		//------------------------------
-				
-		float elapsedTime = Time.time - infoPanelTransStart;
-		float percentVisible = 0f;
-		
-		if (infoPanelVisible == true && elapsedTime < infoPanelTransTime) {
-			// sliding in
-			percentVisible = elapsedTime / infoPanelTransTime;			
-			DrawInfoPanel(percentVisible);
-		}
-		else if (infoPanelVisible == true) {
-			// fully open
-			DrawInfoPanel(1f);
-		}
-		else if (elapsedTime < infoPanelTransTime) {
-			// sliding out		
-			percentVisible = 1f - elapsedTime / infoPanelTransTime;
-			DrawInfoPanel(percentVisible);
-		}
+		}		
 	}	
  
- 
+	//=====================================
+	//=====================================
+	//	UTILITY AND CONVENIENCE FUNCTIONS
+	//=====================================
+	//=====================================
 
-
-	
-
-	
-	/////////////////////
-	////// INFO PANEL
-	/////////////////////
-	
-
-	void DrawInfoPanel(float infoPanelOpacity) 
-	{ 
-		GUIStyle style = new GUIStyle();
-
-		float infoPanelX = Screen.width * 0.5f - Screen.height * 0.75f;
-		float infoPanelWidth = Screen.height * 1.5f;
-		float infoPanelY = Screen.height * 0.025f;
-		float infoPanelHeight = Screen.height * 0.95f;
-
-		float popupInnerRectX = infoPanelX + infoPanelWidth * 0.01f;
-		float popupInnerRectY = infoPanelY + infoPanelWidth * 0.01f;
-		float popupInnerRectWidth = infoPanelWidth - infoPanelWidth * 0.02f;
-		float popupInnerRectHeight = infoPanelHeight - infoPanelWidth * 0.02f;
-
-		//backdrop
-		GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-		GUI.Box(new Rect(infoPanelX, infoPanelY, infoPanelWidth, infoPanelHeight), "");
-		//DrawRect(new Rect(infoPanelX + infoPanelWidth * 0.01f, infoPanelY + infoPanelWidth * 0.01f, infoPanelWidth * 0.98f, infoPanelHeight - infoPanelWidth * 0.02f), new Color(0.22f, 0.21f, 0.20f, 1f));	
-		DrawRect(new Rect(popupInnerRectX, popupInnerRectY, popupInnerRectWidth, popupInnerRectHeight * 0.07f), new Color(0.205f, 0.21f, 0.19f, 1f));	
-		DrawRect(new Rect(popupInnerRectX, popupInnerRectY + popupInnerRectHeight * 0.11f, popupInnerRectWidth, popupInnerRectHeight - popupInnerRectHeight * 0.11f - popupInnerRectHeight * 0.09f), new Color(0.205f, 0.21f, 0.19f, 1f));	
-				
-				
-		// main title & page contents
-		
-		float textureX;
-		float textureY;
-		float textureHeight;
-		float textureWidth;
-		
-		string titleString = "not specified";
-		switch (infoPanelPage) {
-
-		case 0:
-			titleString = "";
-			// chapter title
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.024f);
-			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			style.normal.textColor = new Color(0.65f, 0.60f, 0.50f, 1f);
-			GUI.Button(new Rect(popupInnerRectX, popupInnerRectY + popupInnerRectHeight * 0.13f, popupInnerRectWidth, popupInnerRectHeight * 0.093f), "Chapter 1: Natural Wilderness", style);
-			// left side text
-			popupInnerRectY -= popupInnerRectWidth * 0.01f;
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.023f);
-			style.normal.textColor = new Color(0.99f, 0.66f, 0f, 1f);
-			GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.015f, popupInnerRectY + popupInnerRectHeight * 0.24f, popupInnerRectWidth * 0.5f, popupInnerRectHeight * 0.093f), "A Regional Population of Pumas", style);
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.017f);
-			style.normal.textColor = new Color(0.65f * 1.05f, 0.60f * 1.05f, 0.50f * 1.05f, 1f);
-			GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.015f, popupInnerRectY + popupInnerRectHeight * 0.28f, popupInnerRectWidth * 0.5f, popupInnerRectHeight * 0.093f), "6 pumas with varying strengths and skills", style);
-			// right side text
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.023f);
-			style.normal.textColor = new Color(0.99f, 0.66f, 0f, 1f);
-			GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.49f, popupInnerRectY + popupInnerRectHeight * 0.24f, popupInnerRectWidth * 0.5f, popupInnerRectHeight * 0.093f), "A Pristine Natural Environment", style);
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.017f);
-			style.normal.textColor = new Color(0.65f * 1.05f, 0.60f * 1.05f, 0.50f * 1.05f, 1f);
-			GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.49f, popupInnerRectY + popupInnerRectHeight * 0.28f, popupInnerRectWidth * 0.5f, popupInnerRectHeight * 0.093f), "Catch prey efficiently to survive and thrive", style);	
-			// puma heads
-			GUI.color = new Color(1f, 1f, 1f, 0.4f * infoPanelOpacity);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.052f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.32f;
-			textureHeight = popupInnerRectHeight * 0.55f;
-			textureWidth = forestTexture.width * (textureHeight / forestTexture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), forestTexture);
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.08f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.38f;
-			textureHeight = popupInnerRectHeight * 0.15f;
-			textureWidth = closeup1Texture.width * (textureHeight / closeup1Texture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), closeup1Texture);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.08f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.56f;
-			textureHeight = popupInnerRectHeight * 0.15f;
-			textureWidth = closeup2Texture.width * (textureHeight / closeup2Texture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), closeup2Texture);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.20f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.38f;
-			textureHeight = popupInnerRectHeight * 0.15f;
-			textureWidth = closeup3Texture.width * (textureHeight / closeup3Texture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), closeup3Texture);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.20f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.56f;
-			textureHeight = popupInnerRectHeight * 0.15f;
-			textureWidth = closeup4Texture.width * (textureHeight / closeup4Texture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), closeup4Texture);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.32f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.38f;
-			textureHeight = popupInnerRectHeight * 0.15f;
-			textureWidth = closeup5Texture.width * (textureHeight / closeup5Texture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), closeup5Texture);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.32f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.56f;
-			textureHeight = popupInnerRectHeight * 0.15f;
-			textureWidth = closeup6Texture.width * (textureHeight / closeup6Texture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), closeup6Texture);
-			// deer heads
-			GUI.color = new Color(1f, 1f, 1f, 0.4f * infoPanelOpacity);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.53f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.32f;
-			textureHeight = popupInnerRectHeight * 0.55f;
-			textureWidth = forestTexture.width * (textureHeight / forestTexture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), forestTexture);
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.56f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.39f;
-			textureHeight = popupInnerRectHeight * 0.28f;
-			textureWidth = buckHeadTexture.width * (textureHeight / buckHeadTexture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), buckHeadTexture);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.70f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.35f;
-			textureHeight = popupInnerRectHeight * 0.24f;
-			textureWidth = doeHeadTexture.width * (textureHeight / doeHeadTexture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), doeHeadTexture);
-			textureX = popupInnerRectX + popupInnerRectWidth * 0.80f;
-			textureY = popupInnerRectY + popupInnerRectHeight * 0.45f;
-			textureHeight = popupInnerRectHeight * 0.22f;
-			textureWidth = fawnHeadTexture.width * (textureHeight / fawnHeadTexture.height);
-			GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), fawnHeadTexture);
-			popupInnerRectY += popupInnerRectWidth * 0.01f;
-			// logo
-			float xPos = popupInnerRectX;
-			float yPos = popupInnerRectY + popupInnerRectHeight * -0.0225f;
-			style.fontSize = (int)(overlayRect.width * 0.04f);
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.normal.textColor = new Color(0.2f, 0f, 0f, 1f);
-			GUI.Button(new Rect(xPos - overlayRect.width * 0.003f, yPos + overlayRect.height * 0.008f, popupInnerRectWidth, overlayRect.height * 0.10f), "PumaWild", style);
-			GUI.Button(new Rect(xPos + overlayRect.width * 0.003f, yPos + overlayRect.height * 0.008f, popupInnerRectWidth, overlayRect.height * 0.10f), "PumaWild", style);
-			GUI.Button(new Rect(xPos - overlayRect.width * 0.003f, yPos + overlayRect.height * 0.016f, popupInnerRectWidth, overlayRect.height * 0.10f), "PumaWild", style);
-			GUI.Button(new Rect(xPos + overlayRect.width * 0.003f, yPos + overlayRect.height * 0.016f, popupInnerRectWidth, overlayRect.height * 0.10f), "PumaWild", style);
-			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			GUI.Button(new Rect(xPos, yPos + overlayRect.height * 0.012f, popupInnerRectWidth, overlayRect.height * 0.10f), "PumaWild", style);
-			style.fontSize = (int)(overlayRect.width * 0.0245f);
-			style.normal.textColor = new Color(0.2f, 0f, 0f, 1f);
-			xPos = popupInnerRectX;
-			yPos = popupInnerRectY + popupInnerRectHeight * 0.715f;
-			//GUI.Button(new Rect(xPos - overlayRect.width * 0.001f, yPos + overlayRect.height * 0.084f, popupInnerRectWidth, overlayRect.height * 0.05f), "Survival is Not a Given...", style);
-			//GUI.Button(new Rect(xPos + overlayRect.width * 0.001f, yPos + overlayRect.height * 0.084f, popupInnerRectWidth, overlayRect.height * 0.05f), "Survival is Not a Given...", style);
-			//GUI.Button(new Rect(xPos - overlayRect.width * 0.001f, yPos + overlayRect.height * 0.088f, popupInnerRectWidth, overlayRect.height * 0.05f), "Survival is Not a Given...", style);
-			//GUI.Button(new Rect(xPos + overlayRect.width * 0.001f, yPos + overlayRect.height * 0.088f, popupInnerRectWidth, overlayRect.height * 0.05f), "Survival is Not a Given...", style);
-			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			GUI.Button(new Rect(xPos, yPos + overlayRect.height * 0.086f, popupInnerRectWidth, overlayRect.height * 0.05f), "Survival is not a given...", style);
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			break;
-
-		case 1:
-			titleString = "Puma Biology";
-			break;
-			
-		case 2:
-			titleString = "Puma Ecology";
-			break;
-			
-		case 3:
-			titleString = "Catching Prey";
-			break;
-			
-		case 4:
-			titleString = "Survival Threats";
-			break;
-			
-		case 5:
-			titleString = "Help Pumas";
-			break;
-		}
-
-		style.fontStyle = FontStyle.BoldAndItalic;
-		style.alignment = TextAnchor.MiddleCenter;
-		style.fontSize = (int)(popupInnerRectWidth * 0.03f);
-		style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-		GUI.Button(new Rect(popupInnerRectX, popupInnerRectY, popupInnerRectWidth, popupInnerRectHeight * 0.07f), titleString, style);
-
-		///////////////////
-		// buttons
-		///////////////////
-
-		float buttonSideGap = popupInnerRectWidth * 0.005f;
-		float buttonGap = popupInnerRectWidth * 0.02f;
-		float buttonBorderWidth = popupInnerRectWidth * 0.005f;
-		float buttonX = popupInnerRectX + buttonSideGap;
-		float buttonY = popupInnerRectY + popupInnerRectHeight * 0.935f;
-		float buttonWidth = (popupInnerRectWidth - buttonGap * 6 - buttonSideGap * 2) / 7;
-		float buttonHeight = overlayRect.height * 0.06f;
-
-		if (infoPanelIntroFlag == false) {
-		
-			// DRAW SELECT BUTTONS AT BOTTOM
-		
-			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.0196);
-		
-			// introduction
-			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 0)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (infoPanelPage != 0)
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelPage = 0;
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Overview")) {
-				infoPanelPage = 0;
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-
-			// puma biology
-			
-			buttonX += buttonWidth + buttonGap;
-			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 1)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (infoPanelPage != 1)
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelPage = 1;
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Biology")) {
-				infoPanelPage = 1;
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-
-			// puma ecology
-			
-			buttonX += buttonWidth + buttonGap;
-			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 2)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (infoPanelPage != 2)
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelPage = 2;
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Ecology")) {
-				infoPanelPage = 2;
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-
-			// catching prey
-			
-			buttonX += buttonWidth + buttonGap;
-			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 3)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (infoPanelPage != 3)
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelPage = 3;
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Predation")) {
-				infoPanelPage = 3;
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-
-			// survival threats
-			
-			buttonX += buttonWidth + buttonGap;
-			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 4)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (infoPanelPage != 4)
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelPage = 4;
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Mortality")) {
-				infoPanelPage = 4;
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-
-			// help pumas
-			
-			buttonX += buttonWidth + buttonGap;
-			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 5)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (infoPanelPage != 5)
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelPage = 5;
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "How to Help")) {
-				infoPanelPage = 5;
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-			
-			// DONE
-			
-			buttonX += buttonWidth + buttonGap;
-			
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 6)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (infoPanelPage != 6)
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelVisible = false;
-				infoPanelTransStart = Time.time;
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "CLOSE   X")) {
-				infoPanelVisible = false;
-				infoPanelTransStart = Time.time;
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-			
-		}
-		else {
-		
-			// DRAW 'OK' BUTTON FOR WELCOME SCREEN
-			
-			buttonY -= buttonHeight * 0.15f;
-			buttonHeight *= 1.3f;
-
-			buttonWidth *= 1.2f;
-			buttonX = popupInnerRectX + popupInnerRectWidth * 0.5f - buttonWidth * 0.5f;
-
-			GUI.color = new Color(1f, 1f, 1f, 0.15f * infoPanelOpacity);
-			if (infoPanelPage != 0)
-				DrawRect(new Rect(buttonX - buttonBorderWidth, buttonY - buttonBorderWidth, buttonWidth + buttonBorderWidth * 2f, buttonHeight + buttonBorderWidth * 2f), new Color(1f, 1f, 1f, 1f));	
-			GUI.skin = customGUISkin;
-			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.026);
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			GUI.backgroundColor = new Color(1f, 1f, 1f, 1f);
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "")) {
-				infoPanelVisible = false;
-				infoPanelTransTime = 0.6f;
-				infoPanelTransStart = Time.time;
-				SetGuiState("guiStateStartApp2");
-			}
-			if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "GO")) {
-				infoPanelVisible = false;
-				infoPanelTransTime = 0.6f;
-				infoPanelTransStart = Time.time;
-				SetGuiState("guiStateStartApp2");
-			}
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-		}
-		
-		
-		if (infoPanelIntroFlag == true || infoPanelPage == 0) {
-		
-		
-		
-		}
-		else if (infoPanelPage != 5) {
-		
-			// vertical divider
-			//DrawRect(new Rect(popupInnerRectX + popupInnerRectWidth * 0.4965f, popupInnerRectY + popupInnerRectHeight * 0.19f, popupInnerRectWidth * 0.0035f, popupInnerRectHeight * 0.69f), new Color(0.31f, 0.305f, 0.30f, 1f));	
-			//DrawRect(new Rect(popupInnerRectX + popupInnerRectWidth * 0.500f, popupInnerRectY + popupInnerRectHeight * 0.19f, popupInnerRectWidth * 0.005f, popupInnerRectHeight * 0.69f), new Color(0.13f, 0.125f, 0.12f, 1f));	
-			
-			// left and right titles
-
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.021f);
-			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			GUI.Button(new Rect(popupInnerRectX, popupInnerRectY + popupInnerRectHeight * 0.06f, popupInnerRectWidth * 0.4f, popupInnerRectHeight * 0.06f), "In the Game", style);
-			GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.5f, popupInnerRectY + popupInnerRectHeight * 0.06f, popupInnerRectWidth * 0.6f, popupInnerRectHeight * 0.06f), "the Real World", style);
-		}
-		else {
-			// Help Pumas
-		
-			// title
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.024f);
-			style.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			GUI.Button(new Rect(popupInnerRectX, popupInnerRectY + popupInnerRectHeight * 0.17f, popupInnerRectWidth * 1f, popupInnerRectHeight * 0.093f), "Pumas in the Real World need your help", style);
-
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.018f);
-			style.normal.textColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-			GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.4f, popupInnerRectY + popupInnerRectHeight * 0.25f, popupInnerRectWidth * 0.2f, popupInnerRectHeight * 0.06f), "Help support our work to study and protect pumas and their habitats", style);
-
-			// donate button
-			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.032);
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			customGUISkin.button.normal.textColor = new Color(0.8f, 0.1f, 0f, 1f);
-			Color defaultHoverColor = customGUISkin.button.hover.textColor;
-			customGUISkin.button.hover.textColor = new Color(0.9f, 0.12f, 0f, 1f);
-			DrawRect(new Rect(popupInnerRectX + popupInnerRectWidth * 0.35f + popupInnerRectHeight * 0.01f, popupInnerRectY + popupInnerRectHeight * 0.423f + popupInnerRectHeight * 0.01f, popupInnerRectWidth * 0.3f - popupInnerRectHeight * 0.02f, popupInnerRectHeight * 0.15f - popupInnerRectHeight * 0.023f), new Color(1f, 1f, 1f, 0.15f));	
-			if (GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.35f, popupInnerRectY + popupInnerRectHeight * 0.42f, popupInnerRectWidth * 0.3f, popupInnerRectHeight * 0.15f), "Make a Donation")) {
-				Application.OpenURL("http://www.felidaefund.org/donate");
-			}
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-			customGUISkin.button.hover.textColor = defaultHoverColor;
-		}
-
-		// "learn more" section
-
-		if (infoPanelIntroFlag == false && infoPanelPage != 0) {
-		
-			float yOffsetForPage5 = infoPanelPage == 5 ? (popupInnerRectHeight * -0.12f) : 0f;
-		
-			if (infoPanelPage == 5)
-				customGUISkin.button.normal.textColor = new Color(0.88f, 0.55f, 0f, 1f);
-			else
-				customGUISkin.button.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-
-			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleCenter;
-			style.fontSize = (int)(popupInnerRectWidth * 0.014f);
-			style.normal.textColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-			if (infoPanelPage == 5)
-				GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.4f, popupInnerRectY + popupInnerRectHeight * 0.765f + yOffsetForPage5, popupInnerRectWidth * 0.2f, popupInnerRectHeight * 0.06f), "Get involved...", style);
-			else
-				GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.4f, popupInnerRectY + popupInnerRectHeight * 0.765f, popupInnerRectWidth * 0.2f, popupInnerRectHeight * 0.06f), "Learn more at...", style);
-
-			GUI.color = new Color(1f, 1f, 1f, 0.9f * infoPanelOpacity);
-
-			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.016);
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			if (GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.312f, popupInnerRectY + popupInnerRectHeight * 0.835f + yOffsetForPage5, popupInnerRectWidth * 0.17f, popupInnerRectHeight * 0.045f), "Felidae Fund")) {
-				Application.OpenURL("http://www.felidaefund.org");
-			}
-		
-			customGUISkin.button.fontSize = (int)(overlayRect.width * 0.016);
-			customGUISkin.button.fontStyle = FontStyle.BoldAndItalic;
-			if (GUI.Button(new Rect(popupInnerRectX + popupInnerRectWidth * 0.518f, popupInnerRectY + popupInnerRectHeight * 0.835f + yOffsetForPage5, popupInnerRectWidth * 0.17f, popupInnerRectHeight * 0.045f), "Bay Area Puma Project")) {
-				Application.OpenURL("http://www.bapp.org");
-			}	
-			
-			GUI.color = new Color(1f, 1f, 1f, 1f * infoPanelOpacity);
-			customGUISkin.button.normal.textColor = new Color(0.90f, 0.65f, 0f, 1f);
-
-
-			if (infoPanelPage == 5) {
-
-				// facebook
-				textureHeight = popupInnerRectHeight * 0.055f;
-				textureWidth = iconFacebookTexture.width * (textureHeight / iconFacebookTexture.height);
-				textureX = popupInnerRectX + popupInnerRectWidth * 0.333f;
-				textureY = popupInnerRectY + popupInnerRectHeight * 0.8f;
-				if (GUI.Button(new Rect(textureX, textureY, textureWidth, textureHeight), "")) {
-					Application.OpenURL("http://www.facebook.com/felidaefund");
-				}	
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), iconFacebookTexture);
-				// twitter
-				textureWidth = iconTwitterTexture.width * (textureHeight / iconTwitterTexture.height);
-				textureX += popupInnerRectWidth * 0.06f;
-				if (GUI.Button(new Rect(textureX, textureY, textureWidth, textureHeight), "")) {
-					Application.OpenURL("http://www.twitter.com/felidaefund");
-				}	
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), iconTwitterTexture);
-				// google
-				textureWidth = iconGoogleTexture.width * (textureHeight / iconGoogleTexture.height);
-				textureX += popupInnerRectWidth * 0.06f;
-				if (GUI.Button(new Rect(textureX, textureY, textureWidth, textureHeight), "")) {
-					Application.OpenURL("http://plus.google.com/u/0/118124929806137459330/posts");
-				}	
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), iconGoogleTexture);
-				// pinterest
-				textureWidth = iconPinterestTexture.width * (textureHeight / iconPinterestTexture.height);
-				textureX += popupInnerRectWidth * 0.06f;
-				if (GUI.Button(new Rect(textureX, textureY, textureWidth, textureHeight), "")) {
-					Application.OpenURL("http://www.pinterest.com/felidaefund");
-				}	
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), iconPinterestTexture);
-				// youtube
-				textureWidth = iconYouTubeTexture.width * (textureHeight / iconYouTubeTexture.height);
-				textureX += popupInnerRectWidth * 0.06f;
-				if (GUI.Button(new Rect(textureX, textureY, textureWidth, textureHeight), "")) {
-					Application.OpenURL("http://www.youtube.com/felidaefund");
-				}	
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), iconYouTubeTexture);
-				// linkedin
-				textureWidth = iconLinkedInTexture.width * (textureHeight / iconLinkedInTexture.height);
-				textureX += popupInnerRectWidth * 0.06f;
-				if (GUI.Button(new Rect(textureX, textureY, textureWidth, textureHeight), "")) {
-					Application.OpenURL("http://www.linkedin.com/groups/Felidae-Conservation-Fund-1108927?gid=1108927&trk=hb_side_g");
-				}	
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), iconLinkedInTexture);
-			}
-		}
-		
-		
+	public void SetGuiState(string newState) 
+	{	
+		guiState = newState;
+		guiStateStartTime = Time.time;
+		Update();
+		Debug.Log("NEW GUI STATE: " + newState);
 	}
 
+	public void OpenInfoPanel(int newPageNum)
+	{
+		if (newPageNum >= 0)
+			infoPanel.SetCurrentPage(newPageNum);
+		infoPanelTransTime = 0.3f;
+		infoPanelTransStart = Time.time;
+		infoPanelVisible = true;
+	}
+ 
+ 	public void CloseInfoPanel(bool slowFlag = false)
+	{
+		infoPanelTransTime = slowFlag ? 0.6f : 0.3f;
+		infoPanelTransStart = Time.time;
+		infoPanelVisible = false;
+	}
 	
-	
+	//////////////////
+	//////////////////
 
-	/////////////////////
-	////// UTILITIES
-	/////////////////////
-
-
-
-	
+	public Rect GetOverlayRect()
+	{
+		return overlayRect;
+	}
 
 	void CalculateOverlayRect()
 	{ 
@@ -1393,44 +759,44 @@ public class GuiManager : MonoBehaviour
 		}	
 	}
 
-	public Rect GetOverlayRect()
-	{
-		return overlayRect;
+	//////////////////
+	//////////////////
+
+	bool PumaIsSelectable(int pumaNum)
+	{	
+		if (scoringSystem.GetPumaHealth(pumaNum) <= 0f)
+			return false;
+			
+		if (scoringSystem.GetPumaHealth(pumaNum) >= 1f)
+			return false;
+			
+		return true;
 	}
-
-
-
-
-
-
-
-
-	public void OpenInfoPanel(int newPanelNum)
-	{
-		if (newPanelNum >= 0)
-			infoPanelPage = newPanelNum;
-		infoPanelVisible = true;
-		infoPanelTransStart = Time.time;
-	}
- 
- 
-
 	
 	
-	void DrawRect(Rect position, Color color)
+	void IncrementPuma()
 	{
-		for(int i = 0; i < rectTexture.width; i++) {
-			for(int j = 0; j < rectTexture.height; j++) {
-				rectTexture.SetPixel(i, j, color);
+		for (int i = selectedPuma+1; i < 6; i++) {
+			if (PumaIsSelectable(i)) {
+				selectedPuma = i;
+				levelManager.SetSelectedPuma(selectedPuma);
+				return;
 			}
 		}
-		rectTexture.Apply();
-		rectStyle.normal.background = rectTexture;
-		GUILayout.BeginArea(position, rectStyle);
-		GUILayout.EndArea();		
 	}
 	
+	void DecrementPuma()
+	{
+		for (int i = selectedPuma-1; i >= 0; i--) {
+			if (PumaIsSelectable(i)) {
+				selectedPuma = i;
+				levelManager.SetSelectedPuma(selectedPuma);
+				return;
+			}
+		}
+	}
 	
+	//////////////////
 	//////////////////
 
 	public float GetPumaSpeed(int pumaNum)
@@ -1454,6 +820,7 @@ public class GuiManager : MonoBehaviour
 	}
 
 	//////////////////
+	//////////////////
 
 	float GetSelectedPumaSpeed()
 	{
@@ -1475,43 +842,9 @@ public class GuiManager : MonoBehaviour
 		return (selectedPuma == -1) ?  0f : powerArray[selectedPuma];
 	}
 
-	
-	bool PumaIsSelectable(int pumaNum)
-	{	
-		if (scoringSystem.GetPumaHealth(pumaNum) <= 0f)
-			return false;
-			
-		if (scoringSystem.GetPumaHealth(pumaNum) >= 1f)
-			return false;
-			
-		return true;
-	}
-	
-	
-	void DecrementPuma()
-	{
-		for (int i = selectedPuma-1; i >= 0; i--) {
-			if (PumaIsSelectable(i)) {
-				selectedPuma = i;
-				levelManager.SetSelectedPuma(selectedPuma);
-				return;
-			}
-		}
-	}
-	
-	
-	void IncrementPuma()
-	{
-		for (int i = selectedPuma+1; i < 6; i++) {
-			if (PumaIsSelectable(i)) {
-				selectedPuma = i;
-				levelManager.SetSelectedPuma(selectedPuma);
-				return;
-			}
-		}
-	}
-	
-	
+	//////////////////
+	//////////////////
+
 	void DebounceKeyboardInput()
 	{
 		// filter out key repeats
@@ -1570,10 +903,6 @@ public class GuiManager : MonoBehaviour
 			rightArrowPressed = true;
 			debounceRightArrow = true;
 		}
-		
-	
-	
 	}
-	
-	
+		
 }
