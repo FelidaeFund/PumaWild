@@ -659,16 +659,16 @@ public class GuiManager : MonoBehaviour
 		float percentVisible = 0f;
 		
 		if (infoPanelVisible == true && elapsedTime < infoPanelTransTime) {
-			// sliding in
+			// fading in
 			percentVisible = elapsedTime / infoPanelTransTime;			
 			infoPanel.Draw(percentVisible);
 		}
 		else if (infoPanelVisible == true) {
-			// fully open
+			// fully visible
 			infoPanel.Draw(1f);
 		}
 		else if (elapsedTime < infoPanelTransTime) {
-			// sliding out		
+			// fading out		
 			percentVisible = 1f - elapsedTime / infoPanelTransTime;
 			infoPanel.Draw(percentVisible);
 		}
