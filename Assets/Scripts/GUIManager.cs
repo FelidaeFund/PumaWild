@@ -93,6 +93,11 @@ public class GuiManager : MonoBehaviour
 	public Texture2D arrowTurnLeftTexture; 
 	public Texture2D arrowTurnRightTexture; 
 
+	public Texture2D indicatorBuck; 
+	public Texture2D indicatorDoe; 
+	public Texture2D indicatorFawn; 
+	public Texture2D indicatorBkgnd; 
+
 	public Texture2D iconFacebookTexture; 
 	public Texture2D iconTwitterTexture; 
 	public Texture2D iconGoogleTexture; 
@@ -142,9 +147,7 @@ public class GuiManager : MonoBehaviour
 	private ScoringSystem scoringSystem;
 	private InputControls inputControls;
 	private FeedingDisplay feedingDisplay;
-	private GameplayDisplay gameplayDisplay;
-	private PositionIndicator positionIndicator;
-	
+	private GameplayDisplay gameplayDisplay;	
 
 	//===================================
 	//===================================
@@ -161,7 +164,6 @@ public class GuiManager : MonoBehaviour
 		inputControls = GetComponent<InputControls>();
 		feedingDisplay = GetComponent<FeedingDisplay>();
 		gameplayDisplay = GetComponent<GameplayDisplay>();
-		positionIndicator = GetComponent<PositionIndicator>();
 		
 		// initialize state
 		SetGuiState("guiStateStartApp1");

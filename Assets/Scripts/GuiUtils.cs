@@ -47,5 +47,17 @@ public class GuiUtils : MonoBehaviour
 		GUILayout.EndArea();		
 	}
 
+	public float GetAngleFromOffset(float x1, float y1, float x2, float y2)
+	{
+        float deltaX = x2 - x1;
+        float deltaY = y2 - y1;
+        float angle = Mathf.Atan2(deltaY, -deltaX) * (180f / Mathf.PI);
+        angle -= 90f;
+        if (angle < 0f)
+			angle += 360f;
+		if (angle >= 360f)
+			angle -= 360f;
+		return angle;
+	}	
 
 }

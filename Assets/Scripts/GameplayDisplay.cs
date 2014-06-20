@@ -21,12 +21,15 @@ public class GameplayDisplay : MonoBehaviour
 	private Texture2D arrowRightTexture;
 	private Texture2D arrowTurnLeftTexture;
 	private Texture2D arrowTurnRightTexture;
+	private Texture2D indicatorBuck; 
+	private Texture2D indicatorDoe; 
+	private Texture2D indicatorFawn; 
+	private Texture2D indicatorBkgnd; 
 
 	// external modules
 	private GuiManager guiManager;
 	private GuiComponents guiComponents;
 	private GuiUtils guiUtils;
-	private PositionIndicator positionIndicator;
 	private LevelManager levelManager;
 	private InputControls inputControls;
 
@@ -42,7 +45,6 @@ public class GameplayDisplay : MonoBehaviour
 		guiManager = GetComponent<GuiManager>();
 		guiComponents = GetComponent<GuiComponents>();
 		guiUtils = GetComponent<GuiUtils>();
-		positionIndicator = GetComponent<PositionIndicator>();
 		levelManager = GetComponent<LevelManager>();
 		inputControls = GetComponent<InputControls>();
 		
@@ -55,6 +57,10 @@ public class GameplayDisplay : MonoBehaviour
 		arrowRightTexture = guiManager.arrowRightTexture;
 		arrowTurnLeftTexture = guiManager.arrowTurnLeftTexture;
 		arrowTurnRightTexture = guiManager.arrowTurnRightTexture;
+		indicatorBuck = guiManager.indicatorBuck;
+		indicatorDoe = guiManager.indicatorDoe;
+		indicatorFawn = guiManager.indicatorFawn;
+		indicatorBkgnd = guiManager.indicatorBkgnd;
 	}
 
 	//===================================
@@ -188,9 +194,9 @@ public class GameplayDisplay : MonoBehaviour
 
 		// deer head indicators
 		if (levelManager.buck != null && levelManager.doe != null && levelManager.fawn != null ) {
-			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.buck.gameObj, levelManager.buck.type, borderThickness, positionIndicatorOpacity);
-			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.doe.gameObj, levelManager.doe.type, borderThickness, positionIndicatorOpacity);
-			positionIndicator.DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, positionIndicatorOpacity);
+			DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.buck.gameObj, levelManager.buck.type, borderThickness, positionIndicatorOpacity);
+			DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.doe.gameObj, levelManager.doe.type, borderThickness, positionIndicatorOpacity);
+			DrawIndicator(levelManager.mainHeading, levelManager.pumaObj, levelManager.fawn.gameObj, levelManager.fawn.type, borderThickness, positionIndicatorOpacity);
 		}
 		
 		//----------------------
@@ -237,6 +243,129 @@ public class GameplayDisplay : MonoBehaviour
 			//guiManager.SetGuiState("guiStateOverlay");
 			levelManager.SetGameState("gameStateLeavingGameplay");
 		}
+	}
+	
+	//===================================
+	//===================================
+	//	  POSITION INDICATORS
+	//===================================
+	//===================================
+
+	void DrawIndicator(float mainHeading, GameObject pumaObj, GameObject deerObj, string type, int borderThickness, float guiOpacity)
+    {
+		float xPos = 0;
+		float yPos = 0;
+		float xOffset = 0;
+		float yOffset = 0;
+		float rangeX = Screen.width - borderThickness;
+		float rangeY = Screen.height - borderThickness;
+		float deerToPumaAngle = 0;
+		float deerToPumaDistance = 0;
+
+		//------------------------------------------
+		// Determine onscreen position of indicator
+		//------------------------------------------
+
+		while (mainHeading < 0)
+			mainHeading += 360;
+		while (mainHeading > 360)
+			mainHeading -= 360;
+		
+		// angle based on midpoint between camera and puma
+		float refX = (pumaObj.transform.position.x + Camera.main.transform.position.x) / 2;
+		float refY = (pumaObj.transform.position.z + Camera.main.transform.position.z) / 2;
+
+		deerToPumaAngle = guiUtils.GetAngleFromOffset(refX, refY, deerObj.transform.position.x, deerObj.transform.position.z);
+		deerToPumaDistance = Vector3.Distance(pumaObj.transform.position, deerObj.transform.position);
+
+		xOffset = -(Mathf.Sin((mainHeading - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
+		yOffset = (Mathf.Cos((mainHeading - deerToPumaAngle) * Mathf.PI / 180) * rangeY);
+		xOffset *= (rangeX/2) / rangeY; // adjust x offset to fit screen width			
+			
+		if (yOffset > 0) {
+			// stretch out offsets to place deer head along screen edge
+			float scaleVal;
+			if (Mathf.Abs(xOffset / yOffset) > Mathf.Abs((rangeX/2) / rangeY)) {
+				scaleVal = (rangeX/2) / Mathf.Abs(xOffset); // scale by X dimension
+			}
+			else {
+				scaleVal = (rangeY) / Mathf.Abs(yOffset); // scale by Y dimension
+			}
+			xOffset *= scaleVal;
+			yOffset *= scaleVal;
+		}
+		else {
+			// clip y to keep deer head along lower edge
+			yOffset = 0;
+		}
+					
+		xPos = (Screen.width - borderThickness) / 2 + xOffset;
+		yPos = Screen.height - borderThickness - yOffset;
+
+		//--------------------------------------------
+		// Determine settings for distance indication
+		//--------------------------------------------
+
+		Color backdropColor;
+		float fullRedDistance = 20f;
+		float fullYellowDistance = 75f;
+		float startYellowDistance = 175f;
+		float transPercent;
+				
+		if (deerToPumaDistance < fullRedDistance) {
+			backdropColor = new Color(1f, 0f, 0f, 1f * guiOpacity);
+		}
+		else if (deerToPumaDistance < fullYellowDistance) {
+			transPercent = (fullYellowDistance - deerToPumaDistance) / (fullYellowDistance - fullRedDistance);
+			backdropColor = new Color(1f, 0.5f - (transPercent/2), 0f, 1f * guiOpacity);
+		}
+		else if (deerToPumaDistance < startYellowDistance) {
+			transPercent = (startYellowDistance - deerToPumaDistance) / (startYellowDistance - fullYellowDistance);
+			backdropColor = new Color(1f, 0.5f, 0f, transPercent * guiOpacity);
+		}
+		else {
+			backdropColor = new Color(0f, 0f, 0f, 0f * guiOpacity);
+		}
+			
+		Color headColor;
+		float fullHeadAlphaDistance = 150f;
+		float startHeadAlphaDistance = 300f;
+
+		if (deerToPumaDistance < fullHeadAlphaDistance) {
+			headColor = new Color(1f, 1f, 1f, 1f * guiOpacity);
+		}
+		else if (deerToPumaDistance < startHeadAlphaDistance) {
+			headColor = new Color(1f, 1f, 1f, (0.5f + ((startHeadAlphaDistance - deerToPumaDistance) / (startHeadAlphaDistance - fullHeadAlphaDistance) * 0.5f)) * guiOpacity);
+		}
+		else {
+			headColor = new Color(1f, 1f, 1f, 0.5f * guiOpacity);
+		}
+
+		//--------------------------
+		// Draw the indicator
+		//--------------------------
+
+		Texture2D headTexture = indicatorBkgnd;
+
+		switch (type) {
+
+		case "Buck":
+			headTexture = indicatorBuck;
+			break;
+
+		case "Doe":
+			headTexture = indicatorDoe;
+			break;
+
+		case "Fawn":
+			headTexture = indicatorFawn;
+			break;
+		}
+
+		GUI.color = backdropColor;
+		GUI.DrawTexture(new Rect(xPos, yPos, borderThickness, borderThickness), indicatorBkgnd);
+		GUI.color = headColor;
+		GUI.DrawTexture(new Rect(xPos, yPos, borderThickness, borderThickness), headTexture);
 	}
 
 }
