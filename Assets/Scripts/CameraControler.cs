@@ -1,6 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
+// Public class "CameraControler"
+// 		Controls camera behavior
+// Public Methods:
+// 		void setCameraPosition(string cameraPosition, bool usesRotOffset=false, float rotOffset=0f)
+//		void startCamera(float pumaX, float pumaY, float pumaZ, float angle)
+//		void savePreviousCamera()
+//		void setGuiFlybySpeed(float guiFlybySpeed)
+//		void setTransition(string curveLabel, string cameraPosition="", float fadeTime=0f, float currentTime=0f, float startTime=0f)
+//		void userInput(string inputType, float inputVert, float deltaTime, float speedOverdrive, float inputHorz=0f)
+//		void finalCameraAdjustments(float mainHeading, float pumaX, float pumaY, float pumaZ)
 public class CameraControler : MonoBehaviour {
 
 	//=====================
@@ -20,11 +31,11 @@ public class CameraControler : MonoBehaviour {
 	//Angle camera out of the main/normal Rotation
 	private float cameraRotOffsetY = 0f;
 	private float previousCameraRotOffsetY = 0f;
+
 	//Camera closeup settings (used when entering gameplay and after killing a deer)
 	private float closeupCameraY = 2.75f;
 	private float closeupCameraRotX = 2.75f;
 	private float closeupCameraDistance = 6.5f;
-
 	//Camera settings while walking
 	private float highCameraY = 5.7f;
 	private float highCameraRotX = 12.8f;
@@ -51,7 +62,6 @@ public class CameraControler : MonoBehaviour {
 	private float previousCameraDistance = 0f;
 
 	//Camera frame-Update settings
-	//private float fadeTime;
 	private float fadePercentComplete;
 	private float cameraRotPercentDone;
 	public float guiFlybySpeed = 0f;
@@ -61,12 +71,21 @@ public class CameraControler : MonoBehaviour {
 	//=====================	
 	private LevelManager levelManager;
 
+
+	//=====================
+	//  Initialization
+	//=====================	
+
 	// Use this for initialization
 	void Start ()
 	{
 		levelManager = GetComponent<LevelManager>();
 
 	}
+
+	//=====================
+	//  Public Methods
+	//=====================	
 	
 	// Public method "setCameraPosition"
 	// Args: cameraPosition (string, specifies which camera-position option the camera should use).
@@ -144,7 +163,7 @@ public class CameraControler : MonoBehaviour {
 		previousCameraRotOffsetY = cameraRotOffsetY;
 	}
 
-	///////TEMP!!!!
+	///////TEMP!!!!(?)
 	public void setGuiFlybySpeed(float guiFlybySpeed)
 	{
 		this.guiFlybySpeed = guiFlybySpeed;

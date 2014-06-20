@@ -178,7 +178,7 @@ public class LevelManager : MonoBehaviour
 		stateStartTime = Time.time;
 
 		//Sets the camera to the "guiCamera" configuration
-		//usesRotationOffset = true, rotation offset value = -120.
+		//usesRotationOffset = true, rotation offsetY value = -120.
 		cameraControler.setCameraPosition("guiCamera",true, -120f);
 	
 		pumaX = 0f;
