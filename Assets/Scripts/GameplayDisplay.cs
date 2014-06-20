@@ -2,7 +2,7 @@
 using System.Collections;
 
 /// GameplayDisplay
-/// Draw the heads up display that overlays on top of gameplay
+/// Draw the heads up display that integrates with gameplay
 
 public class GameplayDisplay : MonoBehaviour
 {

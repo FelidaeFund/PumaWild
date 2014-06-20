@@ -12,6 +12,17 @@ public class FeedingDisplay : MonoBehaviour
 	//===================================
 	//===================================
 
+	// textures based on bitmap files
+	private Texture2D buckHeadTexture;
+	private Texture2D doeHeadTexture;
+	private Texture2D fawnHeadTexture;
+	private Texture2D closeup1Texture;
+	private Texture2D closeup2Texture;
+	private Texture2D closeup3Texture;
+	private Texture2D closeup4Texture;
+	private Texture2D closeup5Texture;
+	private Texture2D closeup6Texture;
+
 	// external modules
 	private GuiManager guiManager;
 	private GuiComponents guiComponents;
@@ -31,6 +42,17 @@ public class FeedingDisplay : MonoBehaviour
 		guiComponents = GetComponent<GuiComponents>();
 		levelManager = GetComponent<LevelManager>();
 		scoringSystem = GetComponent<ScoringSystem>();
+
+		// texture references from GuiManager
+		buckHeadTexture = guiManager.buckHeadTexture;
+		doeHeadTexture = guiManager.doeHeadTexture;
+		fawnHeadTexture = guiManager.fawnHeadTexture;
+		closeup1Texture = guiManager.closeup1Texture;
+		closeup2Texture = guiManager.closeup2Texture;
+		closeup3Texture = guiManager.closeup3Texture;
+		closeup4Texture = guiManager.closeup4Texture;
+		closeup5Texture = guiManager.closeup5Texture;
+		closeup6Texture = guiManager.closeup6Texture;
 	}
 
 	//===================================
@@ -190,10 +212,10 @@ public class FeedingDisplay : MonoBehaviour
 		guiManager.customGUISkin.button.fontStyle = FontStyle.Normal;
 		guiManager.customGUISkin.button.fontStyle = FontStyle.Bold;
 		if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.825f,  feedingDisplayY + feedingDisplayHeight * 0.095f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.11f), "")) {
-			guiManager.OpenPopupPanel(3);
+			guiManager.OpenInfoPanel(3);
 		}
 		if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.825f,  feedingDisplayY + feedingDisplayHeight * 0.095f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.11f), "Hunting Tips")) {
-			guiManager.OpenPopupPanel(3);
+			guiManager.OpenInfoPanel(3);
 		}
 		
 		guiManager.customGUISkin.button.normal.textColor = new Color(1f, 0f, 0f, 1f);
@@ -245,20 +267,20 @@ public class FeedingDisplay : MonoBehaviour
 		style.fontSize = (int)(fontRef * 0.12f);
 		GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.220f, feedingDisplayY + feedingDisplayHeight * (0.678f + panelOffsetY), feedingDisplayWidth * 0.1f, feedingDisplayHeight * 0.03f), meatJustEaten.ToString() + " lbs", style);
 
-		Texture2D displayHeadTexture = guiManager.buckHeadTexture;
+		Texture2D displayHeadTexture = buckHeadTexture;
 		string displayHeadLabel = "unnamed";
 				
 		switch (scoringSystem.GetLastKillDeerType()) {
 			case "Buck":
-				displayHeadTexture = guiManager.buckHeadTexture;
+				displayHeadTexture = buckHeadTexture;
 				displayHeadLabel = "Buck";
 				break;
 			case "Doe":
-				displayHeadTexture = guiManager.doeHeadTexture;
+				displayHeadTexture = doeHeadTexture;
 				displayHeadLabel = "Doe";
 				break;
 			case "Fawn":
-				displayHeadTexture = guiManager.fawnHeadTexture;
+				displayHeadTexture = fawnHeadTexture;
 				displayHeadLabel = "Fawn";
 				break;		
 		}
@@ -306,31 +328,31 @@ public class FeedingDisplay : MonoBehaviour
 
 
 		// puma identity
-		Texture2D headshotTexture = guiManager.closeup1Texture;
+		Texture2D headshotTexture = closeup1Texture;
 		string pumaName = "no name";
 		switch (guiManager.selectedPuma) {
 		case 0:
-			headshotTexture = guiManager.closeup1Texture;
+			headshotTexture = closeup1Texture;
 			pumaName = "Eric";
 			break;
 		case 1:
-			headshotTexture = guiManager.closeup2Texture;
+			headshotTexture = closeup2Texture;
 			pumaName = "Palo";
 			break;
 		case 2:
-			headshotTexture = guiManager.closeup3Texture;
+			headshotTexture = closeup3Texture;
 			pumaName = "Mitch";
 			break;
 		case 3:
-			headshotTexture = guiManager.closeup4Texture;
+			headshotTexture = closeup4Texture;
 			pumaName = "Trish";
 			break;
 		case 4:
-			headshotTexture = guiManager.closeup5Texture;
+			headshotTexture = closeup5Texture;
 			pumaName = "Liam";
 			break;
 		case 5:
-			headshotTexture = guiManager.closeup6Texture;
+			headshotTexture = closeup6Texture;
 			pumaName = "Barb";
 			break;
 		}
