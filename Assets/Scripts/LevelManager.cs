@@ -6,7 +6,7 @@ using System.Collections;
 
 public class LevelManager : MonoBehaviour 
 {
-	private float speedOverdrive = 1.0f;
+	public float speedOverdrive = 1.0f; // DEV ONLY
 	
 	public float displayVar1;
 	public float displayVar2;
@@ -305,15 +305,15 @@ public class LevelManager : MonoBehaviour
 		// Update Game-State Logic
 		//===========================
 			
-		float pumaDeerDistance1 = Vector3.Distance(pumaObj.transform.position, buck.gameObj.transform.position);
-		float pumaDeerDistance2 = Vector3.Distance(pumaObj.transform.position, doe.gameObj.transform.position);
-		float pumaDeerDistance3 = Vector3.Distance(pumaObj.transform.position, fawn.gameObj.transform.position);		
-	
 		float fadeTime;
 		float fadePercentComplete;
 		float cameraRotPercentDone;
 		float guiFlybySpeed = 0f;
 
+		float pumaDeerDistance1 = Vector3.Distance(pumaObj.transform.position, buck.gameObj.transform.position);
+		float pumaDeerDistance2 = Vector3.Distance(pumaObj.transform.position, doe.gameObj.transform.position);
+		float pumaDeerDistance3 = Vector3.Distance(pumaObj.transform.position, fawn.gameObj.transform.position);		
+	
 		switch (gameState) {
 		
 		//------------------------------
@@ -378,7 +378,6 @@ public class LevelManager : MonoBehaviour
 			// brief pause on close up
 			fadeTime = 0.1f;
 			if (Time.time >= stateStartTime + fadeTime) {
-				inputControls.ResetControls();		
 				SetGameState("gameStateEnteringGameplay2");
 			}
 			break;	
@@ -422,6 +421,7 @@ public class LevelManager : MonoBehaviour
 
 
 			if (Time.time >= stateStartTime + fadeTime) {
+				inputControls.ResetControls();		
 				SetGameState("gameStateStalking");
 			}
 			break;	
@@ -657,8 +657,6 @@ public class LevelManager : MonoBehaviour
 		case "gameStateFeeding1":
 			// deer and puma slide to a stop as camera swings around to front
 			fadeTime = 1.3f;
-			inputControls.ResetControls();
-
 
 
 			SelectCameraPosition("cameraPosCloseup", -160f, fadeTime, "mainCurveSBackward", "curveRotXLogarithmic"); 
@@ -737,7 +735,6 @@ public class LevelManager : MonoBehaviour
 		case "gameStateFeeding2":
 			// brief pause
 			fadeTime = 1.3f;
-			inputControls.ResetControls();
 			if (Time.time >= stateStartTime + fadeTime) {
 				SetGameState("gameStateFeeding3");
 			}
@@ -746,7 +743,6 @@ public class LevelManager : MonoBehaviour
 		case "gameStateFeeding3":
 			// camera slowly lifts as puma feeds on deer
 			fadeTime = 5f;
-			inputControls.ResetControls();
 
 
 			SelectCameraPosition("cameraPosEating", 1000000f, fadeTime, "mainCurveSBackward", "curveRotXLinear"); 
@@ -792,7 +788,6 @@ public class LevelManager : MonoBehaviour
 			
 		case "gameStateFeeding4":
 			// camera spins slowly around puma as it feeds
-			inputControls.ResetControls();
 
 
 			if (Time.time >= stateStartTime + 0.1f) {
@@ -868,6 +863,7 @@ public class LevelManager : MonoBehaviour
 				PlaceDeerPositions();
 				ResetAnimations();
 				scoringSystem.ClearLastKillInfo(selectedPuma);		
+				inputControls.ResetControls();		
 				SetGameState("gameStateStalking");
 			}
 			break;	
@@ -882,7 +878,6 @@ public class LevelManager : MonoBehaviour
 		case "gameStateDied1":
 			// camera swings around to front of puma
 			fadeTime = 3f;
-			inputControls.ResetControls();
 
 
 
@@ -928,7 +923,6 @@ public class LevelManager : MonoBehaviour
 		case "gameStateDied2":
 			// brief pause
 			fadeTime = 0.2f;
-			inputControls.ResetControls();
 			if (Time.time >= stateStartTime + fadeTime) {
 				SetGameState("gameStateDied3");
 			}
@@ -937,7 +931,6 @@ public class LevelManager : MonoBehaviour
 		case "gameStateDied3":
 			// camera lifts slowly away from puma
 			fadeTime = 5f;
-			inputControls.ResetControls();
 
 
 			SelectCameraPosition("cameraPosEating", 1000000f, fadeTime, "mainCurveSBackward", "curveRotXLinear"); 
@@ -978,7 +971,6 @@ public class LevelManager : MonoBehaviour
 			
 		case "gameStateDied4":
 			// camera spins slowly around puma
-			inputControls.ResetControls();
 
 
 			if (Time.time >= stateStartTime + 0.1f) {
@@ -1017,24 +1009,37 @@ public class LevelManager : MonoBehaviour
 
 		pumaAnimator.SetBool("GuiMode", false);
 
-		if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftControl)) {
+		if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)) {
+			// DEV ONLY
+			pumaHeading = mainHeading;
+		}
+
+		else if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftControl)) {
 			// dev only: camera distance and angle
-			cameraDistance -= inputControls.GetInputVert() * Time.deltaTime * 20 * 5 * speedOverdrive;
-			cameraRotOffsetY += inputControls.GetInputHorz() * Time.deltaTime * 40 * 5 * speedOverdrive;
+			float inputVert = inputControls.GetInputVert();
+			float inputHorz = inputControls.GetInputHorz();
+			inputVert = (inputVert > 0f) ? 1f : ((inputVert < 0f) ? -1f : 0f);
+			inputHorz = (inputHorz > 0f) ? 1f : ((inputHorz < 0f) ? -1f : 0f);
+			cameraDistance -= inputVert * Time.deltaTime * 5 * speedOverdrive;
+			cameraRotOffsetY += inputHorz * Time.deltaTime * 40 * speedOverdrive;
 			pumaHeading = mainHeading;
 			inputControls.ResetControls();
 		}
 		
 		else if (Input.GetKey(KeyCode.LeftShift)) {
 			// dev only: camera height
-			cameraY += inputControls.GetInputVert() * Time.deltaTime  * 20 * 5 * speedOverdrive;
+			float inputVert = inputControls.GetInputVert();
+			inputVert = (inputVert > 0f) ? 1f : ((inputVert < 0f) ? -1f : 0f);
+			cameraY += inputVert * Time.deltaTime  * 5 * speedOverdrive;
 			pumaHeading = mainHeading;
 			inputControls.ResetControls();
 		}
 		
 		else if (Input.GetKey(KeyCode.LeftControl)) {
 			// dev only: camera pitch
-			cameraRotX += inputControls.GetInputVert() * Time.deltaTime  * 50 * 5 * speedOverdrive;
+			float inputVert = inputControls.GetInputVert();
+			inputVert = (inputVert > 0f) ? 1f : ((inputVert < 0f) ? -1f : 0f);
+			cameraRotX += inputVert * Time.deltaTime  * 20 * speedOverdrive;
 			pumaHeading = mainHeading;
 			inputControls.ResetControls();
 		}
@@ -1058,6 +1063,18 @@ public class LevelManager : MonoBehaviour
 			pumaZ += (Mathf.Cos(mainHeading*Mathf.PI/180) * distance);
 		}
 		
+		else if (gameState == "gameStateStalking") {		
+			float rotationSpeed = 100f;
+			distance = inputControls.GetInputVert() * Time.deltaTime  * pumaStalkingSpeed * speedOverdrive;
+			mainHeading += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
+			pumaHeading = mainHeading + pumaHeadingOffset;
+			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * distance);
+			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * distance);
+			scoringSystem.PumaHasWalked(selectedPuma, distance);
+			if (scoringSystem.GetPumaHealth(selectedPuma) == 0f)
+				SetGameState("gameStateDied1");			
+		}
+
 		else if (gameState == "gameStateChasing") {
 			float rotationSpeed = 150f;
 			distance = inputControls.GetInputVert() * Time.deltaTime  * pumaChasingSpeed * speedOverdrive;
@@ -1071,18 +1088,6 @@ public class LevelManager : MonoBehaviour
 				SetGameState("gameStateDied1");			
 		}
 		
-		else if (gameState == "gameStateStalking") {		
-			float rotationSpeed = 100f;
-			distance = inputControls.GetInputVert() * Time.deltaTime  * pumaStalkingSpeed * speedOverdrive;
-			mainHeading += inputControls.GetInputHorz() * Time.deltaTime * rotationSpeed;
-			pumaHeading = mainHeading + pumaHeadingOffset;
-			pumaX += (Mathf.Sin(pumaHeading*Mathf.PI/180) * distance);
-			pumaZ += (Mathf.Cos(pumaHeading*Mathf.PI/180) * distance);
-			scoringSystem.PumaHasWalked(selectedPuma, distance);
-			if (scoringSystem.GetPumaHealth(selectedPuma) == 0f)
-				SetGameState("gameStateDied1");			
-		}
-
 		pumaAnimator.SetFloat("Distance", distance);
 
 		cameraRotY = mainHeading + cameraRotOffsetY;
@@ -1167,9 +1172,11 @@ public class LevelManager : MonoBehaviour
 		
 		
 		// update deer objects
+
 		UpdateDeerHeading(buck);
 		UpdateDeerHeading(doe);
 		UpdateDeerHeading(fawn);
+
 		UpdateDeerPosition(buck);
 		UpdateDeerPosition(doe);
 		UpdateDeerPosition(fawn);

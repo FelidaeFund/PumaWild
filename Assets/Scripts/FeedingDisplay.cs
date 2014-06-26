@@ -429,7 +429,7 @@ public class FeedingDisplay : MonoBehaviour
 		guiManager.customGUISkin.button.fontStyle = FontStyle.Normal;
 		if (GUI.Button(new Rect(feedingDisplayX + feedingDisplayWidth * 0.81f,  feedingDisplayY + feedingDisplayHeight * 0.727f, feedingDisplayWidth * 0.14f, feedingDisplayHeight * 0.25f), "Go")) {
 			guiManager.SetGuiState("guiStateFeeding7");
-			levelManager.SetGameState("gameStateCaught5");
+			levelManager.SetGameState("gameStateFeeding5");
 		}	
 				
 	}

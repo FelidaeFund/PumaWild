@@ -433,7 +433,7 @@ public class GuiManager : MonoBehaviour
 
 	private void CheckForKeyboardEscapeFromGameplay()
 	{
-		if (spacePressed || leftShiftPressed || rightShiftPressed) {
+		if (spacePressed || rightShiftPressed) {
 			// use keyboard to leave gameplay
 			SetGuiState("guiStateLeavingGameplay");
 			levelManager.SetGameState("gameStateLeavingGameplay");
@@ -442,7 +442,7 @@ public class GuiManager : MonoBehaviour
 	
 	private void CheckForKeyboardEscapeFromOverlay()
 	{
-		if (selectedPuma >= 0 && (spacePressed || leftShiftPressed || rightShiftPressed)) {
+		if (selectedPuma >= 0 && (spacePressed || rightShiftPressed)) {
 			// use keyboard to leave overlay
 			SetGuiState("guiStateLeavingOverlay");
 			levelManager.SetGameState("gameStateLeavingGui");
@@ -451,7 +451,7 @@ public class GuiManager : MonoBehaviour
 	
 	private void CheckForKeyboardEscapeFromFeeding()
 	{
-		if (spacePressed || leftShiftPressed || rightShiftPressed) {
+		if (spacePressed || rightShiftPressed) {
 			// use keyboard to resume gameplay
 			SetGuiState("guiStateFeeding7");
 			levelManager.SetGameState("gameStateFeeding5");

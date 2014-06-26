@@ -38,6 +38,7 @@ public class CameraController : MonoBehaviour
 	
 	// external module
 	private LevelManager levelManager;
+	private InputControls inputControls;
 
 	//===================================
 	//===================================
@@ -49,6 +50,7 @@ public class CameraController : MonoBehaviour
     {
 		// connect to external modules
 		levelManager = GetComponent<LevelManager>();
+		inputControls = GetComponent<InputControls>();
 
 		currentCameraY = 0f;
 		currentCameraRotX = 0f;
@@ -147,16 +149,20 @@ public class CameraController : MonoBehaviour
 		float cameraRotXPercentDone;
 		float backwardsTime = (transStartTime + transFadeTime) - (Time.time - transStartTime);	
 		
+		ProcessKeyboardInput();  // for manual camera adjustments - DEV ONLY
+
+		// if trans has expired use target values
+		
 		if (Time.time >= transStartTime + transFadeTime) {
-			// if trans has expired use target values
 			currentCameraY = targetCameraY;
 			currentCameraRotX = targetCameraRotX;
 			currentCameraDistance = targetCameraDistance;
 			currentCameraRotOffsetY = targetCameraRotOffsetY;
 		}
 		
+		// else calculate current position based on transition
+
 		else {
-			// otherwise calculate current position based on transition
 	
 			switch (transMainCurve) {
 			
@@ -340,6 +346,42 @@ public class CameraController : MonoBehaviour
 		return currentCameraRotOffsetY;
 	}
 
+	//-----------------------
+	// ProcessKeyboardInput
+	//
+	// DEV ONLY
+	// manual camera control
+	//-----------------------
+
+	void ProcessKeyboardInput()
+	{
+		if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftControl)) {
+			// dev only: camera distance and angle
+			float inputVert = inputControls.GetInputVert();
+			float inputHorz = inputControls.GetInputHorz();
+			inputVert = (inputVert > 0f) ? 1f : ((inputVert < 0f) ? -1f : 0f);
+			inputHorz = (inputHorz > 0f) ? 1f : ((inputHorz < 0f) ? -1f : 0f);
+			targetCameraDistance -= inputVert * Time.deltaTime * 4 * levelManager.speedOverdrive;
+			targetCameraRotOffsetY += inputHorz * Time.deltaTime * 60 * levelManager.speedOverdrive;
+			inputControls.ResetControls();
+		}
+		
+		else if (Input.GetKey(KeyCode.LeftShift)) {
+			// dev only: camera height
+			float inputVert = inputControls.GetInputVert();
+			inputVert = (inputVert > 0f) ? 1f : ((inputVert < 0f) ? -1f : 0f);
+			targetCameraY += inputVert * Time.deltaTime  * 3 * levelManager.speedOverdrive;
+			inputControls.ResetControls();
+		}
+		
+		else if (Input.GetKey(KeyCode.LeftControl)) {
+			// dev only: camera pitch
+			float inputVert = inputControls.GetInputVert();
+			inputVert = (inputVert > 0f) ? 1f : ((inputVert < 0f) ? -1f : 0f);
+			targetCameraRotX += inputVert * Time.deltaTime  * 25 * levelManager.speedOverdrive;
+			inputControls.ResetControls();
+		}
+	}
 }
 
 
