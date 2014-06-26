@@ -682,7 +682,7 @@ public class OverlayPanel : MonoBehaviour
 				GUI.color = new Color(1f, 1f, 1f, 1f * selectScreenOpacity);
 				style.normal.textColor = deadPumaAnnounceColor;
 				style.fontSize = (int)(overlayRect.width * 0.012f);
-				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED !", style);
+				GUI.Button(new Rect(textureX, overlayRect.y + overlayRect.height * 0.26f + yOffsetForAddingPopulationBar + textUpShift + endingLabelDownshift, textureWidth, overlayRect.height * 0.08f), "STARVED", style);
 			}
 			else if (scoringSystem.GetPumaHealth(1) >= 1f) {
 				// puma at full health

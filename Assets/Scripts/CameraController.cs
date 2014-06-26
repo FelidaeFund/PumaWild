@@ -58,7 +58,7 @@ public class CameraController : MonoBehaviour
 	
 	//===================================
 	//===================================
-	//	  CONTROLLER FUNCTIONS
+	//	  PUBLIC FUNCTIONS
 	//===================================
 	//===================================
 	
@@ -69,7 +69,7 @@ public class CameraController : MonoBehaviour
 	// to relative position 
 	//-----------------------
 
-	public void SelectRelativePosition(string targetPositionLabel, float targetRotOffsetY, float fadeTime, string mainCurve, string rotXCurve)
+	public void SelectTargetPosition(string targetPositionLabel, float targetRotOffsetY, float fadeTime, string mainCurve, string rotXCurve)
 	{
 		// remember previous position
 		previousCameraY = currentCameraY;
@@ -77,8 +77,7 @@ public class CameraController : MonoBehaviour
 		previousCameraDistance = currentCameraDistance;
 		previousCameraRotOffsetY = currentCameraRotOffsetY;
 		
-		// target position
-
+		// select target position
 		switch (targetPositionLabel) {
 		
 		case "cameraPosHigh":
@@ -87,7 +86,7 @@ public class CameraController : MonoBehaviour
 			targetCameraDistance = 8.6f;
 			break;
 
-		case "cameraPosMed":
+		case "cameraPosMedium":
 			targetCameraY = 4f;
 			targetCameraRotX = 4f;
 			targetCameraDistance = 7.5f;
@@ -121,6 +120,13 @@ public class CameraController : MonoBehaviour
 		if (targetRotOffsetY != 1000000f)
 			targetCameraRotOffsetY = targetRotOffsetY;
 
+		// constrain previousCameraRotOffsetY to within 180 degrees of targetCameraRotOffsetY
+		// so that camera always swings around the shortest path
+		if (previousCameraRotOffsetY > targetCameraRotOffsetY + 180f) 
+			previousCameraRotOffsetY -= 360f;
+		if (previousCameraRotOffsetY < targetCameraRotOffsetY - 180f)
+			previousCameraRotOffsetY += 360f;
+
 		transStartTime = Time.time;
 		transFadeTime = fadeTime;
 		transMainCurve = mainCurve;
@@ -139,6 +145,7 @@ public class CameraController : MonoBehaviour
 	{
 		float fadePercentComplete;
 		float cameraRotXPercentDone;
+		float backwardsTime = (transStartTime + transFadeTime) - (Time.time - transStartTime);	
 		
 		if (Time.time >= transStartTime + transFadeTime) {
 			// if trans has expired use target values
@@ -182,7 +189,6 @@ public class CameraController : MonoBehaviour
 			
 			case "mainCurveSBackward":
 				// same as mainCurveSCurveForward except it runs backwards in time (reversing 'target' and 'previous') to get a different feel
-				float backwardsTime = (transStartTime + transFadeTime) - (Time.time - transStartTime);	
 				if (backwardsTime < transStartTime + (transFadeTime * 0.5f)) {
 					// 1st half
 					fadePercentComplete = (backwardsTime - transStartTime) / (transFadeTime * 0.5f);
@@ -244,6 +250,33 @@ public class CameraController : MonoBehaviour
 				}
 				break;
 			
+			case "curveRotXLinearBackwardsSecondHalf":
+				// same as curveRotXLinearSecondHalf except it runs backwards in time (reversing 'target' and 'previous') to get a different feel
+				if (backwardsTime < transStartTime + (transFadeTime * 0.5f)) {
+					// 1st half
+					currentCameraRotX = targetCameraRotX; // no change
+				}
+				else {
+					// 2nd half
+					cameraRotXPercentDone = ((backwardsTime - transStartTime) - (transFadeTime * 0.5f)) / (transFadeTime * 0.5f);
+					currentCameraRotX = targetCameraRotX + cameraRotXPercentDone * (previousCameraRotX - targetCameraRotX);
+				}		
+				break;
+
+			case "curveRotXLogarithmicBackwardsSecondHalf":
+				// same as curveRotXLogarithmicSecondHalf except it runs backwards in time (reversing 'target' and 'previous') to get a different feel
+				if (backwardsTime < transStartTime + (transFadeTime * 0.5f)) {
+					// 1st half
+					currentCameraRotX = targetCameraRotX; // no change
+				}
+				else {
+					// 2nd half
+					cameraRotXPercentDone = ((backwardsTime - transStartTime) - (transFadeTime * 0.5f)) / (transFadeTime * 0.5f);
+					cameraRotXPercentDone = cameraRotXPercentDone * cameraRotXPercentDone; // apply bulge
+					currentCameraRotX = targetCameraRotX + cameraRotXPercentDone * (previousCameraRotX - targetCameraRotX);
+				}		
+				break;
+
 			default:
 				Debug.Log("ERROR - CameraController.UpdateActualPosition() got bad rotX curve: " + transRotXCurve);
 				break;
@@ -295,6 +328,18 @@ public class CameraController : MonoBehaviour
 		Camera.main.transform.position = new Vector3(adjustedCameraX, adjustedCameraY, adjustedCameraZ);
 		Camera.main.transform.rotation = Quaternion.Euler(adjustedCameraRotX, cameraRotY, cameraRotZ);
 	}
+	
+	//-----------------------
+	// GetCurrentRotOffsetY
+	//
+	// returns current val
+	//-----------------------
+
+	public float GetCurrentRotOffsetY()
+	{
+		return currentCameraRotOffsetY;
+	}
+
 }
 
 

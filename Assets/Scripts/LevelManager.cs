@@ -122,6 +122,7 @@ public class LevelManager : MonoBehaviour
 	// STATES
 
 	public string gameState;
+	private string gameSubState;
 	private float stateStartTime;
 	private bool stateInitFlag;
 	private bool zoomInProgress = false;
@@ -244,6 +245,7 @@ public class LevelManager : MonoBehaviour
 	public void SetGameState(string newGameState)
 	{
 		gameState = newGameState;
+		gameSubState = "gameSubStateNull";
 		stateStartTime = Time.time;
 		stateInitFlag = false;
 		
@@ -269,7 +271,7 @@ public class LevelManager : MonoBehaviour
 
 	public bool IsCaughtState()
 	{
-		return (gameState == "gameStateCaught1") ? true : false;
+		return (gameState == "gameStateFeeding1") ? true : false;
 	}
 
 	public void SetSelectedPuma(int selection)
@@ -314,20 +316,27 @@ public class LevelManager : MonoBehaviour
 
 		switch (gameState) {
 		
+		//------------------------------
+		// GUI States
+		//
+		// user interface states
+		// main panel showing
+		//------------------------------
+
 		case "gameStateGui":
+			// high in air, overlay panel showing
 			guiFlybySpeed = 1f;
 			SelectCameraPosition("cameraPosGui", -120f, 0f, null, null);
 			break;
 	
 		case "gameStateLeavingGui":
+			// zoom down into close up
 			fadeTime = 2.5f;
 			guiFlybySpeed = 1f - (Time.time - stateStartTime) / fadeTime;
-
 			
 			SelectCameraPosition("cameraPosCloseup", 1000000f, fadeTime, "mainCurveSForward", "curveRotXLogarithmicSecondHalf"); // 1000000 signifies no change for cameraRotOffsetY
 			
-			
-			
+						
 			if (Time.time - stateStartTime < (fadeTime * 0.5f)) {
 				// 1st half
 				cameraRotX = previousCameraRotX;
@@ -352,55 +361,55 @@ public class LevelManager : MonoBehaviour
 			}
 
 			
-			
-			
-
 			if (Time.time >= stateStartTime + fadeTime) {
 				guiFlybySpeed = 0f;
-				SetGameState("gameStateCloseup");
+				SetGameState("gameStateEnteringGameplay1");
 			}
 			break;
 	
-		case "gameStateCloseup":
+		//------------------------------
+		// Gameplay States
+		//
+		// entering, leaving,
+		// stalking and chasing
+		//------------------------------
+
+		case "gameStateEnteringGameplay1":
+			// brief pause on close up
 			fadeTime = 0.1f;
-			if (Time.time - stateStartTime < fadeTime) {
-				// pause
-			}
-			else {
+			if (Time.time >= stateStartTime + fadeTime) {
 				inputControls.ResetControls();		
-				SetGameState("gameStateEnteringGameplay");
+				SetGameState("gameStateEnteringGameplay2");
 			}
 			break;	
 	
-		case "gameStateEnteringGameplay":
+		case "gameStateEnteringGameplay2":
+			// swing around to behind view
 			fadeTime = 1.7f;
 
+			
+			SelectCameraPosition("cameraPosHigh", 0f, fadeTime, "mainCurveSBackward", "curveRotXLinearBackwardsSecondHalf"); 
+			
 			
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
 				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
 					// 1st half
-
 					cameraRotX = highCameraRotX;
-
 					fadePercentComplete = (backwardsTime - stateStartTime) / (fadeTime * 0.5f);
 					fadePercentComplete = fadePercentComplete * fadePercentComplete;
 					cameraY = highCameraY + fadePercentComplete * ((previousCameraY - highCameraY) * 0.5f);
 					cameraDistance = highCameraDistance + fadePercentComplete * ((previousCameraDistance - highCameraDistance) * 0.5f);
-
 					cameraRotOffsetY = 0f + fadePercentComplete * ((-120f - 0f) * 0.5f);
 				}
 				else if (backwardsTime - stateStartTime < fadeTime) {
 					// 2nd half
-
 					cameraRotPercentDone = (float)((float)(backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);
 					cameraRotX = highCameraRotX + ((previousCameraRotX - highCameraRotX) * cameraRotPercentDone);
-
 					fadePercentComplete = ((backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);				
 					fadePercentComplete = fadePercentComplete + (fadePercentComplete - (fadePercentComplete * fadePercentComplete));
 					cameraY = highCameraY + ((previousCameraY - highCameraY) * 0.5f) + fadePercentComplete * ((previousCameraY - highCameraY) * 0.5f);
 					cameraDistance = highCameraDistance + ((previousCameraDistance - highCameraDistance) * 0.5f) + fadePercentComplete * ((previousCameraDistance - highCameraDistance) * 0.5f);
-
 					cameraRotOffsetY = 0f + ((-120f - 0f) * 0.5f) + fadePercentComplete * ((-120f - 0f) * 0.5f);
 				}		
 			}
@@ -409,64 +418,12 @@ public class LevelManager : MonoBehaviour
 				cameraRotX = highCameraRotX;
 				cameraDistance = highCameraDistance;
 				cameraRotOffsetY = 0;
+			}
+
+
+			if (Time.time >= stateStartTime + fadeTime) {
 				SetGameState("gameStateStalking");
 			}
-
-
-			break;	
-	
-		case "gameStateLeavingGameplay":
-			fadeTime = 2f;
-			guiFlybySpeed = (Time.time - stateStartTime) / fadeTime;
-
-
-			if (previousCameraRotOffsetY > 60f) // constrain to within 180 degrees of -120 degrees (-120 is dest)
-				previousCameraRotOffsetY -= 360f;
-			if (previousCameraRotOffsetY < -300f)
-				previousCameraRotOffsetY += 360f;
-
-
-			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
-
-
-				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
-				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
-					// 1st half
-
-					cameraRotX = guiCameraRotX;
-
-					fadePercentComplete = (backwardsTime - stateStartTime) / (fadeTime * 0.5f);
-					fadePercentComplete = fadePercentComplete * fadePercentComplete;
-					cameraY = guiCameraY + fadePercentComplete * ((previousCameraY - guiCameraY) * 0.5f);
-					cameraDistance = guiCameraDistance + fadePercentComplete * ((previousCameraDistance - guiCameraDistance) * 0.5f);
-
-					cameraRotOffsetY = -120f + fadePercentComplete * ((previousCameraRotOffsetY - -120f) * 0.5f);
-				}
-				else if (backwardsTime - stateStartTime < fadeTime) {
-					// 2nd half
-
-					cameraRotPercentDone = (float)((float)(backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);
-					cameraRotX = guiCameraRotX + ((previousCameraRotX - guiCameraRotX) * cameraRotPercentDone * cameraRotPercentDone);
-
-					fadePercentComplete = ((backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);				
-					fadePercentComplete = fadePercentComplete + (fadePercentComplete - (fadePercentComplete * fadePercentComplete));
-					cameraY = guiCameraY + ((previousCameraY - guiCameraY) * 0.5f) + fadePercentComplete * ((previousCameraY - guiCameraY) * 0.5f);
-					cameraDistance = guiCameraDistance + ((previousCameraDistance - guiCameraDistance) * 0.5f) + fadePercentComplete * ((previousCameraDistance - guiCameraDistance) * 0.5f);
-
-					cameraRotOffsetY = -120f + ((previousCameraRotOffsetY - -120f) * 0.5f) + fadePercentComplete * ((previousCameraRotOffsetY - -120f) * 0.5f);
-				}	
-			}			
-			else {
-				guiFlybySpeed = 1f;
-				cameraY = guiCameraY;
-				cameraRotX = guiCameraRotX;
-				cameraDistance = guiCameraDistance;
-				ResetAnimations();
-				SetGameState("gameStateGui");
-			}
-
-
-
 			break;	
 	
 		case "gameStateStalking":
@@ -491,7 +448,7 @@ public class LevelManager : MonoBehaviour
 				doeAnimator.SetBool("Running", true);
 				fawnAnimator.SetBool("Running", true);
 				newChaseFlag = true;
-				pumaHeadingOffset = 0;  // TEMP -- really should swing camera around
+				pumaHeadingOffset = 0;  // instantly disable diagonal movement (TEMP - really should swing camera around)
 			}
 			buck.forwardRate = 0f;
 			buck.turnRate = 0f;
@@ -502,10 +459,22 @@ public class LevelManager : MonoBehaviour
 			break;
 	
 		case "gameStateChasing":
+			// main chasing state - with a couple of quick initial camera moves handled via sub-states
+
+
+			if (stateInitFlag == false) {
+				gameSubState = "chasingSubState1";
+				cameraController.SelectTargetPosition("cameraPosMedium", 1000000f, 0.75f, "mainCurveLinear", "curveRotXLinear");  // 1000000 signifies no change for cameraRotOffsetY
+				stateInitFlag = true;
+			}
+			else if (gameSubState == "chasingSubState1" && (Time.time >= stateStartTime + 0.75f)) {
+				gameSubState = "chasingSubState2";
+				cameraController.SelectTargetPosition("cameraPosLow", 1000000f, 0.25f, "mainCurveLinear", "curveRotXLinear");  // 1000000 signifies no change for cameraRotOffsetY
+			}
+			
+						
 			float zoomTime = 1f;
 			float zoomPercentComplete;
-
-
 			if (Time.time - stateStartTime < zoomTime) {
 				zoomInProgress = true;
 				if (Time.time - stateStartTime < zoomTime*0.75f) {
@@ -533,7 +502,7 @@ public class LevelManager : MonoBehaviour
 
 
 			
-			buck.forwardRate = buckDefaultForwardRate * Random.Range(0.9f, 1.1f);
+			buck.forwardRate = buckDefaultForwardRate * Random.Range(0.9f, 1.1f);		// ??? should these really be changed every frame ???
 			buck.turnRate = buckDefaultTurnRate * Random.Range(0.9f, 1.1f);
 			doe.forwardRate = doeDefaultForwardRate * Random.Range(0.9f, 1.1f);
 			doe.turnRate = doeDefaultTurnRate * Random.Range(0.9f, 1.1f);
@@ -554,8 +523,6 @@ public class LevelManager : MonoBehaviour
 			//doe.turnRate = 10f;
 			//fawn.forwardRate = 15f;
 			//fawn.turnRate = 10f;
-
-			
 
 			if (pumaDeerDistance1 < 2.5f || pumaDeerDistance2 < 2.5f || pumaDeerDistance3 < 2.5f) {
 			
@@ -624,44 +591,113 @@ public class LevelManager : MonoBehaviour
 					deerCaughtEfficiency = 0;
 					
 				pumaAnimator.SetBool("DeerKill", true);
-				SetGameState("gameStateCaught1");
+				SetGameState("gameStateFeeding1");
 			}
 			break;
 
-		case "gameStateCaught1":
+		case "gameStateLeavingGameplay":
+			// zoom up to high in the air
+			fadeTime = 2f;
+			guiFlybySpeed = (Time.time - stateStartTime) / fadeTime;
+
+						
+			SelectCameraPosition("cameraPosGui", -120f, fadeTime, "mainCurveSBackward", "curveRotXLogarithmicBackwardsSecondHalf"); 
+			
+
+			if (previousCameraRotOffsetY > 60f) // constrain to within 180 degrees of -120 degrees (-120 is dest)
+				previousCameraRotOffsetY -= 360f;
+			if (previousCameraRotOffsetY < -300f)
+				previousCameraRotOffsetY += 360f;
+			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
+				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
+				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
+					// 1st half
+					cameraRotX = guiCameraRotX;
+					fadePercentComplete = (backwardsTime - stateStartTime) / (fadeTime * 0.5f);
+					fadePercentComplete = fadePercentComplete * fadePercentComplete;
+					cameraY = guiCameraY + fadePercentComplete * ((previousCameraY - guiCameraY) * 0.5f);
+					cameraDistance = guiCameraDistance + fadePercentComplete * ((previousCameraDistance - guiCameraDistance) * 0.5f);
+					cameraRotOffsetY = -120f + fadePercentComplete * ((previousCameraRotOffsetY - -120f) * 0.5f);
+				}
+				else if (backwardsTime - stateStartTime < fadeTime) {
+					// 2nd half
+					cameraRotPercentDone = (float)((float)(backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);
+					cameraRotX = guiCameraRotX + ((previousCameraRotX - guiCameraRotX) * cameraRotPercentDone * cameraRotPercentDone);
+					fadePercentComplete = ((backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);				
+					fadePercentComplete = fadePercentComplete + (fadePercentComplete - (fadePercentComplete * fadePercentComplete));
+					cameraY = guiCameraY + ((previousCameraY - guiCameraY) * 0.5f) + fadePercentComplete * ((previousCameraY - guiCameraY) * 0.5f);
+					cameraDistance = guiCameraDistance + ((previousCameraDistance - guiCameraDistance) * 0.5f) + fadePercentComplete * ((previousCameraDistance - guiCameraDistance) * 0.5f);
+					cameraRotOffsetY = -120f + ((previousCameraRotOffsetY - -120f) * 0.5f) + fadePercentComplete * ((previousCameraRotOffsetY - -120f) * 0.5f);
+				}	
+			}			
+			else {
+				cameraY = guiCameraY;
+				cameraRotX = guiCameraRotX;
+				cameraDistance = guiCameraDistance;
+			}
+
+
+			
+			
+
+			if (Time.time >= stateStartTime + fadeTime) {
+				guiFlybySpeed = 1f;
+				ResetAnimations();
+				SetGameState("gameStateGui");
+			}
+			break;	
+	
+		//------------------------------
+		// Feeding States
+		//
+		// puma has caught a deer
+		// kills it and feeds on it
+		//------------------------------
+
+		case "gameStateFeeding1":
+			// deer and puma slide to a stop as camera swings around to front
 			fadeTime = 1.3f;
 			inputControls.ResetControls();
 
 
 
-			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
-	
+			SelectCameraPosition("cameraPosCloseup", -160f, fadeTime, "mainCurveSBackward", "curveRotXLogarithmic"); 
+			
+			
+
+			if (Time.time < stateStartTime + fadeTime) { // implements trans as a reverse of leavingGui trans
 				cameraRotPercentDone = ((Time.time - stateStartTime) / fadeTime);
 				cameraRotPercentDone = cameraRotPercentDone * cameraRotPercentDone;
 				cameraRotX = previousCameraRotX + (closeupCameraRotX - previousCameraRotX) * cameraRotPercentDone;
-
 				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
 					// 1st half
-
 					fadePercentComplete = (backwardsTime - stateStartTime) / (fadeTime * 0.5f);
 					fadePercentComplete = fadePercentComplete * fadePercentComplete;
 					cameraY = closeupCameraY + fadePercentComplete * ((previousCameraY - closeupCameraY) * 0.5f);
 					cameraDistance = closeupCameraDistance + fadePercentComplete * ((previousCameraDistance - closeupCameraDistance) * 0.5f);
-
 					cameraRotOffsetY = -160f + fadePercentComplete * ((0f - -160f) * 0.5f);
 				}
 				else if (backwardsTime - stateStartTime < fadeTime) {
 					// 2nd half
-
 					fadePercentComplete = ((backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);				
 					fadePercentComplete = fadePercentComplete + (fadePercentComplete - (fadePercentComplete * fadePercentComplete));
 					cameraY = closeupCameraY + ((previousCameraY - closeupCameraY) * 0.5f) + fadePercentComplete * ((previousCameraY - closeupCameraY) * 0.5f);
 					cameraDistance = closeupCameraDistance + ((previousCameraDistance - closeupCameraDistance) * 0.5f) + fadePercentComplete * ((previousCameraDistance - closeupCameraDistance) * 0.5f);
-
 					cameraRotOffsetY = -160f + ((0f - -160f) * 0.5f) + fadePercentComplete * ((0f - -160f) * 0.5f);
 				}
+			}
+			else {
+				cameraY = closeupCameraY;
+				cameraRotX = closeupCameraRotX;
+				cameraDistance = closeupCameraDistance;
+				cameraRotOffsetY = -160f;
+			}
 
+
+
+			
+			if (Time.time < stateStartTime + fadeTime) {
 				// puma and deer slide to a stop
 				float percentDone = 1f - ((Time.time - stateStartTime) / fadeTime);
 				float pumaMoveDistance = 1f * Time.deltaTime * pumaChasingSpeed * percentDone * 1.1f;
@@ -689,44 +725,39 @@ public class LevelManager : MonoBehaviour
 				caughtDeer.gameObj.transform.position = new Vector3(deerX, deerY, deerZ);
 			}
 			else {
-				cameraY = closeupCameraY;
-				cameraRotX = closeupCameraRotX;
-				cameraDistance = closeupCameraDistance;
-				cameraRotOffsetY = -160f;
-
 				float deerX = pumaX + deerCaughtFinalOffsetX;
 				float deerY = caughtDeer.gameObj.transform.position.y;
 				float deerZ = pumaZ + deerCaughtFinalOffsetZ;
 				caughtDeer.gameObj.transform.rotation = Quaternion.Euler(0, deerCaughtFinalHeading, 0);
-				//System.Console.WriteLine("final heading: " + deerCaughtFinalHeading.ToString());	
 				caughtDeer.gameObj.transform.position = new Vector3(deerX, deerY, deerZ);
-
-				SetGameState("gameStateCaught2");
+				SetGameState("gameStateFeeding2");
 			}
-
-
-
-
 			break;
 
-		case "gameStateCaught2":
+		case "gameStateFeeding2":
+			// brief pause
+			fadeTime = 1.3f;
 			inputControls.ResetControls();
-			if (Time.time - stateStartTime > 0.2f) {
-				SetGameState("gameStateCaught3");
+			if (Time.time >= stateStartTime + fadeTime) {
+				SetGameState("gameStateFeeding3");
 			}
 			break;
 
-		case "gameStateCaught3":
+		case "gameStateFeeding3":
+			// camera slowly lifts as puma feeds on deer
 			fadeTime = 5f;
 			inputControls.ResetControls();
 
 
+			SelectCameraPosition("cameraPosEating", 1000000f, fadeTime, "mainCurveSBackward", "curveRotXLinear"); 
+			
+			
 
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
-				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 
 				cameraRotX = previousCameraRotX + (eatingCameraRotX - previousCameraRotX) * ((Time.time - stateStartTime) / fadeTime);
 
+				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
 					// 1st half
 	
@@ -748,17 +779,28 @@ public class LevelManager : MonoBehaviour
 				cameraY = eatingCameraY;
 				cameraRotX = eatingCameraRotX;
 				cameraDistance = eatingCameraDistance;	
-				SetGameState("gameStateCaught4");
 			}
-			previousCameraRotOffsetY = cameraRotOffsetY; // just in case we go straight from here to gameStateCaught5
+			previousCameraRotOffsetY = cameraRotOffsetY; // just in case we go straight from here to gameStateFeeding5
 
 
 
 
+			if (Time.time >= stateStartTime + fadeTime) {
+				SetGameState("gameStateFeeding4");
+			}
 			break;
 			
-		case "gameStateCaught4":
+		case "gameStateFeeding4":
+			// camera spins slowly around puma as it feeds
 			inputControls.ResetControls();
+
+
+			if (Time.time >= stateStartTime + 0.1f) {
+				float spinningRotOffsetY = cameraController.GetCurrentRotOffsetY() - (Time.deltaTime + 0.03f);
+				if (spinningRotOffsetY < -180f)
+					spinningRotOffsetY += 360f;
+				cameraController.SelectTargetPosition("cameraPosEating", spinningRotOffsetY, 0f, "mainCurveNull", "curveRotXNull"); 
+			}
 
 
 
@@ -773,11 +815,15 @@ public class LevelManager : MonoBehaviour
 
 			break;
 					
-		case "gameStateCaught5":
+		case "gameStateFeeding5":
+			// camera swings back into position for stalking
 			fadeTime = 2.4f;
 			pumaAnimator.SetBool("DeerKill", false);
 
 
+			
+			SelectCameraPosition("cameraPosHigh", 0f, fadeTime, "mainCurveSBackward", "curveRotXLogarithmic"); 
+			
 
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
 
@@ -811,52 +857,58 @@ public class LevelManager : MonoBehaviour
 				cameraY = highCameraY;
 				cameraRotX = highCameraRotX;
 				cameraDistance = highCameraDistance;
-				previousCameraRotOffsetY = cameraRotOffsetY = 0;
-							
-				PlaceDeerPositions();
-				ResetAnimations();
-				
-				SetGameState("gameStateStalking");
-				scoringSystem.ClearLastKillInfo(selectedPuma);
+				previousCameraRotOffsetY = cameraRotOffsetY = 0;					
 			}
 
 
 
 
 
+			if (Time.time >= stateStartTime + fadeTime) {
+				PlaceDeerPositions();
+				ResetAnimations();
+				scoringSystem.ClearLastKillInfo(selectedPuma);		
+				SetGameState("gameStateStalking");
+			}
 			break;	
 	
+		//------------------------------
+		// Died States
+		//
+		// puma has died
+		// returns to overlay display
+		//------------------------------
+
 		case "gameStateDied1":
+			// camera swings around to front of puma
 			fadeTime = 3f;
 			inputControls.ResetControls();
 
 
 
+			SelectCameraPosition("cameraPosCloseup", -160f, fadeTime, "mainCurveSBackward", "curveRotXLogarithmic"); 
+			
+			
+
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
-	
 				cameraRotPercentDone = ((Time.time - stateStartTime) / fadeTime);
 				cameraRotPercentDone = cameraRotPercentDone * cameraRotPercentDone;
 				cameraRotX = previousCameraRotX + (closeupCameraRotX - previousCameraRotX) * cameraRotPercentDone;
-
 				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
 					// 1st half
-
 					fadePercentComplete = (backwardsTime - stateStartTime) / (fadeTime * 0.5f);
 					fadePercentComplete = fadePercentComplete * fadePercentComplete;
 					cameraY = closeupCameraY + fadePercentComplete * ((previousCameraY - closeupCameraY) * 0.5f);
 					cameraDistance = closeupCameraDistance + fadePercentComplete * ((previousCameraDistance - closeupCameraDistance) * 0.5f);
-
 					cameraRotOffsetY = -160f + fadePercentComplete * ((0f - -160f) * 0.5f);
 				}
 				else if (backwardsTime - stateStartTime < fadeTime) {
 					// 2nd half
-
 					fadePercentComplete = ((backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);				
 					fadePercentComplete = fadePercentComplete + (fadePercentComplete - (fadePercentComplete * fadePercentComplete));
 					cameraY = closeupCameraY + ((previousCameraY - closeupCameraY) * 0.5f) + fadePercentComplete * ((previousCameraY - closeupCameraY) * 0.5f);
 					cameraDistance = closeupCameraDistance + ((previousCameraDistance - closeupCameraDistance) * 0.5f) + fadePercentComplete * ((previousCameraDistance - closeupCameraDistance) * 0.5f);
-
 					cameraRotOffsetY = -160f + ((0f - -160f) * 0.5f) + fadePercentComplete * ((0f - -160f) * 0.5f);
 				}
 			}
@@ -865,35 +917,37 @@ public class LevelManager : MonoBehaviour
 				cameraRotX = closeupCameraRotX;
 				cameraDistance = closeupCameraDistance;
 				cameraRotOffsetY = -160f;
-				SetGameState("gameStateDied2");
 			}
 
 
-
-
+			if (Time.time >= stateStartTime + fadeTime) {
+				SetGameState("gameStateDied2");
+			}
 			break;
 
 		case "gameStateDied2":
+			// brief pause
+			fadeTime = 0.2f;
 			inputControls.ResetControls();
-			if (Time.time - stateStartTime > 0.2f) {
+			if (Time.time >= stateStartTime + fadeTime) {
 				SetGameState("gameStateDied3");
 			}
 			break;
 
 		case "gameStateDied3":
+			// camera lifts slowly away from puma
 			fadeTime = 5f;
 			inputControls.ResetControls();
 
 
+			SelectCameraPosition("cameraPosEating", 1000000f, fadeTime, "mainCurveSBackward", "curveRotXLinear"); 
+
 
 			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
-
 				cameraRotX = previousCameraRotX + (eatingCameraRotX - previousCameraRotX) * ((Time.time - stateStartTime) / fadeTime);
-
 				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
 				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
 					// 1st half
-
 					fadePercentComplete = (backwardsTime - stateStartTime) / (fadeTime * 0.5f);
 					fadePercentComplete = fadePercentComplete * fadePercentComplete;
 					cameraY = eatingCameraY + fadePercentComplete * ((previousCameraY - eatingCameraY) * 0.5f);
@@ -901,7 +955,6 @@ public class LevelManager : MonoBehaviour
 				}
 				else if (backwardsTime - stateStartTime < fadeTime) {
 					// 2nd half
-
 					fadePercentComplete = ((backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);				
 					fadePercentComplete = fadePercentComplete + (fadePercentComplete - (fadePercentComplete * fadePercentComplete));
 					cameraY = eatingCameraY + ((previousCameraY - eatingCameraY) * 0.5f) + fadePercentComplete * ((previousCameraY - eatingCameraY) * 0.5f);
@@ -912,87 +965,50 @@ public class LevelManager : MonoBehaviour
 				cameraY = eatingCameraY;
 				cameraRotX = eatingCameraRotX;
 				cameraDistance = eatingCameraDistance;	
-				SetGameState("gameStateDied4");
 			}
 			previousCameraRotOffsetY = cameraRotOffsetY; // just in case we go straight from here to gameStateDied5
 
 
 
 
+			if (Time.time >= stateStartTime + fadeTime) {
+				SetGameState("gameStateDied4");
+			}
 			break;
 			
 		case "gameStateDied4":
+			// camera spins slowly around puma
 			inputControls.ResetControls();
 
 
+			if (Time.time >= stateStartTime + 0.1f) {
+				float spinningRotOffsetY = cameraController.GetCurrentRotOffsetY() - (Time.deltaTime + 0.03f);
+				if (spinningRotOffsetY < -180f)
+					spinningRotOffsetY += 360f;
+				cameraController.SelectTargetPosition("cameraPosEating", spinningRotOffsetY, 0f, "mainCurveNull", "curveRotXNull"); 
+			}
+
+		
 			if (Time.time - stateStartTime > 0.1f) {
 				cameraRotOffsetY -= Time.deltaTime + 0.03f;
 				if (cameraRotOffsetY < -180f)
 					cameraRotOffsetY += 360f;
 				previousCameraRotOffsetY = cameraRotOffsetY;
-				//InitLevel();
-				//SetGameState("gameStateDied5");
 			}
 
-
-
-
+			
 			break;
 					
-		case "gameStateDied5":
-			fadeTime = 2.4f;
-			pumaAnimator.SetBool("DeerKill", false);
 
-
-			cameraRotPercentDone = ((Time.time - stateStartTime) / fadeTime);
-			cameraRotPercentDone = cameraRotPercentDone * cameraRotPercentDone;
-			cameraRotX = previousCameraRotX + (highCameraRotX - previousCameraRotX) * cameraRotPercentDone;
-
-			if (Time.time - stateStartTime < fadeTime) { // implements trans as a reverse of leavingGui trans
-				float backwardsTime = (stateStartTime + fadeTime) - (Time.time - stateStartTime);	
-				if (backwardsTime - stateStartTime < (fadeTime * 0.5f)) {
-					// 1st half
-
-					fadePercentComplete = (backwardsTime - stateStartTime) / (fadeTime * 0.5f);
-					fadePercentComplete = fadePercentComplete * fadePercentComplete;
-					cameraY = highCameraY + fadePercentComplete * ((previousCameraY - highCameraY) * 0.5f);
-					cameraDistance = highCameraDistance + fadePercentComplete * ((previousCameraDistance - highCameraDistance) * 0.5f);
-
-					cameraRotOffsetY = 0f + fadePercentComplete * ((previousCameraRotOffsetY - 0f) * 0.5f);
-				}
-				else if (backwardsTime - stateStartTime < fadeTime) {
-					// 2nd half
-
-					fadePercentComplete = ((backwardsTime - stateStartTime) - (fadeTime * 0.5f)) / (fadeTime * 0.5f);				
-					fadePercentComplete = fadePercentComplete + (fadePercentComplete - (fadePercentComplete * fadePercentComplete));
-					cameraY = highCameraY + ((previousCameraY - highCameraY) * 0.5f) + fadePercentComplete * ((previousCameraY - highCameraY) * 0.5f);
-					cameraDistance = highCameraDistance + ((previousCameraDistance - highCameraDistance) * 0.5f) + fadePercentComplete * ((previousCameraDistance - highCameraDistance) * 0.5f);
-
-					cameraRotOffsetY = 0f + ((previousCameraRotOffsetY - 0f) * 0.5f) + fadePercentComplete * ((previousCameraRotOffsetY - 0f) * 0.5f);
-				}
-			}
-			else {
-				cameraY = highCameraY;
-				cameraRotX = highCameraRotX;
-				cameraDistance = highCameraDistance;
-				cameraRotOffsetY = 0;
-							
-				PlaceDeerPositions();
-				ResetAnimations();
-	
-				SetGameState("gameStateStalking");
-				scoringSystem.ClearLastKillInfo(selectedPuma);
-			}
-
-
-
-
-			break;	
-
+		//------------------
+		// Error Check
+		//------------------
+			
+		default:
+			Debug.Log("ERROR - LevelManager.Update() got bad state: " + gameState);
+			break;
 		}		
 		
-
-
 		//=======================
 		// Update Positions
 		//=======================
@@ -1032,8 +1048,8 @@ public class LevelManager : MonoBehaviour
 			pumaZ += (Mathf.Cos(mainHeading*Mathf.PI/180) * distance);
 		}
 		
-		else if (gameState == "gameStateCloseup" || gameState == "gameStateEnteringGameplay" ||
-		         gameState == "gameStateCaught1" || gameState == "gameStateCaught2" || gameState == "gameStateCaught3" || gameState == "gameStateCaught4" || gameState == "gameStateCaught5" ||
+		else if (gameState == "gameStateEnteringGameplay1" || gameState == "gameStateEnteringGameplay2" ||
+		         gameState == "gameStateFeeding1" || gameState == "gameStateFeeding2" || gameState == "gameStateFeeding3" || gameState == "gameStateFeeding4" || gameState == "gameStateFeeding5" ||
 				 gameState == "gameStateDied1" || gameState == "gameStateDied2" || gameState == "gameStateDied3" || gameState == "gameStateDied4" || gameState == "gameStateDied5")
 		{
 			distance = 0f;
@@ -1118,12 +1134,25 @@ public class LevelManager : MonoBehaviour
 		
 
 		
-		if (gameState == "gameStateGui") {
-			cameraController.UpdateCameraPosition(pumaX, pumaY, pumaZ, mainHeading);
-		}
-
-
-		if (gameState == "gameStateLeavingGui") {
+		
+		
+		if (true &&
+		   (gameState == "gameStateGui" ||
+		    gameState == "gameStateLeavingGui" ||
+		    gameState == "gameStateEnteringGameplay1" ||
+		    gameState == "gameStateEnteringGameplay2" ||
+		    gameState == "gameStateLeavingGameplay" ||
+		    gameState == "gameStateStalking" ||
+		    gameState == "gameStateChasing" ||
+		    gameState == "gameStateFeeding1" ||
+		    gameState == "gameStateFeeding2" ||
+		    gameState == "gameStateFeeding3" ||
+		    gameState == "gameStateFeeding4" ||
+		    gameState == "gameStateFeeding5" ||
+		    gameState == "gameStateDied1" ||
+		    gameState == "gameStateDied2" ||
+		    gameState == "gameStateDied3" ||
+		    gameState == "gameStateDied4")) {
 			cameraController.UpdateCameraPosition(pumaX, pumaY, pumaZ, mainHeading);
 		}
 		else {
@@ -1179,7 +1208,7 @@ public class LevelManager : MonoBehaviour
 	void SelectCameraPosition(string targetPositionLabel, float targetRotOffsetY, float fadeTime, string mainCurve, string rotXCurve)
 	{
 		if (stateInitFlag == false) {
-			cameraController.SelectRelativePosition(targetPositionLabel, targetRotOffsetY, fadeTime, mainCurve, rotXCurve);
+			cameraController.SelectTargetPosition(targetPositionLabel, targetRotOffsetY, fadeTime, mainCurve, rotXCurve);
 			stateInitFlag = true;
 		}
 	}

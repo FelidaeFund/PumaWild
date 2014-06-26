@@ -117,6 +117,9 @@ public class ScoringSystem : MonoBehaviour
 
 	public void PumaHasWalked(int selectedPuma, float distance)
 	{
+		distance *= 5f;  // TEMP !!!!!!
+	
+	
 		if (selectedPuma == -1)
 			return;
 		if (distance < 0)
@@ -131,6 +134,9 @@ public class ScoringSystem : MonoBehaviour
 	
 	public void PumaHasRun(int selectedPuma, float distance)
 	{
+		distance *= 5f;  // TEMP !!!!!!
+	
+	
 		if (selectedPuma == -1)
 			return;
 

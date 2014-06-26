@@ -418,7 +418,7 @@ public class GuiManager : MonoBehaviour
 		//------------------
 		
 		default:
-			Debug.Log("ERROR - GUIManager.Update() got bad state: " + guiState);
+			Debug.Log("ERROR - GuiManager.Update() got bad state: " + guiState);
 			break;
 		}
 	}
@@ -454,7 +454,7 @@ public class GuiManager : MonoBehaviour
 		if (spacePressed || leftShiftPressed || rightShiftPressed) {
 			// use keyboard to resume gameplay
 			SetGuiState("guiStateFeeding7");
-			levelManager.SetGameState("gameStateCaught5");
+			levelManager.SetGameState("gameStateFeeding5");
 		}
 	}
 
@@ -468,6 +468,10 @@ public class GuiManager : MonoBehaviour
 				IncrementPuma();
 		}
 	}
+	
+	////////////////////////////////
+	////////////////////////////////
+	////////////////////////////////
 	
 	private void FadeInOpacityLogarithmic()
 	{
