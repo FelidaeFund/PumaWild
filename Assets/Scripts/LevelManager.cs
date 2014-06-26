@@ -6,29 +6,29 @@ using System.Collections;
 
 public class LevelManager : MonoBehaviour 
 {
-	public float speedOverdrive = 1.0f; // DEV ONLY
-	
+	// DEBUG & DEV
+	public float speedOverdrive = 1.0f;
 	public float displayVar1;
 	public float displayVar2;
 	public float displayVar3;
-	
-	// PUMA CHARACTERISTICS
-
-	private float[] powerArray = new float[] {0.6f, 0.4f, 0.9f, 0.7f, 0.7f, 0.5f};
-	private float[] speedArray = new float[] {0.90f, 0.80f, 0.55f, 0.45f, 0.20f, 0.10f};
-	private float[] enduranceArray = new float[] {0.6f, 0.4f, 0.9f, 0.8f, 0.6f, 0.4f};
-	private float[] stealthinessArray = new float[] {0.10f, 0.20f, 0.45f, 0.55f, 0.80f, 0.90f};
-	
-	private int selectedPuma = -1;
-
-	
-	// FRAMERATE INFO
-
 	private int frameCount = 0;
 	private int frameFirstTime;
 	private int framePrevTime;
 	public int frameCurrentDuration;
 	public int frameAverageDuration;
+
+	//===================================
+	//===================================
+	//		MODULE VARIABLES
+	//===================================
+	//===================================
+
+	// STATES
+
+	public string gameState;
+	private string gameSubState;
+	private float stateStartTime;
+	private bool stateInitFlag;
 
 	// GROUND PLANES
 
@@ -41,6 +41,7 @@ public class LevelManager : MonoBehaviour
 	// PUMA
 
 	public GameObject pumaObj;
+	private int selectedPuma = -1;
 	public float mainHeading;
 	private float pumaX;
 	private float pumaY;
@@ -54,6 +55,13 @@ public class LevelManager : MonoBehaviour
 	private float defaultChaseTriggerDistance = 40f * 0.66f;
 	private float deerCaughtFinalOffsetFactor0 = 1f * 0.66f;
 	private float deerCaughtFinalOffsetFactor90 = 1f;
+
+	// PUMA CHARACTERISTICS
+
+	private float[] powerArray = new float[] {0.6f, 0.4f, 0.9f, 0.7f, 0.7f, 0.5f};
+	private float[] speedArray = new float[] {0.90f, 0.80f, 0.55f, 0.45f, 0.20f, 0.10f};
+	private float[] enduranceArray = new float[] {0.6f, 0.4f, 0.9f, 0.8f, 0.6f, 0.4f};
+	private float[] stealthinessArray = new float[] {0.10f, 0.20f, 0.45f, 0.55f, 0.80f, 0.90f};
 	
 	// DEER
 
@@ -68,6 +76,12 @@ public class LevelManager : MonoBehaviour
 		public float baseY;
 	}
 	
+	public DeerClass buck;
+	public DeerClass doe;
+	public DeerClass fawn;
+
+	private bool newChaseFlag = false;
+
 	private float buckDefaultForwardRate = 30f * 0.66f;
 	private float buckDefaultTurnRate = 22.5f * 0.66f;
 	private float doeDefaultForwardRate = 29f * 0.66f;
@@ -75,20 +89,8 @@ public class LevelManager : MonoBehaviour
 	private float fawnDefaultForwardRate = 28f * 0.66f;
 	private float fawnDefaultTurnRate = 22.5f * 0.66f;
 
-	public DeerClass buck;
-	public DeerClass doe;
-	public DeerClass fawn;
-
-	// STATES
-
-	public string gameState;
-	private string gameSubState;
-	private float stateStartTime;
-	private bool stateInitFlag;
-	private bool zoomInProgress = false;
-
-	private bool newChaseFlag = false;
-
+	// THE CAUGHT DEER
+	
 	private DeerClass caughtDeer;
 	private float deerCaughtHeading;
 	private float deerCaughtFinalHeading;
@@ -115,9 +117,7 @@ public class LevelManager : MonoBehaviour
 
 	//===================================
 	//===================================
-	//
 	//		INITIALIZATION
-	//
 	//===================================
 	//===================================
 
@@ -186,28 +186,18 @@ public class LevelManager : MonoBehaviour
 		pumaObj.transform.position = new Vector3(pumaX, pumaY, pumaZ);		
 	}
 	
-	
+	//===================================
+	//===================================
+	//		PUBLICS & UTILS
+	//===================================
+	//===================================
+
 	public void SetGameState(string newGameState)
 	{
 		gameState = newGameState;
 		gameSubState = "gameSubStateNull";
 		stateStartTime = Time.time;
 		stateInitFlag = false;
-		
-		if (newGameState == "gameStateLeavingGui") {
-			PlaceDeerPositions();
-			ResetAnimations();
-		}
-	}
-
-	public bool IsStalkingState()
-	{
-		return (gameState == "gameStateStalking") ? true : false;
-	}
-
-	public bool IsChasingState()
-	{
-		return (gameState == "gameStateChasing") ? true : false;
 	}
 
 	public bool IsCaughtState()
@@ -223,14 +213,20 @@ public class LevelManager : MonoBehaviour
 		chaseTriggerDistance = defaultChaseTriggerDistance - (20f * stealthinessArray[selectedPuma]);
 	}
 
-	
-	
-	//=======================================================
-	//
-	//	PERIODIC UPDATE
-	//
-	//=======================================================
-	
+	void SelectCameraPosition(string targetPositionLabel, float targetRotOffsetY, float fadeTime, string mainCurve, string rotXCurve)
+	{
+		if (stateInitFlag == false) {
+			cameraController.SelectTargetPosition(targetPositionLabel, targetRotOffsetY, fadeTime, mainCurve, rotXCurve);
+			stateInitFlag = true;
+		}
+	}
+
+	//===================================
+	//===================================
+	//		PERIODIC UPDATE
+	//===================================
+	//===================================
+
 	void Update() 
 	{	
 		//pumaAnimator.SetLayerWeight(1, 1f);
@@ -274,6 +270,12 @@ public class LevelManager : MonoBehaviour
 			// zoom down into close up
 			fadeTime = 2.5f;
 			guiFlybySpeed = 1f - (Time.time - stateStartTime) / fadeTime;		
+			if (stateInitFlag == false) {
+				// init the level before zooming down
+				PlaceDeerPositions();
+				ResetAnimations();
+				// stateInitFlag set to TRUE in the next function
+			}
 			SelectCameraPosition("cameraPosCloseup", 1000000f, fadeTime, "mainCurveSForward", "curveRotXLogarithmicSecondHalf"); // 1000000 signifies no change for cameraRotOffsetY
 			if (Time.time >= stateStartTime + fadeTime) {
 				guiFlybySpeed = 0f;
@@ -360,17 +362,9 @@ public class LevelManager : MonoBehaviour
 			//buck.forwardRate = 0f;
 			//doe.forwardRate = 0f;
 			//fawn.forwardRate = 0f;
-
 			//buck.turnRate = 0f;
 			//doe.turnRate = 0f;
 			//fawn.turnRate = 0f;
-
-			//buck.forwardRate = 15f;
-			//buck.turnRate = 10f;
-			//doe.forwardRate = 15f;
-			//doe.turnRate = 10f;
-			//fawn.forwardRate = 15f;
-			//fawn.turnRate = 10f;
 
 			if (pumaDeerDistance1 < 2.5f || pumaDeerDistance2 < 2.5f || pumaDeerDistance3 < 2.5f) {
 			
@@ -413,7 +407,6 @@ public class LevelManager : MonoBehaviour
 					//deerCaughtFinalHeading = mainHeading - 90;
 					deerCaughtFinalHeading = mainHeading + 90;
 				}
-				//System.Console.WriteLine("mainHeading: " + mainHeading.ToString() + "  deerCaughtHeading: " + deerCaughtHeading.ToString() + "  deerCaughtFinalHeading: " + deerCaughtFinalHeading.ToString());	
 				if (deerCaughtFinalHeading < 0)
 					deerCaughtFinalHeading += 360;
 				if (deerCaughtFinalHeading >= 360)
@@ -425,8 +418,6 @@ public class LevelManager : MonoBehaviour
 				deerCaughtFinalOffsetZ = (Mathf.Cos(mainHeading*Mathf.PI/180) * deerCaughtFinalOffsetFactor0);
 				deerCaughtFinalOffsetX += (Mathf.Sin((mainHeading-90f)*Mathf.PI/180) * deerCaughtFinalOffsetFactor90);
 				deerCaughtFinalOffsetZ += (Mathf.Cos((mainHeading-90f)*Mathf.PI/180) * deerCaughtFinalOffsetFactor90);
-				//deerCaughtFinalOffsetX += (Mathf.Sin(deerCaughtFinalHeading*Mathf.PI/180) * 9f);
-				//deerCaughtFinalOffsetZ += (Mathf.Cos(deerCaughtFinalHeading*Mathf.PI/180) * 9f);
 				deerCaughtNextFrameTime = 0;
 				
 				if (Time.time - stateStartTime < 5f)
@@ -599,17 +590,14 @@ public class LevelManager : MonoBehaviour
 		}		
 		
 		//=======================
-		// Update Positions
+		// Update Puma Position
 		//=======================
 			
 		float distance = 0f;
 		pumaHeading = mainHeading;
-		pumaAnimator.SetBool("GuiMode", false);
 	
-		// process puma position
-		
 		if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)) {
-			// filter out the processing when manual camera moves are in progress - DEV ONLY
+			// filter out the input when manual camera moves are in progress - DEV ONLY
 		}		
 		else if (gameState == "gameStateGui" || gameState == "gameStateLeavingGameplay" || gameState == "gameStateLeavingGui") {
 			// process automatic puma walking during GUI state
@@ -645,26 +633,31 @@ public class LevelManager : MonoBehaviour
 				SetGameState("gameStateDied1");			
 		}
 		
+		pumaAnimator.SetBool("GuiMode", false);
 		pumaAnimator.SetFloat("Distance", distance);
 
 		// calculate puma rotX based on terrain in front and behind
 		float pumaRotX;
-		distance = 1f;
-		float pumaAheadX = pumaX + (Mathf.Sin(pumaHeading*Mathf.PI/180) * distance * 1f);
-		float pumaAheadZ = pumaZ + (Mathf.Cos(pumaHeading*Mathf.PI/180) * distance * 1f);
-		float pumaBehindX = pumaX + (Mathf.Sin(pumaHeading*Mathf.PI/180) * distance * -1f);
-		float pumaBehindZ = pumaZ + (Mathf.Cos(pumaHeading*Mathf.PI/180) * distance * -1f);
-		pumaRotX = GetAngleFromOffset(0, GetTerrainHeight(pumaAheadX, pumaAheadZ), distance * 2f, GetTerrainHeight(pumaBehindX, pumaBehindZ)) - 90f;
+		float offsetDistance = 1f;
+		float pumaAheadX = pumaX + (Mathf.Sin(pumaHeading*Mathf.PI/180) * offsetDistance * 1f);
+		float pumaAheadZ = pumaZ + (Mathf.Cos(pumaHeading*Mathf.PI/180) * offsetDistance * 1f);
+		float pumaBehindX = pumaX + (Mathf.Sin(pumaHeading*Mathf.PI/180) * offsetDistance * -1f);
+		float pumaBehindZ = pumaZ + (Mathf.Cos(pumaHeading*Mathf.PI/180) * offsetDistance * -1f);
+		pumaRotX = GetAngleFromOffset(0, GetTerrainHeight(pumaAheadX, pumaAheadZ), offsetDistance * 2f, GetTerrainHeight(pumaBehindX, pumaBehindZ)) - 90f;
 			
 		// update puma obj
 		pumaY = GetTerrainHeight(pumaX, pumaZ);
 		pumaObj.transform.position = new Vector3(pumaX, pumaY, pumaZ);			
 		pumaObj.transform.rotation = Quaternion.Euler(pumaRotX, (pumaHeading - 180f), 0);
 	
-		// update the camera position
+		//================================
+		// Update Camera & Deer Positions
+		//================================
+			
+		// camera position
 		cameraController.UpdateCameraPosition(pumaX, pumaY, pumaZ, mainHeading);
 			
-		// update deer objects
+		// deer objects
 		UpdateDeerHeading(buck);
 		UpdateDeerHeading(doe);
 		UpdateDeerHeading(fawn);
@@ -672,10 +665,10 @@ public class LevelManager : MonoBehaviour
 		UpdateDeerPosition(doe);
 		UpdateDeerPosition(fawn);
 		
-		//////////////////////////////////
-		/// leap-frog the ground planes
-		//////////////////////////////////
-	
+		//================================
+		// Leap-Frog the Ground Planes
+		//================================
+				
 		for (int i = 0; i < 4; i++) {
 			float terrainX = terrainArray[i].transform.position.x;
 			float terrainZ = terrainArray[i].transform.position.z;
@@ -699,21 +692,11 @@ public class LevelManager : MonoBehaviour
 		
 	}
 
-
-
-
-
-	void SelectCameraPosition(string targetPositionLabel, float targetRotOffsetY, float fadeTime, string mainCurve, string rotXCurve)
-	{
-		if (stateInitFlag == false) {
-			cameraController.SelectTargetPosition(targetPositionLabel, targetRotOffsetY, fadeTime, mainCurve, rotXCurve);
-			stateInitFlag = true;
-		}
-	}
-	
-	
-	
-
+	//===================================
+	//===================================
+	//		DEER HANDLING
+	//===================================
+	//===================================
 	
 	void UpdateDeerHeading(DeerClass deer)
 	{
@@ -864,27 +847,12 @@ public class LevelManager : MonoBehaviour
 
 	}
 
-
-
-	void ResetAnimations()
-	{
-		buckAnimator.SetBool("Looking", false);
-		buckAnimator.SetBool("Running", false);
-		buckAnimator.SetBool("Die", false);
-		
-		doeAnimator.SetBool("Looking", false);
-		doeAnimator.SetBool("Running", false);
-		doeAnimator.SetBool("Die", false);
-		
-		fawnAnimator.SetBool("Looking", false);
-		fawnAnimator.SetBool("Running", false);
-		fawnAnimator.SetBool("Die", false);
+	//===================================
+	//===================================
+	//		UTILITIES
+	//===================================
+	//===================================
 	
-		pumaAnimator.SetBool("Chasing", false);
-		pumaAnimator.SetBool("DeerKill", false);
-	}			
-	
-
 	public float GetAngleFromOffset(float x1, float y1, float x2, float y2)
 	{
         float deltaX = x2 - x1;
@@ -898,6 +866,21 @@ public class LevelManager : MonoBehaviour
 		return angle;
 	}	
 	
+	void CalculateFrameRate()	// for frame rate display
+	{
+		int currentMsec = (int)(Time.time * 1000);
+
+		if (frameCount == 0 || currentMsec - frameFirstTime > 1500) {
+			frameCount = 1;
+			frameFirstTime = framePrevTime = currentMsec;
+		}
+		else {
+			frameCurrentDuration = currentMsec - framePrevTime;
+			frameAverageDuration =  (currentMsec - frameFirstTime) / frameCount;
+			framePrevTime = currentMsec;
+			frameCount++;
+		}
+	}
 
 	public float GetTerrainHeight(float x, float z)
 	{
@@ -931,22 +914,24 @@ public class LevelManager : MonoBehaviour
 		return 0f;
 	}
 
-	
-	void CalculateFrameRate()	// for frame rate display
+	void ResetAnimations()
 	{
-		int currentMsec = (int)(Time.time * 1000);
-
-		if (frameCount == 0 || currentMsec - frameFirstTime > 1500) {
-			frameCount = 1;
-			frameFirstTime = framePrevTime = currentMsec;
-		}
-		else {
-			frameCurrentDuration = currentMsec - framePrevTime;
-			frameAverageDuration =  (currentMsec - frameFirstTime) / frameCount;
-			framePrevTime = currentMsec;
-			frameCount++;
-		}
-	}
+		buckAnimator.SetBool("Looking", false);
+		buckAnimator.SetBool("Running", false);
+		buckAnimator.SetBool("Die", false);
+		
+		doeAnimator.SetBool("Looking", false);
+		doeAnimator.SetBool("Running", false);
+		doeAnimator.SetBool("Die", false);
+		
+		fawnAnimator.SetBool("Looking", false);
+		fawnAnimator.SetBool("Running", false);
+		fawnAnimator.SetBool("Die", false);
+	
+		pumaAnimator.SetBool("Chasing", false);
+		pumaAnimator.SetBool("DeerKill", false);
+	}			
+	
 
 }
 
