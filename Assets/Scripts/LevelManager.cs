@@ -589,9 +589,9 @@ public class LevelManager : MonoBehaviour
 			break;
 		}		
 		
-		//=======================
-		// Update Puma Position
-		//=======================
+		//===============
+		// Update Puma
+		//===============
 			
 		float distance = 0f;
 		pumaHeading = mainHeading;
@@ -650,14 +650,16 @@ public class LevelManager : MonoBehaviour
 		pumaObj.transform.position = new Vector3(pumaX, pumaY, pumaZ);			
 		pumaObj.transform.rotation = Quaternion.Euler(pumaRotX, (pumaHeading - 180f), 0);
 	
-		//================================
-		// Update Camera & Deer Positions
-		//================================
+		//================
+		// Update Camera
+		//================
 			
-		// camera position
 		cameraController.UpdateCameraPosition(pumaX, pumaY, pumaZ, mainHeading);
 			
-		// deer objects
+		//================
+		// Update Deer
+		//================
+
 		UpdateDeerHeading(buck);
 		UpdateDeerHeading(doe);
 		UpdateDeerHeading(fawn);
