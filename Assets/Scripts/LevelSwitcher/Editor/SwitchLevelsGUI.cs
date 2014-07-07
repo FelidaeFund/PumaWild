@@ -76,7 +76,7 @@ public class SwitchLevelsGUI : Editor
 		}
 		
 		
-		
+/*		
 		//------------------
 		// Paint Options
 		//------------------
@@ -104,6 +104,14 @@ public class SwitchLevelsGUI : Editor
 			GUILayout.Button ("Reset Eraser", GUILayout.Width(97), GUILayout.Height(20));
 		GUILayout.EndHorizontal();
 		GUILayout.Space (15);
+*/
+		
+		//------------------
+		// Default Inspector
+		//------------------
+		GUILayout.Space(20);
+		DrawDefaultInspector();
+		GUILayout.Space(10);
 
 	}
 

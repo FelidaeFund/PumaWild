@@ -3,63 +3,56 @@ using System.Collections;
 
 public class SwitchLevels : MonoBehaviour {
 
-	//-----------------------
-	// Module Variables
-	//-----------------------
-	private int currentLevel = 0; //TODO: Implement serializable, so we start retrieving the saved level.
+	public GameObject terrain1A;
+	public GameObject terrain1B;
+	public GameObject terrain1C;
+	public GameObject terrain1D;
 
-	private bool initFlag = false;
+	public GameObject terrain2A;
+	public GameObject terrain2B;
+	public GameObject terrain2C;
+	public GameObject terrain2D;
 
-	// Terrains GameObjects
-	private GameObject terrainA;
-	private GameObject terrainB;
-	private GameObject terrainC;
-	private GameObject terrainD;
+	public GameObject terrain3A;
+	public GameObject terrain3B;
+	public GameObject terrain3C;
+	public GameObject terrain3D;
 
-	private TerrainData targetLevel;
+	public GameObject terrain4A;
+	public GameObject terrain4B;
+	public GameObject terrain4C;
+	public GameObject terrain4D;
+
+	public GameObject terrain5A;
+	public GameObject terrain5B;
+	public GameObject terrain5C;
+	public GameObject terrain5D;
 
 	public void switchLevel(int levelNum)
 	{
-		terrain1A = GameObject.Find("Terrain1A");
-		terrain1B = GameObject.Find("Terrain1B");
-		terrain1C = GameObject.Find("Terrain1C");
-		terrain1D = GameObject.Find("Terrain1D");
+		terrain1A.SetActive((levelNum == 1) ? true : false);
+		terrain1B.SetActive((levelNum == 1) ? true : false);
+		terrain1C.SetActive((levelNum == 1) ? true : false);
+		terrain1D.SetActive((levelNum == 1) ? true : false);
 
-		terrain2A = GameObject.Find("Terrain2A");
-		terrain2B = GameObject.Find("Terrain2B");
-		terrain2C = GameObject.Find("Terrain2C");
-		terrain2D = GameObject.Find("Terrain2D");
+		terrain2A.SetActive((levelNum == 2) ? true : false);
+		terrain2B.SetActive((levelNum == 2) ? true : false);
+		terrain2C.SetActive((levelNum == 2) ? true : false);
+		terrain2D.SetActive((levelNum == 2) ? true : false);
 
-		if (levelNum == 
+		terrain3A.SetActive((levelNum == 3) ? true : false);
+		terrain3B.SetActive((levelNum == 3) ? true : false);
+		terrain3C.SetActive((levelNum == 3) ? true : false);
+		terrain3D.SetActive((levelNum == 3) ? true : false);
 
+		terrain4A.SetActive((levelNum == 4) ? true : false);
+		terrain4B.SetActive((levelNum == 4) ? true : false);
+		terrain4C.SetActive((levelNum == 4) ? true : false);
+		terrain4D.SetActive((levelNum == 4) ? true : false);
 
-
-		switch (levelId)
-		{
-			case 1:
-				targetLevel = GameObject.Find("Level1").GetComponent<Terrain>().terrainData;
-			break;
-			
-			case 2:
-				targetLevel = GameObject.Find("Level2").GetComponent<Terrain>().terrainData;
-			break;
-
-			case 3:
-				targetLevel = GameObject.Find("Level3").GetComponent<Terrain>().terrainData;
-			break;
-			
-			case 4:
-				targetLevel = GameObject.Find("Level4").GetComponent<Terrain>().terrainData;
-			break;
-			
-			case 5:
-				targetLevel = GameObject.Find("Level5").GetComponent<Terrain>().terrainData;
-			break;
-
-			terrainA.GetComponent<Terrain>().terrainData = targetLevel;
-			terrainB.GetComponent<Terrain>().terrainData = targetLevel;
-			terrainC.GetComponent<Terrain>().terrainData = targetLevel;
-			terrainD.GetComponent<Terrain>().terrainData = targetLevel;
-		}
+		terrain5A.SetActive((levelNum == 5) ? true : false);
+		terrain5B.SetActive((levelNum == 5) ? true : false);
+		terrain5C.SetActive((levelNum == 5) ? true : false);
+		terrain5D.SetActive((levelNum == 5) ? true : false);
 	}
 }
