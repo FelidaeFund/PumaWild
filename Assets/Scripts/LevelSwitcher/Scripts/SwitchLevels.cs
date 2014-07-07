@@ -27,8 +27,29 @@ public class SwitchLevels : MonoBehaviour {
 	public GameObject terrain5B;
 	public GameObject terrain5C;
 	public GameObject terrain5D;
+	
+	public GameObject terrain2A_paint;
+	public GameObject terrain2B_paint;
+	public GameObject terrain2C_paint;
+	public GameObject terrain2D_paint;
 
-	public void switchLevel(int levelNum)
+	public GameObject terrain3A_paint;
+	public GameObject terrain3B_paint;
+	public GameObject terrain3C_paint;
+	public GameObject terrain3D_paint;
+
+	public GameObject terrain4A_paint;
+	public GameObject terrain4B_paint;
+	public GameObject terrain4C_paint;
+	public GameObject terrain4D_paint;
+
+	public GameObject terrain5A_paint;
+	public GameObject terrain5B_paint;
+	public GameObject terrain5C_paint;
+	public GameObject terrain5D_paint;
+
+
+	public void switchLevel(int levelNum, bool paintEnabled)
 	{
 		terrain1A.SetActive((levelNum == 1) ? true : false);
 		terrain1B.SetActive((levelNum == 1) ? true : false);
@@ -54,5 +75,26 @@ public class SwitchLevels : MonoBehaviour {
 		terrain5B.SetActive((levelNum == 5) ? true : false);
 		terrain5C.SetActive((levelNum == 5) ? true : false);
 		terrain5D.SetActive((levelNum == 5) ? true : false);
+		
+		terrain2A_paint.SetActive((levelNum == 2 && paintEnabled == true) ? true : false);
+		terrain2B_paint.SetActive((levelNum == 2 && paintEnabled == true) ? true : false);
+		terrain2C_paint.SetActive((levelNum == 2 && paintEnabled == true) ? true : false);
+		terrain2D_paint.SetActive((levelNum == 2 && paintEnabled == true) ? true : false);
+
+		terrain3A_paint.SetActive((levelNum == 3 && paintEnabled == true) ? true : false);
+		terrain3B_paint.SetActive((levelNum == 3 && paintEnabled == true) ? true : false);
+		terrain3C_paint.SetActive((levelNum == 3 && paintEnabled == true) ? true : false);
+		terrain3D_paint.SetActive((levelNum == 3 && paintEnabled == true) ? true : false);
+
+		terrain4A_paint.SetActive((levelNum == 4 && paintEnabled == true) ? true : false);
+		terrain4B_paint.SetActive((levelNum == 4 && paintEnabled == true) ? true : false);
+		terrain4C_paint.SetActive((levelNum == 4 && paintEnabled == true) ? true : false);
+		terrain4D_paint.SetActive((levelNum == 4 && paintEnabled == true) ? true : false);
+
+		terrain5A_paint.SetActive((levelNum == 5 && paintEnabled == true) ? true : false);
+		terrain5B_paint.SetActive((levelNum == 5 && paintEnabled == true) ? true : false);
+		terrain5C_paint.SetActive((levelNum == 5 && paintEnabled == true) ? true : false);
+		terrain5D_paint.SetActive((levelNum == 5 && paintEnabled == true) ? true : false);
+
 	}
 }

@@ -14,11 +14,14 @@ public class SwitchLevelsGUI : Editor
 	private int toolbarSelected = 0; //TODO: Implement serialization, and start with the value that is saved.
 	private string[] toolbarLabels = new string[] {"Lv1", "Lv2", "Lv3", "Lv4", "Lv5"}; //Labels
 
+	
+	
+	
 	//---------------------------
 	// Paint Options variables
 	//---------------------------
 	// booleans indicate checked boxes
-	private bool[] togglePaint = new bool[] {false, false, false, false, false, false, false, false, false, false};
+	private bool togglePaint = false;
 
 
 	public override void OnInspectorGUI()
@@ -37,7 +40,6 @@ public class SwitchLevelsGUI : Editor
 			case 0:
 				if (toolbarSelected!=selectedLevel){
 					Debug.Log("Level 1 pressed");
-					changeLevel(1);
 				}
 				selectedLevel = toolbarSelected;
 			break;
@@ -45,7 +47,6 @@ public class SwitchLevelsGUI : Editor
 			case 1:
 				if (toolbarSelected!=selectedLevel){
 					Debug.Log("Level 2 pressed");
-					changeLevel(2);
 				}
 				selectedLevel = toolbarSelected;
 			break;
@@ -53,7 +54,6 @@ public class SwitchLevelsGUI : Editor
 			case 2:
 			if (toolbarSelected!=selectedLevel){
 					Debug.Log("Level 3 pressed");
-					changeLevel(3);
 				}
 				selectedLevel = toolbarSelected;
 			break;
@@ -61,7 +61,6 @@ public class SwitchLevelsGUI : Editor
 			case 3:
 				if (toolbarSelected!=selectedLevel){
 					Debug.Log("Level 4 pressed");
-					changeLevel(4);
 				}
 				selectedLevel = toolbarSelected;
 			break;
@@ -69,12 +68,24 @@ public class SwitchLevelsGUI : Editor
 			case 4:
 				if (toolbarSelected!=selectedLevel){
 					Debug.Log("Level 5 pressed");
-					changeLevel(5);
 				}
 				selectedLevel = toolbarSelected;
 			break;
 		}
 		
+		
+		//------------------
+		// Paint Enable
+		//------------------
+		GUILayout.Label ("Paint Visible:", EditorStyles.boldLabel);
+		GUILayout.BeginHorizontal("box", GUILayout.Width(200));
+			togglePaint = GUILayout.Toggle(togglePaint, " show painted terrains");
+		GUILayout.EndHorizontal();
+		
+		
+		
+		changeLevel(selectedLevel+1);
+
 		
 /*		
 		//------------------
@@ -118,7 +129,7 @@ public class SwitchLevelsGUI : Editor
 	public void changeLevel(int levelId)
 	{
 		SwitchLevels myTarget = (SwitchLevels)target;
-		myTarget.switchLevel (levelId);
+		myTarget.switchLevel (levelId, togglePaint);
 	}
 
 }
