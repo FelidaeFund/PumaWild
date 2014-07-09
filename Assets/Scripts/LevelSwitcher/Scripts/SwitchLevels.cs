@@ -32,6 +32,10 @@ public class SwitchLevels : MonoBehaviour {
 	public GameObject terrain2B_paint;
 	public GameObject terrain2C_paint;
 	public GameObject terrain2D_paint;
+		//roads
+		public GameObject dirtRoad1;
+		public GameObject dirtRoad2;
+		public GameObject dirtRoad3;
 
 	public GameObject terrain3A_paint;
 	public GameObject terrain3B_paint;
@@ -60,6 +64,10 @@ public class SwitchLevels : MonoBehaviour {
 		terrain2B.SetActive((levelNum == 2) ? true : false);
 		terrain2C.SetActive((levelNum == 2) ? true : false);
 		terrain2D.SetActive((levelNum == 2) ? true : false);
+		//roads
+			dirtRoad1.SetActive((levelNum == 2) ? true : false);
+			dirtRoad2.SetActive((levelNum == 2) ? true : false);
+			dirtRoad3.SetActive((levelNum == 2) ? true : false);
 
 		terrain3A.SetActive((levelNum == 3) ? true : false);
 		terrain3B.SetActive((levelNum == 3) ? true : false);
