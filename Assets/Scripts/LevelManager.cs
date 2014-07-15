@@ -32,10 +32,26 @@ public class LevelManager : MonoBehaviour
 
 	// GROUND PLANES
 
-	public Terrain terrain1;
-	public Terrain terrain2;
-	public Terrain terrain3;
-	public Terrain terrain4;
+	public Terrain terrain1A;
+	public Terrain terrain1B;
+	public Terrain terrain1C;
+	public Terrain terrain1D;
+	public Terrain terrain2A;
+	public Terrain terrain2B;
+	public Terrain terrain2C;
+	public Terrain terrain2D;
+	public Terrain terrain3A;
+	public Terrain terrain3B;
+	public Terrain terrain3C;
+	public Terrain terrain3D;
+	public Terrain terrain4A;
+	public Terrain terrain4B;
+	public Terrain terrain4C;
+	public Terrain terrain4D;
+	public Terrain terrain5A;
+	public Terrain terrain5B;
+	public Terrain terrain5C;
+	public Terrain terrain5D;
 	private Terrain[] terrainArray;
 
 	// PUMA
@@ -165,11 +181,27 @@ public class LevelManager : MonoBehaviour
 		
 			
 		// create array of ground planes	
-		terrainArray = new Terrain[4];
-		terrainArray[0] = terrain1;		
-		terrainArray[1] = terrain2;		
-		terrainArray[2] = terrain3;		
-		terrainArray[3] = terrain4;		
+		terrainArray = new Terrain[20];
+		terrainArray[0] = terrain1A;		
+		terrainArray[1] = terrain1B;		
+		terrainArray[2] = terrain1C;		
+		terrainArray[3] = terrain1D;		
+		terrainArray[4] = terrain2A;		
+		terrainArray[5] = terrain2B;		
+		terrainArray[6] = terrain2C;		
+		terrainArray[7] = terrain2D;		
+		terrainArray[8] = terrain3A;		
+		terrainArray[9] = terrain3B;		
+		terrainArray[10] = terrain3C;		
+		terrainArray[11] = terrain3D;		
+		terrainArray[12] = terrain4A;		
+		terrainArray[13] = terrain4B;		
+		terrainArray[14] = terrain4C;		
+		terrainArray[15] = terrain4D;		
+		terrainArray[16] = terrain5A;		
+		terrainArray[17] = terrain5B;		
+		terrainArray[18] = terrain5C;		
+		terrainArray[19] = terrain5D;		
 		
 		InitLevel();
 	}
@@ -670,8 +702,8 @@ public class LevelManager : MonoBehaviour
 		//================================
 		// Leap-Frog the Ground Planes
 		//================================
-				
-		for (int i = 0; i < 4; i++) {
+						
+		for (int i = 0; i < terrainArray.Length; i++) {
 			float terrainX = terrainArray[i].transform.position.x;
 			float terrainZ = terrainArray[i].transform.position.z;
 			
@@ -889,28 +921,28 @@ public class LevelManager : MonoBehaviour
 		float terrainX;
 		float terrainZ;
 	
-		terrainX = terrain1.transform.position.x;
-		terrainZ = terrain1.transform.position.z;		
+		terrainX = terrain1A.transform.position.x;
+		terrainZ = terrain1A.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			return  terrain1.SampleHeight(new Vector3(x, 0, z));
+			return  terrain1A.SampleHeight(new Vector3(x, 0, z));
 		}
 			
-		terrainX = terrain2.transform.position.x;
-		terrainZ = terrain2.transform.position.z;		
+		terrainX = terrain1B.transform.position.x;
+		terrainZ = terrain1B.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			return  terrain2.SampleHeight(new Vector3(x, 0, z));
+			return  terrain1B.SampleHeight(new Vector3(x, 0, z));
 		}
 			
-		terrainX = terrain3.transform.position.x;
-		terrainZ = terrain3.transform.position.z;		
+		terrainX = terrain1C.transform.position.x;
+		terrainZ = terrain1C.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			return  terrain3.SampleHeight(new Vector3(x, 0, z));
+			return  terrain1C.SampleHeight(new Vector3(x, 0, z));
 		}
 			
-		terrainX = terrain4.transform.position.x;
-		terrainZ = terrain4.transform.position.z;		
+		terrainX = terrain1D.transform.position.x;
+		terrainZ = terrain1D.transform.position.z;		
 		if (x >= terrainX && x < terrainX + 2000 && z >= terrainZ && z < terrainZ + 2000) {
-			return  terrain4.SampleHeight(new Vector3(x, 0, z));
+			return  terrain1D.SampleHeight(new Vector3(x, 0, z));
 		}
 			
 		return 0f;
