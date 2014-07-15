@@ -176,7 +176,9 @@ public class GuiManager : MonoBehaviour
 
 		// debug option (enabled at top of file)
 		if (skipStraightToLevel == true) {
-			SetGuiState("guiStateStartApp1");
+			//SetGuiState("guiStateStartApp1");
+			selectedPuma = 0;
+			levelManager.SetSelectedPuma(selectedPuma);			
 			infoPanelVisible = false;
 			if (++skipStraightToLevelFrameCount == 10) {
 				SetGuiState("guiStateGameplay");

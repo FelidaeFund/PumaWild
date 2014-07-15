@@ -7,6 +7,7 @@ using System.Collections;
 public class LevelManager : MonoBehaviour 
 {
 	// DEBUG & DEV
+	private bool goStraightToFeeding = false;
 	public float speedOverdrive = 1.0f;
 	public float displayVar1;
 	public float displayVar2;
@@ -261,6 +262,11 @@ public class LevelManager : MonoBehaviour
 
 	void Update() 
 	{	
+		float fadeTime;
+		float fadePercentComplete;
+		float cameraRotPercentDone;
+		float guiFlybySpeed = 0f;
+
 		//pumaAnimator.SetLayerWeight(1, 1f);
 	
 		if (pumaObj == null || buck == null || doe == null || fawn == null)
@@ -270,19 +276,28 @@ public class LevelManager : MonoBehaviour
 			
 		inputControls.ProcessControls(gameState);
 
-		//===========================
-		// Update Game-State Logic
-		//===========================
-			
-		float fadeTime;
-		float fadePercentComplete;
-		float cameraRotPercentDone;
-		float guiFlybySpeed = 0f;
+		//=================================
+		// Get distances from puma to deer
+		//=================================
 
 		float pumaDeerDistance1 = Vector3.Distance(pumaObj.transform.position, buck.gameObj.transform.position);
 		float pumaDeerDistance2 = Vector3.Distance(pumaObj.transform.position, doe.gameObj.transform.position);
 		float pumaDeerDistance3 = Vector3.Distance(pumaObj.transform.position, fawn.gameObj.transform.position);		
-	
+		
+		//=================================
+		// Check for Skip Ahead
+		//=================================
+
+		if (goStraightToFeeding == true && gameState == "gameStateStalking") {
+			SetGameState("gameStateChasing");
+			pumaDeerDistance1 = 0;
+		}
+			
+		
+		//===========================
+		// Update Game-State Logic
+		//===========================
+			
 		switch (gameState) {
 		
 		//------------------------------
