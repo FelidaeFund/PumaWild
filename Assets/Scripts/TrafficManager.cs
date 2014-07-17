@@ -47,13 +47,19 @@ public class TrafficManager : MonoBehaviour {
 				{
 					//Checks whether the next node the car is heading to exists or not.
 					int nextNode = carInfo.getNextNode();
-					if(nextNode <= roadInfo.numNodes && nextNode != -1)
+					if(nextNode < roadInfo.numNodes && nextNode != -1)
 					{
 						carInfo.updatePath(car.transform.position, roadInfo.nodes[nextNode].position); //update segment's start and end
+						car.transform.LookAt(new Vector3(carInfo.getVirtualTargetNode().x, car.transform.position.y, carInfo.getVirtualTargetNode().z));
+					}
+
+					else
+					{
+						car.rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationY;
 					}
 					
 					//stops car, for now
-					car.rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationY;
+					//car.rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationY;
 					//TODO:
 					// beyond end of last segment of first road
 						// move car to second road

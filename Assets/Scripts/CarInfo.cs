@@ -25,10 +25,10 @@ public class CarInfo : MonoBehaviour {
 		virtualStartNode = new GameObject();
 		virtualTargetNode = new GameObject();
 
-		transform.position = virtualStartNode.transform.position;
+		transform.position = new Vector3(virtualStartNode.transform.position.x+5, virtualStartNode.transform.position.y, virtualStartNode.transform.position.z+5);
 
-		virtualStartNode.transform.position = firstNode.position;
-		virtualTargetNode.transform.position = secondNode.position;
+		virtualStartNode.transform.position = new Vector3(firstNode.position.x+5, firstNode.position.y, firstNode.position.z+5);
+		virtualTargetNode.transform.position = new Vector3(secondNode.position.x+5, secondNode.position.y, secondNode.position.z+5);
 
 		journeyLength = Vector3.Distance(virtualStartNode.transform.position, virtualTargetNode.transform.position);
 		setStartTime();
