@@ -4,9 +4,11 @@ using System.Collections.Generic;
 
 public class RoadInfo : MonoBehaviour {
 
+	public bool enabled;
+
 	public List<GameObject> carList;
 	
-	public int width;
+	public float roadWidth;
 	public int numLanes;
 	public float[] laneSpeed;
 	public int numNodes;

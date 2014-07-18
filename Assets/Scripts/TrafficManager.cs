@@ -4,21 +4,30 @@ using System.Collections.Generic;
 
 public class TrafficManager : MonoBehaviour {
 
-	// Module variables
+	//===================
+	// Module Variables
+	//===================
+	// Array with roads
 	public GameObject[] roadsList;
 
 	// Update is called once per frame
 	void Update () {
+		// Road data
 		RoadInfo roadInfo;
+		// Amount of active cars in the road
 		int amountOfCars;
+		// Points to the game object
 		GameObject car;
+		// Points to the gamObject's component "CarInfo", which stores data about the car.
 		CarInfo carInfo;
 		
 		//iterates through all the roads we have(12).
 		for(int i=0; i<roadsList.Length; i++)
 		{	
-			//Gets the "Road" component within the specific road we are looking at
+			//Gets the "RoadInfo" component within the specific road we are looking at
 			roadInfo = roadsList[i].GetComponent<RoadInfo>();
+			// Checks whether this road is enabled or not
+			if (roadInfo.enabled == false) break;
 			
 			// See if we need to add a car to this road
 			if (Time.time >= roadInfo.nextCarCreationTime) {
@@ -26,20 +35,19 @@ public class TrafficManager : MonoBehaviour {
 			
 			}
 			
-			//Debug.Log(roadInfo.carList.Count);
 			// Iterate through each car on this road		
 			amountOfCars = roadInfo.carList.Count;
 			for(int j=0; j<amountOfCars; j++)
 			{
 				// Points to the car GameObject
-				//Debug.Log(roadInfo.carList[j]);
 				car = roadInfo.carList[j];
 				// Points to the carInfo (car's meta data).
 				carInfo = car.GetComponent<CarInfo>();
 				
-				// increase percentTravelled based on time passed and speed
-				float speed = roadInfo.laneSpeed[carInfo.currentLane]; //house-keeping
-				carInfo.computePercentTravelled(speed);
+				// increase percentTravelled based on speed and time passed
+				float speed = roadInfo.laneSpeed[carInfo.getCurrentLane()]; //house-keeping
+				carInfo.computePercentTravelled(speed, Time.time);
+
 				float percentTravelled = carInfo.getPercentTravelled();
 				
 				// if percentTravelled > 100%
@@ -49,6 +57,7 @@ public class TrafficManager : MonoBehaviour {
 					int nextNode = carInfo.getNextNode();
 					if(nextNode < roadInfo.numNodes && nextNode != -1)
 					{
+						// From current position to next node position
 						carInfo.updatePath(car.transform.position, roadInfo.nodes[nextNode].position); //update segment's start and end
 						car.transform.LookAt(new Vector3(carInfo.getVirtualTargetNode().x, car.transform.position.y, carInfo.getVirtualTargetNode().z));
 					}
