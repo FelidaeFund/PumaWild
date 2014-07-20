@@ -17,9 +17,4 @@ public class RoadInfo : MonoBehaviour {
 	public float nextCarCreationTime;
 	public GameObject partnerRoad;
 
-	// Use this for initialization
-	void Start () {
-	}
-	
-
 }

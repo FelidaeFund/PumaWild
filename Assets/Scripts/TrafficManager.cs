@@ -10,12 +10,23 @@ public class TrafficManager : MonoBehaviour {
 	// Array with roads
 	public GameObject[] roadsList;
 
+	public GameObject suvModel;
+
+
+	private Transform newCarFirstNode;
+	private Transform newCarSecondNode;
+	private int newCarStartNode;
+	private int newCarEndNode;
+
+
+
 	// Update is called once per frame
 	void Update () {
 		// Road data
 		RoadInfo roadInfo;
 		// Amount of active cars in the road
 		int amountOfCars;
+		int numberOfNodes;
 		// Points to the game object
 		GameObject car;
 		// Points to the gamObject's component "CarInfo", which stores data about the car.
@@ -28,11 +39,15 @@ public class TrafficManager : MonoBehaviour {
 			roadInfo = roadsList[i].GetComponent<RoadInfo>();
 			// Checks whether this road is enabled or not
 			if (roadInfo.enabled == false) break;
+
+			numberOfNodes = roadInfo.nodes.Length;
 			
 			// See if we need to add a car to this road
 			if (Time.time >= roadInfo.nextCarCreationTime) {
-				//TODO: cars instantiation logic
-			
+				GameObject newCar = createNewCar(roadInfo, numberOfNodes);
+				roadInfo.carList.Add(newCar);
+				//Debug.Log(roadInfo.carList);
+				roadInfo.nextCarCreationTime = Time.time + 60/roadInfo.averageCarsPerMinute;
 			}
 			
 			// Iterate through each car on this road		
@@ -44,31 +59,34 @@ public class TrafficManager : MonoBehaviour {
 				// Points to the carInfo (car's meta data).
 				carInfo = car.GetComponent<CarInfo>();
 				
-				// increase percentTravelled based on speed and time passed
-				float speed = roadInfo.laneSpeed[carInfo.getCurrentLane()]; //house-keeping
-				carInfo.computePercentTravelled(speed, Time.time);
-
+				// Segment percent travelled by the car
 				float percentTravelled = carInfo.getPercentTravelled();
-				
 				// if percentTravelled > 100%
 				if(percentTravelled > 1.0f)
 				{
 					//Checks whether the next node the car is heading to exists or not.
 					int nextNode = carInfo.getNextNode();
-					if(nextNode < roadInfo.numNodes && nextNode != -1)
+					if(nextNode < numberOfNodes && nextNode != -1)
 					{
-						// From current position to next node position
+						// Updates car path: sets segment from current position to next node's position
 						carInfo.updatePath(car.transform.position, roadInfo.nodes[nextNode].position); //update segment's start and end
-						car.transform.LookAt(new Vector3(carInfo.getVirtualTargetNode().x, car.transform.position.y, carInfo.getVirtualTargetNode().z));
+						// Rotates Y-axis to point the car towards its target
+						// place-holder for rotation algorithm, that will be handled outside of this if
+						carInfo.lookAtNextNode();
 					}
 
 					else
 					{
-						car.rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationY;
+						//TODO: listed below
+						// Stops the car, for now
+						carInfo.stopCar();
+						carInfo.destroyNodes();
+						roadInfo.carList.RemoveAt(j);
+						Destroy(car);
+						break;
+						//carInfo.destroyCar();
 					}
 					
-					//stops car, for now
-					//car.rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationY;
 					//TODO:
 					// beyond end of last segment of first road
 						// move car to second road
@@ -83,8 +101,8 @@ public class TrafficManager : MonoBehaviour {
 				
 													
 				// set position based on startNode, endNode and percentTravelled
-				car.transform.position = Vector3.Lerp(carInfo.getVirtualStartNode(), carInfo.getVirtualTargetNode(), carInfo.getPercentTravelled() );
-			
+				carInfo.moveCar();
+
 				// set rotation based on different cases
 				
 					// first half of first segment of first road
@@ -103,5 +121,44 @@ public class TrafficManager : MonoBehaviour {
 					
 			}
 		}
+	}
+
+	private GameObject createNewCar(RoadInfo roadInfo, int numberOfNodes)
+	{
+		GameObject newCar = Instantiate(suvModel, new Vector3(0, 0, 0), Quaternion.identity) as GameObject;
+		CarInfo newCarInfo = newCar.GetComponent<CarInfo>();
+
+		// Getting information necessary to set car journey
+		float roadWidth = roadInfo.roadWidth;
+		int roadLanes = roadInfo.numLanes;
+		int newCarLane = Random.Range(1, roadLanes-1);
+		Debug.Log(newCarLane);
+
+		// Gets max speed alowed by the lane this car will move at
+		float carMaxSpeed = roadInfo.laneSpeed[newCarLane];
+
+		// Decides whether car is going "up" or "down" the road
+		// First half of the lanes go from node 0 to last node. (up)
+		// Second half of the lanes go from last node to 0. (down)
+		if(newCarLane <= roadLanes/2)
+		{
+			newCarFirstNode = roadInfo.nodes[0];
+			newCarSecondNode = roadInfo.nodes[1];
+			newCarStartNode = 0;
+			newCarEndNode = numberOfNodes-1;
+		}
+		else
+		{
+			newCarFirstNode = roadInfo.nodes[numberOfNodes-1];
+			newCarSecondNode = roadInfo.nodes[numberOfNodes-2];
+			newCarStartNode = numberOfNodes-1;
+			newCarEndNode = 0;
+		}
+
+		// Sets the configuration above to the new car
+		newCarInfo.setJourney(newCarFirstNode, newCarSecondNode, newCarStartNode, newCarEndNode, roadWidth, roadLanes, newCarLane, carMaxSpeed);
+		
+		// returns a pointer to the new car GameObject
+		return newCar;
 	}
 }
