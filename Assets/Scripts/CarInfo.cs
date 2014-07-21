@@ -112,15 +112,9 @@ public class CarInfo : MonoBehaviour {
 	public void computeLaneAdjustment(float roadWidth, int numLanes)
 	{
 		float laneWidth = roadWidth/numLanes;
-
-		if(currentLane <= numLanes/2)
-		{
-			virtualLaneAdjustment = -(((numLanes/2 - currentLane)*laneWidth) + laneWidth/2);
-		}
-		else
-		{
-			virtualLaneAdjustment = +(((numLanes/2 - currentLane)*laneWidth) + laneWidth/2);
-		}
+		virtualLaneAdjustment = ((numLanes/2 - currentLane)*laneWidth) + laneWidth/2;
+		Debug.Log(currentLane);
+		Debug.Log(virtualLaneAdjustment);
 	}
 
 	public void updatePath(Vector3 from, Vector3 to)

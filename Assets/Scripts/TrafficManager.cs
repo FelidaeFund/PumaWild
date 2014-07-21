@@ -131,11 +131,10 @@ public class TrafficManager : MonoBehaviour {
 		// Getting information necessary to set car journey
 		float roadWidth = roadInfo.roadWidth;
 		int roadLanes = roadInfo.numLanes;
-		int newCarLane = Random.Range(1, roadLanes-1);
-		Debug.Log(newCarLane);
+		int newCarLane = Random.Range(1, roadLanes+1);
 
 		// Gets max speed alowed by the lane this car will move at
-		float carMaxSpeed = roadInfo.laneSpeed[newCarLane];
+		float carMaxSpeed = roadInfo.laneSpeed[newCarLane-1];
 
 		// Decides whether car is going "up" or "down" the road
 		// First half of the lanes go from node 0 to last node. (up)
