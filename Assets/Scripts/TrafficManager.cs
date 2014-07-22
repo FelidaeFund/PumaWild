@@ -77,25 +77,62 @@ public class TrafficManager : MonoBehaviour {
 
 					else
 					{
-						//TODO: listed below
-						// Stops the car, for now
-						carInfo.stopCar();
-						carInfo.destroyNodes();
-						roadInfo.carList.RemoveAt(j);
-						Destroy(car);
-						break;
-						//carInfo.destroyCar();
+						// Gets the data about the partner road
+						RoadInfo partnerInfo = roadInfo.partnerRoad.GetComponent<RoadInfo>();
+						int partnerLength = partnerInfo.nodes.Length;
+
+						// We are going down (N to 0)
+						// And the car is at the border 0, now.
+						if(nextNode == -1)
+						{
+							// Computes distance between this border and the begining of next road
+							float nodesDistance = Vector3.Distance(car.transform.position, partnerInfo.nodes[partnerLength-1].position);
+							if(nodesDistance<50f)
+							{	
+								Transform newVirtualTargetNode = partnerInfo.nodes[partnerLength-1];
+								int newStartNode = partnerLength-1;
+								int newEndNode = 0;
+								carInfo.changeRoad(car.transform.position, newVirtualTargetNode.position, newStartNode, newEndNode);
+								// Remove car from this road
+								roadInfo.carList.RemoveAt(j);
+								amountOfCars -= 1;
+								// Add to the partner road
+								partnerInfo.carList.Add(car);
+							}
+							else
+							{
+								int carId = j;
+								destroyCar(carInfo, roadInfo, carId, car);
+								break;
+							}
+						}
+
+						// We are going up (0 to N)
+						// And the car is at the border N, now.
+						else
+						{
+							// Computes distance between this border and the begining of next road
+							float nodesDistance = Vector3.Distance(car.transform.position, partnerInfo.nodes[0].position);
+							if(nodesDistance<50f)
+							{
+								Transform newVirtualTargetNode = partnerInfo.nodes[0];
+								int newStartNode = 0;
+								int newEndNode = partnerLength-1;
+								carInfo.changeRoad(car.transform.position, newVirtualTargetNode.position, newStartNode, newEndNode);
+								// Remove car from this road
+								roadInfo.carList.RemoveAt(j);
+								amountOfCars -= 1;
+								// Add to the partner road
+								partnerInfo.carList.Add(car);
+							}
+							else
+							{
+								int carId = j;
+								destroyCar(carInfo, roadInfo, carId, car);
+								break;
+							}
+						}
 					}
-					
-					//TODO:
-					// beyond end of last segment of first road
-						// move car to second road
-						// update startNode and endNode
-						// percentTravelled -= 100%
-				
-					// beyond end of last segment of second road
-						// destroy car
-						// break;
 
 				}
 				
@@ -159,5 +196,13 @@ public class TrafficManager : MonoBehaviour {
 		
 		// returns a pointer to the new car GameObject
 		return newCar;
+	}
+
+	private void destroyCar(CarInfo carInfo, RoadInfo roadInfo, int carId, GameObject car)
+	{
+		carInfo.stopCar();
+		carInfo.destroyNodes();
+		roadInfo.carList.RemoveAt(carId);
+		Destroy(car);
 	}
 }

@@ -68,6 +68,11 @@ public class CarInfo : MonoBehaviour {
 		return currentLane;
 	}
 
+	public int getCurrentNode()
+	{
+		return currentNode;
+	}
+
 
 	//=======================
 	// Methods
@@ -109,12 +114,10 @@ public class CarInfo : MonoBehaviour {
 	}
 
 	// Computes the adjustment on cars x-asis for the virtual nodes (to virtualize lanes)
-	public void computeLaneAdjustment(float roadWidth, int numLanes)
+	private void computeLaneAdjustment(float roadWidth, int numLanes)
 	{
 		float laneWidth = roadWidth/numLanes;
 		virtualLaneAdjustment = ((numLanes/2 - currentLane)*laneWidth) + laneWidth/2;
-		Debug.Log(currentLane);
-		Debug.Log(virtualLaneAdjustment);
 	}
 
 	public void updatePath(Vector3 from, Vector3 to)
@@ -128,8 +131,24 @@ public class CarInfo : MonoBehaviour {
 		percentTravelled = 0.0f;
 		journeyLength = Vector3.Distance(virtualStartNode.transform.position, virtualTargetNode.transform.position);
 		setStartTime(Time.time);
+	}
 
-
+	// Updates path configuration to new road
+	public void changeRoad(Vector3 from, Vector3 to, int newStartNode, int newEndNode)
+	{
+		// Set start of the segment as current position
+		virtualStartNode.transform.position = new Vector3(from.x, from.y, from.z);
+		// Set target of this segment as the first or last node of next road, but with lane virtualization
+		virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
+		// Updates configuration of the whole path (from "road_nodes[0]" to "road_nodes[last]")
+		startNode = newStartNode;
+		endNode = newEndNode;
+		currentNode = newStartNode;
+		// Set configurarations for the journey in this segment
+		distanceCovered = 0.0f;
+		percentTravelled = 0.0f;
+		journeyLength = Vector3.Distance(virtualStartNode.transform.position, virtualTargetNode.transform.position);
+		setStartTime(Time.time);
 	}
 
 	public int getNextNode()
