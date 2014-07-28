@@ -35,6 +35,7 @@ public class TrafficManager : MonoBehaviour {
 		//iterates through all the roads we have(12).
 		for(int i=0; i<roadsList.Length; i++)
 		{	
+			Debug.Log(roadsList[i]);
 			//Gets the "RoadInfo" component within the specific road we are looking at
 			roadInfo = roadsList[i].GetComponent<RoadInfo>();
 			partnerInfo = roadInfo.partnerRoad.GetComponent<RoadInfo>();
@@ -93,7 +94,7 @@ public class TrafficManager : MonoBehaviour {
 							// Computes distance between this border and the begining of next road
 							float nodesDistance = Vector3.Distance(car.transform.position, partnerInfo.nodes[partnerLength-1].position);
 							// If there is road to keep going ahead, we change the road the car is at
-							if(nodesDistance<50f)
+							if(nodesDistance<1000f)
 							{	
 								Transform newVirtualTargetNode = partnerInfo.nodes[partnerLength-1];
 								int newStartNode = partnerLength-1;
@@ -180,6 +181,8 @@ public class TrafficManager : MonoBehaviour {
 		// Gets max speed alowed by the lane this car will move at
 		float carMaxSpeed = roadInfo.laneSpeed[newCarLane-1];
 
+		string displacementAlongAxis = roadInfo.displacementAlongAxis;
+
 		//=============================================================
 		// Decides whether car is going "up" or "down" the road
 		// First half of the lanes go from node 0 to last node. (up)
@@ -225,7 +228,7 @@ public class TrafficManager : MonoBehaviour {
 			CarInfo newCarInfo = newCar.GetComponent<CarInfo>();
 
 			// Sets the configuration above to the new car
-			newCarInfo.setJourney(newCarFirstNode, newCarSecondNode, newCarStartNode, newCarEndNode, roadWidth, roadLanes, newCarLane, carMaxSpeed);
+			newCarInfo.setJourney(newCarFirstNode, newCarSecondNode, newCarStartNode, newCarEndNode, roadWidth, roadLanes, newCarLane, carMaxSpeed, displacementAlongAxis);
 			
 			// returns a pointer to the new car GameObject
 			return newCar;

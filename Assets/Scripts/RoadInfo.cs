@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class RoadInfo : MonoBehaviour {
 
 	public bool enabled;
+	public string displacementAlongAxis;
 
 	public List<GameObject> carList;
 	

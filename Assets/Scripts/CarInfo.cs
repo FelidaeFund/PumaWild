@@ -20,6 +20,7 @@ public class CarInfo : MonoBehaviour {
     private float speed;
 	private int currentLane;
 	private float virtualLaneAdjustment;
+	private string displacementAlongAxis;
 
 	public void Start()
 	{
@@ -78,7 +79,7 @@ public class CarInfo : MonoBehaviour {
 	// Methods
 	//=======================
 	//THIS SHOULD REMOVE THE Start() function
-	public void setJourney(Transform newCarFirstNode, Transform newCarSecondNode, int newCarStartNode, int newCarEndNode, float roadWidth, int roadLanes, int newCarLane, float carMaxSpeed)
+	public void setJourney(Transform newCarFirstNode, Transform newCarSecondNode, int newCarStartNode, int newCarEndNode, float roadWidth, int roadLanes, int newCarLane, float carMaxSpeed, string displacementAlongAxis)
 	{
 		// Path configuration
 	    startNode = newCarStartNode;
@@ -93,8 +94,19 @@ public class CarInfo : MonoBehaviour {
 	    // Sets the initial virtualStartNode and virtualTargetNode, based on first and second actual node positions
 	    virtualStartNode = new GameObject();
 	    virtualTargetNode = new GameObject();
-	    virtualStartNode.transform.position = new Vector3(newCarFirstNode.position.x+virtualLaneAdjustment, newCarFirstNode.position.y, newCarFirstNode.position.z);
-		virtualTargetNode.transform.position = new Vector3(newCarSecondNode.position.x+virtualLaneAdjustment, newCarSecondNode.position.y, newCarSecondNode.position.z);
+
+	    this.displacementAlongAxis = displacementAlongAxis;
+	    // Find out if the road segment goes in the X or Z axis
+		if(displacementAlongAxis == "z")
+		{
+			virtualStartNode.transform.position = new Vector3(newCarFirstNode.position.x+virtualLaneAdjustment, newCarFirstNode.position.y, newCarFirstNode.position.z);
+			virtualTargetNode.transform.position = new Vector3(newCarSecondNode.position.x+virtualLaneAdjustment, newCarSecondNode.position.y, newCarSecondNode.position.z);
+		}
+		else
+		{
+			virtualStartNode.transform.position = new Vector3(newCarFirstNode.position.x, newCarFirstNode.position.y, newCarFirstNode.position.z+virtualLaneAdjustment);
+			virtualTargetNode.transform.position = new Vector3(newCarSecondNode.position.x, newCarSecondNode.position.y, newCarSecondNode.position.z+virtualLaneAdjustment);
+		}
 		transform.position = virtualStartNode.transform.position;
 		// Sets segment journey information
 		distanceCovered = 0.0f;
@@ -124,7 +136,15 @@ public class CarInfo : MonoBehaviour {
 	{
 		//Updates virtualTargetNode based on lane number and road width
 		virtualStartNode.transform.position = new Vector3(from.x, from.y, from.z);
-		virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
+		// Find out if the road segment goes in the X or Z axis
+		if(displacementAlongAxis == "z")
+		{
+			virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
+		}
+		else
+		{
+			virtualTargetNode.transform.position = new Vector3(to.x, to.y, to.z+virtualLaneAdjustment);
+		}
 		// Set the car in the next node (begining of the segment)
 		currentNode = getNextNode();
 		distanceCovered = 0.0f;
@@ -139,7 +159,15 @@ public class CarInfo : MonoBehaviour {
 		// Set start of the segment as current position
 		virtualStartNode.transform.position = new Vector3(from.x, from.y, from.z);
 		// Set target of this segment as the first or last node of next road, but with lane virtualization
-		virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
+		// Find out if the road segment goes in the X or Z axis
+		if(displacementAlongAxis == "z")
+		{
+			virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
+		}
+		else
+		{
+			virtualTargetNode.transform.position = new Vector3(to.x, to.y, to.z+virtualLaneAdjustment);
+		}
 		// Updates configuration of the whole path (from "road_nodes[0]" to "road_nodes[last]")
 		startNode = newStartNode;
 		endNode = newEndNode;
