@@ -74,11 +74,12 @@ public class TrafficManager : MonoBehaviour {
 				{
 					//Checks whether the next node the car is heading to exists or not. (inside the same road)
 					int nextNode = carInfo.getNextNode();
+					int currentNode = carInfo.getCurrentNode();
 					// If car is has not reached any of the two extremes of the road
 					if(nextNode < numberOfNodes && nextNode != -1)
 					{
 						// Updates car path: sets segment from current position to next node's position
-						carInfo.updatePath(car.transform.position, roadInfo.nodes[nextNode].position); //update segment's start and end
+						carInfo.updatePath(roadInfo.nodes[currentNode].position, roadInfo.nodes[nextNode].position); //update segment's start and end
 						// Rotates Y-axis to point the car towards its target
 						// place-holder for rotation algorithm, that will be handled outside of this if
 						carInfo.lookAtNextNode();
