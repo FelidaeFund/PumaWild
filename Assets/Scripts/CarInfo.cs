@@ -134,15 +134,17 @@ public class CarInfo : MonoBehaviour {
 
 	public void updatePath(Vector3 from, Vector3 to)
 	{
-		//Updates virtualTargetNode based on lane number and road width
-		virtualStartNode.transform.position = new Vector3(from.x, from.y, from.z);
 		// Find out if the road segment goes in the X or Z axis
 		if(displacementAlongAxis == "z")
 		{
+			//Updates virtualTargetNode based on lane number and road width
+			virtualStartNode.transform.position = new Vector3(from.x+virtualLaneAdjustment, from.y, from.z);
 			virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
 		}
 		else
 		{
+			//Updates virtualTargetNode based on lane number and road width
+			virtualStartNode.transform.position = new Vector3(from.x, from.y, from.z+virtualLaneAdjustment);
 			virtualTargetNode.transform.position = new Vector3(to.x, to.y, to.z+virtualLaneAdjustment);
 		}
 		// Set the car in the next node (begining of the segment)
