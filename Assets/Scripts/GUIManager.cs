@@ -8,7 +8,7 @@ public class GuiManager : MonoBehaviour
 {
 	// DEBUGGING OPTIONS
 	private bool displayFrameRate = false;
-	private bool skipStraightToLevel = true;
+	private bool skipStraightToLevel = false;
 	private int  skipStraightToLevelFrameCount = 0;
 
 	//===================================
