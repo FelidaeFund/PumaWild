@@ -7,7 +7,7 @@ using System.Collections;
 public class LevelManager : MonoBehaviour 
 {
 	// DEBUG & DEV
-	private bool goStraightToFeeding = false;
+	private bool goStraightToFeeding = true;
 	public float speedOverdrive = 1.0f;
 	public float displayVar1;
 	public float displayVar2;
