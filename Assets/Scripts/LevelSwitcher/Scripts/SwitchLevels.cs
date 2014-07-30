@@ -34,32 +34,32 @@ public class SwitchLevels : MonoBehaviour {
 	public GameObject terrainPaintD;
 
 
-	public void switchLevel(int levelNum, bool paintEnabled)
+	public void SwitchLevel(int levelNum, bool paintEnabled)
 	{
-		terrain1A.SetActive((levelNum == 1) ? true : false);
-		terrain1B.SetActive((levelNum == 1) ? true : false);
-		terrain1C.SetActive((levelNum == 1) ? true : false);
-		terrain1D.SetActive((levelNum == 1) ? true : false);
+		terrain1A.SetActive((levelNum == 0) ? true : false);
+		terrain1B.SetActive((levelNum == 0) ? true : false);
+		terrain1C.SetActive((levelNum == 0) ? true : false);
+		terrain1D.SetActive((levelNum == 0) ? true : false);
 
-		terrain2A.SetActive((levelNum == 2) ? true : false);
-		terrain2B.SetActive((levelNum == 2) ? true : false);
-		terrain2C.SetActive((levelNum == 2) ? true : false);
-		terrain2D.SetActive((levelNum == 2) ? true : false);
+		terrain2A.SetActive((levelNum == 1) ? true : false);
+		terrain2B.SetActive((levelNum == 1) ? true : false);
+		terrain2C.SetActive((levelNum == 1) ? true : false);
+		terrain2D.SetActive((levelNum == 1) ? true : false);
 
-		terrain3A.SetActive((levelNum == 3) ? true : false);
-		terrain3B.SetActive((levelNum == 3) ? true : false);
-		terrain3C.SetActive((levelNum == 3) ? true : false);
-		terrain3D.SetActive((levelNum == 3) ? true : false);
+		terrain3A.SetActive((levelNum == 2) ? true : false);
+		terrain3B.SetActive((levelNum == 2) ? true : false);
+		terrain3C.SetActive((levelNum == 2) ? true : false);
+		terrain3D.SetActive((levelNum == 2) ? true : false);
 
-		terrain4A.SetActive((levelNum == 4) ? true : false);
-		terrain4B.SetActive((levelNum == 4) ? true : false);
-		terrain4C.SetActive((levelNum == 4) ? true : false);
-		terrain4D.SetActive((levelNum == 4) ? true : false);
+		terrain4A.SetActive((levelNum == 3) ? true : false);
+		terrain4B.SetActive((levelNum == 3) ? true : false);
+		terrain4C.SetActive((levelNum == 3) ? true : false);
+		terrain4D.SetActive((levelNum == 3) ? true : false);
 
-		terrain5A.SetActive((levelNum == 5) ? true : false);
-		terrain5B.SetActive((levelNum == 5) ? true : false);
-		terrain5C.SetActive((levelNum == 5) ? true : false);
-		terrain5D.SetActive((levelNum == 5) ? true : false);
+		terrain5A.SetActive((levelNum == 4) ? true : false);
+		terrain5B.SetActive((levelNum == 4) ? true : false);
+		terrain5C.SetActive((levelNum == 4) ? true : false);
+		terrain5D.SetActive((levelNum == 4) ? true : false);
 		
 		terrainPaintA.SetActive(paintEnabled);
 		terrainPaintB.SetActive(paintEnabled);

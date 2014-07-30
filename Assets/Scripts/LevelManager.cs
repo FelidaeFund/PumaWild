@@ -30,6 +30,7 @@ public class LevelManager : MonoBehaviour
 	private string gameSubState;
 	private float stateStartTime;
 	private bool stateInitFlag;
+	private int currentLevel;
 
 	// GROUND PLANES
 
@@ -131,6 +132,7 @@ public class LevelManager : MonoBehaviour
 	private ScoringSystem scoringSystem;
 	private InputControls inputControls;
 	private CameraController cameraController;
+	private SwitchLevels switchLevels;
 
 	//===================================
 	//===================================
@@ -149,6 +151,8 @@ public class LevelManager : MonoBehaviour
 		scoringSystem = GetComponent<ScoringSystem>();
 		inputControls = GetComponent<InputControls>();
 		cameraController = GetComponent<CameraController>();
+		GameObject levelSwitcher = GameObject.Find("SwitchLevels");	
+		switchLevels = levelSwitcher.GetComponent<SwitchLevels>();
 
 		// puma
 		pumaObj = GameObject.Find("_Puma-thin");	
@@ -204,19 +208,54 @@ public class LevelManager : MonoBehaviour
 		terrainArray[18] = terrain5C;		
 		terrainArray[19] = terrain5D;		
 		
-		InitLevel();
+		InitLevel(0);
 	}
 	
-	void InitLevel()
+	public void InitLevel(int level)
 	{
+		currentLevel = level;
+		switchLevels.SwitchLevel(level, false);
+
 		gameState = "gameStateGui";
 		stateStartTime = Time.time;
 		mainHeading = Random.Range(0f, 360f);
 
 		pumaX = 0f;
 		pumaY = 0f;
-		pumaZ = 100f;			
+		pumaZ = 0f;			
 		pumaObj.transform.position = new Vector3(pumaX, pumaY, pumaZ);		
+				
+		//================================
+		// Reset the Ground Planes
+		//================================
+						
+		for (int i = 0; i < terrainArray.Length; i++) {
+			float terrainX = terrainArray[i].transform.position.x;
+			float terrainZ = terrainArray[i].transform.position.z;
+			
+			while (pumaX - terrainX > 3000) {
+				terrainX += 4000;
+			}
+			
+			while (terrainX - pumaX > 1000) {
+				terrainX -= 4000;
+			}
+
+			while (pumaZ - terrainZ > 3000) {
+				terrainZ += 4000;
+			}
+			
+			while (terrainZ - pumaZ > 1000) {
+				terrainZ -= 4000;
+			}
+			
+			terrainArray[i].transform.position = new Vector3 (terrainX, 0, terrainZ);
+		}
+	}
+	
+	public int GetCurrentLevel()
+	{
+		return currentLevel;
 	}
 	
 	//===================================
@@ -263,8 +302,6 @@ public class LevelManager : MonoBehaviour
 	void Update() 
 	{	
 		float fadeTime;
-		float fadePercentComplete;
-		float cameraRotPercentDone;
 		float guiFlybySpeed = 0f;
 
 		//pumaAnimator.SetLayerWeight(1, 1f);

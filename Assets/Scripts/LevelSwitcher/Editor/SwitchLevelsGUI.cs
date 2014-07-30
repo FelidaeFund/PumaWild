@@ -84,7 +84,7 @@ public class SwitchLevelsGUI : Editor
 		
 		
 		
-		changeLevel(selectedLevel+1);
+		ChangeLevel(selectedLevel);
 
 		
 /*		
@@ -126,10 +126,10 @@ public class SwitchLevelsGUI : Editor
 
 	}
 
-	public void changeLevel(int levelId)
+	public void ChangeLevel(int levelId)
 	{
 		SwitchLevels myTarget = (SwitchLevels)target;
-		myTarget.switchLevel (levelId, togglePaint);
+		myTarget.SwitchLevel (levelId, togglePaint);
 	}
 
 }
