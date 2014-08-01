@@ -2,14 +2,263 @@
 using System.Collections;
 using System.Collections.Generic;
 
+/// Manages flow of traffic along roads
+/// 
+
 public class TrafficManager : MonoBehaviour {
 
-	//===================
-	// Module Variables
-	//===================
-	// Array with roads
+	//===================================
+	//===================================
+	//		MODULE VARIABLES
+	//===================================
+	//===================================
+
+	// NODES
+	
+	// external nodes created in the terrain
+
+	public GameObject[] road1Nodes;
+	public GameObject[] road2Nodes;
+	public GameObject[] road3Nodes;
+
+	// internal arrays includes extra nodes for node -1 and node n+1
+
+	private NodeInfo[] nodeArray1;  
+	private NodeInfo[] nodeArray2;
+	private NodeInfo[] nodeArray3;
+	
+	// data structures for creating lane grids
+	
+	private class NodeInfo {
+		public Vector3 position;
+		public Vector3[] vNodesAscending;	// lanes 1-3 ascending
+		public Vector3[] vNodesDescending;	// lanes 1-3 descending
+	}
+
+	private class VirtualNodeInfo {
+		public Vector3 position;
+		public float segementHeading;
+		public float segementPitch;
+	}
+	
+	// ROADS
+
+	private class RoadInfo {
+		public int lanesPerSide;
+		public float laneSpeed1;
+		public float laneSpeed2;
+		public float laneSpeed3;
+		public float followDistance1;
+		public float followDistance2;
+		public float followDistance3;
+		public NodeInfo[] nodeArray;
+	}
+	
+	private RoadInfo[] roadArray;
+	
+	// VEHICLES
+	
+	private class VehicleInfo {
+		public GameObject vehicle;
+		public int lane;
+		public float speed;
+		public bool ascendingFlag;
+		public NodeInfo[] nodeArray;
+		public int currentSegment;
+		public float percentTravelled;
+		public float lastUpdateTime;
+		public Vector3 segmentStartPos;
+		public Vector3 segmentEndPos;
+		public float segmentHeading;
+		public float segmentPitch;
+		public float terrainX;
+		public float terrainZ;
+	}
+
+	private List<VehicleInfo> vehicleList;
+	
+	public GameObject suvModel;
+	
+	// EXTERNAL MODULES
+	private LevelManager levelManager;
+
+	//===================================
+	//===================================
+	//		INITIALIZATION
+	//===================================
+	//===================================
+/*
+	void Start()
+	{
+		// connect to external modules
+		levelManager = GetComponent<LevelManager>();
+		
+		// initialize vehicleList
+		vehicleList = new List<VehicleInfo>();
+
+		// create NodeInfo arrays with extra nodes for node -1 and node n+1
+
+		// create array of RoadInfo data structures
+		roadArray = new RoadInfo[3];
+		roadArray[0] = new RoadInfo();
+		roadArray[1] = new RoadInfo();
+		roadArray[2] = new RoadInfo();
+		roadArray[0].nodeArray = nodeArray1;
+		roadArray[1].nodeArray = nodeArray2;
+		roadArray[2].nodeArray = nodeArray3;
+		
+		InitLevel(1);
+	}
+	
+	public void InitLevel(int levelNum)
+	{
+		// establish parameters for each of the 3 roads
+		switch (levelNum) {
+
+		case 0:
+			Debug.Log("ERROR: TrafficManager told to initialize level 0");
+			return;
+		
+		case 1:
+			roadArray[0].numLanes = 2;
+			roadArray[1].numLanes = 2;
+			roadArray[2].numLanes = 2;
+			roadArray[0].slowLaneSpeed = 40;
+			roadArray[1].slowLaneSpeed = 40;
+			roadArray[2].slowLaneSpeed = 40;
+			roadArray[0].followDistance = 50;
+			roadArray[1].followDistance = 50;
+			roadArray[2].followDistance = 50;
+			break;
+		
+		case 2:
+			roadArray[0].numLanes = 2;
+			roadArray[1].numLanes = 2;
+			roadArray[2].numLanes = 2;
+			roadArray[0].slowLaneSpeed = 40;
+			roadArray[1].slowLaneSpeed = 40;
+			roadArray[2].slowLaneSpeed = 40;
+			roadArray[0].followDistance = 50;
+			roadArray[1].followDistance = 50;
+			roadArray[2].followDistance = 50;
+			break;
+		
+		case 3:
+			roadArray[0].numLanes = 2;
+			roadArray[1].numLanes = 2;
+			roadArray[2].numLanes = 2;
+			roadArray[0].slowLaneSpeed = 40;
+			roadArray[1].slowLaneSpeed = 40;
+			roadArray[2].slowLaneSpeed = 40;
+			roadArray[0].followDistance = 50;
+			roadArray[1].followDistance = 50;
+			roadArray[2].followDistance = 50;
+			break;
+		
+		case 4:
+			roadArray[0].numLanes = 2;
+			roadArray[1].numLanes = 2;
+			roadArray[2].numLanes = 2;
+			roadArray[0].slowLaneSpeed = 40;
+			roadArray[1].slowLaneSpeed = 40;
+			roadArray[2].slowLaneSpeed = 40;
+			roadArray[0].followDistance = 50;
+			roadArray[1].followDistance = 50;
+			roadArray[2].followDistance = 50;
+			break;
+		}
+
+		// remove any previously created vehicles
 
 
+		// add the vehicles to each of the roads in each of the terrains
+		
+		for(int i=0; i<road1Nodes.Length-1; i++) {	
+			for (int j=0; j<10; j++) {
+
+				VehicleInfo vehicleInfo = new VehicleInfo();
+				vehicleInfo.vehicle = Instantiate(suvModel, new Vector3(0, 0, 0), Quaternion.identity) as GameObject;
+				
+				vehicleInfo.nodeArray = road1Nodes;
+				vehicleInfo.currentSegment = i;
+				vehicleInfo.directionIsAscending = true;
+				vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].transform.position;
+				vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].transform.position;
+					
+				Vector2 segmentStartVector2 = new Vector2(vehicleInfo.segmentStartPos.x, vehicleInfo.segmentStartPos.z);
+				Vector2 segmentEndVector2 = new Vector2(vehicleInfo.segmentEndPos.x, vehicleInfo.segmentEndPos.z);
+				vehicleInfo.segmentDistance = Vector2.Distance(segmentStartVector2, segmentEndVector2);
+				vehicleInfo.segmentHeading = levelManager.GetAngleFromOffset(vehicleInfo.segmentStartPos.x, vehicleInfo.segmentStartPos.z, vehicleInfo.segmentEndPos.x, vehicleInfo.segmentEndPos.z);
+				vehicleInfo.segmentPitch = levelManager.GetAngleFromOffset(vehicleInfo.segmentEndPos.y, 0, vehicleInfo.segmentStartPos.y, vehicleInfo.segmentDistance);
+				vehicleInfo.lastUpdateTime = Time.time;
+				vehicleInfo.percentTravelled = 0.1f * j;
+
+				vehicleList.Add(vehicleInfo);
+			}
+		}
+	}
+	
+	//===================================
+	//===================================
+	//		PROCESS THE VEHICLES
+	//===================================
+	//===================================
+
+	void Update ()
+	{
+		for(int i=0; i<vehicleList.Count; i++) {
+			VehicleInfo vehicleInfo = vehicleList[i];
+			vehicleInfo.percentTravelled += 0.01f;
+			if (vehicleInfo.percentTravelled >= 1f)
+				vehicleInfo.percentTravelled = 0f;
+			vehicleInfo.vehicle.transform.position = Vector3.Lerp(vehicleInfo.segmentStartPos, vehicleInfo.segmentEndPos, vehicleInfo.percentTravelled);
+			vehicleInfo.vehicle.transform.rotation = Quaternion.Euler(vehicleInfo.segmentPitch, vehicleInfo.segmentHeading, 0);
+		}
+	}
+
+
+
+
+*/
+
+
+
+
+
+/*
+
+
+
+
+
+	
+	
+	
+	
+	
+	// Segment motion
+	private GameObject virtualStartNode;
+	private GameObject virtualTargetNode;
+	private float journeyLength;
+	private float distanceCovered;
+    private float percentTravelled;
+    private float startTime;
+
+    // Whole path (from laneX-node0 to laneX-nodeN)
+    private int startNode;
+    private int endNode;
+    private int currentNode;
+
+    // Car configurations
+    private float speed;
+	private int currentLane;
+	private float virtualLaneAdjustment;
+	private string displacementAlongAxis;
+
+	
+	
+	
+	
 
 	private Transform newCarFirstNode;
 	private Transform newCarSecondNode;
@@ -20,19 +269,15 @@ public class TrafficManager : MonoBehaviour {
 	private class RoadInfo {
 		public int numLanes;
 		public float roadWidth;
-		public float averageSpeed;
-		public float averageCarsPerMinute;
+		public float averageCarSpeed;
+		public float averageCarDistance;
 		public float nextCarCreationTime;
 		public string displacementAlongAxis;
-		public GameObject[] nodeList;
+		public GameObject[] nodeArray;
 		public GameObject[] carList;
 	}
 	
 	private RoadInfo[] roadArray;
-	
-	public GameObject[] road1Nodes;
-	public GameObject[] road2Nodes;
-	public GameObject[] road3Nodes;
 	
 	public GameObject suvModel;
 
@@ -297,4 +542,247 @@ public class TrafficManager : MonoBehaviour {
 		roadInfo.carList.RemoveAt(carId);
 		Destroy(car);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	// car stuff
+	
+	
+	
+	
+	
+	// Segment motion
+	private GameObject virtualStartNode;
+	private GameObject virtualTargetNode;
+	private float journeyLength;
+	private float distanceCovered;
+    private float percentTravelled;
+    private float startTime;
+
+    // Whole path (from laneX-node0 to laneX-nodeN)
+    private int startNode;
+    private int endNode;
+    private int currentNode;
+
+    // Car configurations
+    private float speed;
+	private int currentLane;
+	private float virtualLaneAdjustment;
+	private string displacementAlongAxis;
+
+	public void Start()
+	{
+		//virtualStartNode = new GameObject();
+		//virtualTargetNode = new GameObject();
+	}
+
+	//=======================
+	// Getters and Setters
+	//=======================
+
+	// Setters
+
+	// Sets the start time for the current segment
+	public void setStartTime(float time)
+	{
+		startTime = time;
+	}
+	// Set percent travelled to zero (reset)
+	public void resetPercentTravelled()
+	{
+		percentTravelled = 0.0f;
+	}
+
+	// Getters
+
+	// Returns the current percentTravalled
+	public float getPercentTravelled()
+	{
+		computePercentTravelled(Time.time);
+		return percentTravelled;
+	}
+	// Returns the Vector3 of the virtual start node
+	public Vector3 getVirtualStartNode()
+	{
+		return virtualStartNode.transform.position;
+	}
+	// Returns the Vector3 of the virtual target node
+	public Vector3 getVirtualTargetNode()
+	{
+		return virtualTargetNode.transform.position;
+	}
+	// Returns the lane the car is positioned at
+	public int getCurrentLane()
+	{
+		return currentLane;
+	}
+
+	public int getCurrentNode()
+	{
+		return currentNode;
+	}
+
+
+	//=======================
+	// Methods
+	//=======================
+	//THIS SHOULD REMOVE THE Start() function
+	public void setJourney(Transform newCarFirstNode, Transform newCarSecondNode, int newCarStartNode, int newCarEndNode, float roadWidth, int roadLanes, int newCarLane, float carMaxSpeed, string displacementAlongAxis)
+	{
+		// Path configuration
+	    startNode = newCarStartNode;
+	    endNode = newCarEndNode;
+	    currentNode = startNode;
+	    // Lane this car will drive at
+	    currentLane = newCarLane;
+	    // Car Max speed
+	    speed = carMaxSpeed;
+	    // Computes the adjustment for the virtual node, based on road width and number of lanes
+	    computeLaneAdjustment(roadWidth, roadLanes);
+	    // Sets the initial virtualStartNode and virtualTargetNode, based on first and second actual node positions
+	    virtualStartNode = new GameObject();
+	    virtualTargetNode = new GameObject();
+
+	    this.displacementAlongAxis = displacementAlongAxis;
+	    // Find out if the road segment goes in the X or Z axis
+		if(displacementAlongAxis == "z")
+		{
+			virtualStartNode.transform.position = new Vector3(newCarFirstNode.position.x+virtualLaneAdjustment, newCarFirstNode.position.y, newCarFirstNode.position.z);
+			virtualTargetNode.transform.position = new Vector3(newCarSecondNode.position.x+virtualLaneAdjustment, newCarSecondNode.position.y, newCarSecondNode.position.z);
+		}
+		else
+		{
+			virtualStartNode.transform.position = new Vector3(newCarFirstNode.position.x, newCarFirstNode.position.y, newCarFirstNode.position.z+virtualLaneAdjustment);
+			virtualTargetNode.transform.position = new Vector3(newCarSecondNode.position.x, newCarSecondNode.position.y, newCarSecondNode.position.z+virtualLaneAdjustment);
+		}
+		transform.position = virtualStartNode.transform.position;
+		// Sets segment journey information
+		distanceCovered = 0.0f;
+		percentTravelled = 0.0f;
+		// Computes the length of the first segment
+		journeyLength = Vector3.Distance(virtualStartNode.transform.position, virtualTargetNode.transform.position);
+		// Do I really need it here? Should I put it here? I guess I should trigger sth lik "car.Run()" from the traffic manager
+		//setStartTime(Time.time);
+	
+	}
+
+	// Computes the percent travelled
+	private void computePercentTravelled(float currentTime)
+	{
+		distanceCovered = (currentTime - startTime) * speed;
+		percentTravelled = distanceCovered / journeyLength;
+	}
+
+	// Computes the adjustment on cars x-asis for the virtual nodes (to virtualize lanes)
+	private void computeLaneAdjustment(float roadWidth, int numLanes)
+	{
+		float laneWidth = roadWidth/numLanes;
+		virtualLaneAdjustment = ((numLanes/2 - currentLane)*laneWidth) + laneWidth/2;
+	}
+
+	public void updatePath(Vector3 from, Vector3 to)
+	{
+		// Find out if the road segment goes in the X or Z axis
+		if(displacementAlongAxis == "z")
+		{
+			//Updates virtualTargetNode based on lane number and road width
+			virtualStartNode.transform.position = new Vector3(from.x+virtualLaneAdjustment, from.y, from.z);
+			virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
+		}
+		else
+		{
+			//Updates virtualTargetNode based on lane number and road width
+			virtualStartNode.transform.position = new Vector3(from.x, from.y, from.z+virtualLaneAdjustment);
+			virtualTargetNode.transform.position = new Vector3(to.x, to.y, to.z+virtualLaneAdjustment);
+		}
+		// Set the car in the next node (begining of the segment)
+		currentNode = getNextNode();
+		distanceCovered = 0.0f;
+		percentTravelled = 0.0f;
+		journeyLength = Vector3.Distance(virtualStartNode.transform.position, virtualTargetNode.transform.position);
+		setStartTime(Time.time);
+	}
+
+	// Updates path configuration to new road
+	public void changeRoad(Vector3 from, Vector3 to, int newStartNode, int newEndNode)
+	{
+		// Set start of the segment as current position
+		virtualStartNode.transform.position = new Vector3(from.x, from.y, from.z);
+		// Set target of this segment as the first or last node of next road, but with lane virtualization
+		// Find out if the road segment goes in the X or Z axis
+		if(displacementAlongAxis == "z")
+		{
+			virtualTargetNode.transform.position = new Vector3(to.x+virtualLaneAdjustment, to.y, to.z);
+		}
+		else
+		{
+			virtualTargetNode.transform.position = new Vector3(to.x, to.y, to.z+virtualLaneAdjustment);
+		}
+		// Updates configuration of the whole path (from "road_nodes[0]" to "road_nodes[last]")
+		startNode = newStartNode;
+		endNode = newEndNode;
+		currentNode = newStartNode;
+		// Set configurarations for the journey in this segment
+		distanceCovered = 0.0f;
+		percentTravelled = 0.0f;
+		journeyLength = Vector3.Distance(virtualStartNode.transform.position, virtualTargetNode.transform.position);
+		setStartTime(Time.time);
+	}
+
+	public int getNextNode()
+	{
+		if(endNode>startNode) return currentNode+1;
+		return currentNode-1;
+	}
+
+	public void lookAtNextNode()
+	{
+		transform.LookAt(new Vector3(virtualTargetNode.transform.position.x, transform.position.y, virtualTargetNode.transform.position.z));
+	}
+
+	public void stopCar()
+	{
+		rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationY;
+	}
+
+	public void moveCar()
+	{
+		transform.position = Vector3.Lerp(virtualStartNode.transform.position, virtualTargetNode.transform.position, percentTravelled);
+	}
+
+	public void destroyNodes()
+	{
+		Destroy(virtualStartNode);
+		Destroy(virtualTargetNode);
+	}
+
+
+}
+
+	
+*/
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
