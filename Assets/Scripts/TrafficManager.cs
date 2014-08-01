@@ -16,25 +16,21 @@ public class TrafficManager : MonoBehaviour {
 	// NODES
 	
 	// external nodes created in the terrain
-
 	public GameObject[] road1Nodes;
 	public GameObject[] road2Nodes;
 	public GameObject[] road3Nodes;
 
 	// internal arrays includes extra nodes for node -1 and node n+1
-
 	private NodeInfo[] nodeArray1;  
 	private NodeInfo[] nodeArray2;
 	private NodeInfo[] nodeArray3;
 	
 	// data structures for creating lane grids
-	
 	private class NodeInfo {
 		public Vector3 position;
 		public Vector3[] vNodesAscending;	// lanes 1-3 ascending
 		public Vector3[] vNodesDescending;	// lanes 1-3 descending
 	}
-
 	private class VirtualNodeInfo {
 		public Vector3 position;
 		public float segementHeading;
@@ -87,17 +83,29 @@ public class TrafficManager : MonoBehaviour {
 	//		INITIALIZATION
 	//===================================
 	//===================================
-/*
+
 	void Start()
 	{
 		// connect to external modules
 		levelManager = GetComponent<LevelManager>();
 		
-		// initialize vehicleList
-		vehicleList = new List<VehicleInfo>();
-
-		// create NodeInfo arrays with extra nodes for node -1 and node n+1
-
+		// create NodeArrays with extra nodes for node -1 and node n+1
+		nodeArray1 = new NodeInfo[road1Nodes.Length];
+		for (int i = 0; i < road1Nodes.Length; i++) {
+			nodeArray1[i] = new NodeInfo();
+			nodeArray1[i].position = road1Nodes[i].transform.position;
+		}
+		nodeArray2 = new NodeInfo[road2Nodes.Length];
+		for (int i = 0; i < road2Nodes.Length; i++) {
+			nodeArray2[i] = new NodeInfo();
+			nodeArray2[i].position = road2Nodes[i].transform.position;
+		}
+		nodeArray3 = new NodeInfo[road3Nodes.Length];
+		for (int i = 0; i < road3Nodes.Length; i++) {
+			nodeArray3[i] = new NodeInfo();
+			nodeArray3[i].position = road3Nodes[i].transform.position;
+		}
+		
 		// create array of RoadInfo data structures
 		roadArray = new RoadInfo[3];
 		roadArray[0] = new RoadInfo();
@@ -107,89 +115,52 @@ public class TrafficManager : MonoBehaviour {
 		roadArray[1].nodeArray = nodeArray2;
 		roadArray[2].nodeArray = nodeArray3;
 		
-		InitLevel(1);
+		// create empty vehicleList
+		vehicleList = new List<VehicleInfo>();
+
+		
+		InitLevel(1);	// TEMP !!!!!
 	}
 	
+	//===================================
+	//===================================
+	//		SET UP THE LEVEL
+	//===================================
+	//===================================
+
 	public void InitLevel(int levelNum)
 	{
-		// establish parameters for each of the 3 roads
-		switch (levelNum) {
-
-		case 0:
-			Debug.Log("ERROR: TrafficManager told to initialize level 0");
-			return;
-		
-		case 1:
-			roadArray[0].numLanes = 2;
-			roadArray[1].numLanes = 2;
-			roadArray[2].numLanes = 2;
-			roadArray[0].slowLaneSpeed = 40;
-			roadArray[1].slowLaneSpeed = 40;
-			roadArray[2].slowLaneSpeed = 40;
-			roadArray[0].followDistance = 50;
-			roadArray[1].followDistance = 50;
-			roadArray[2].followDistance = 50;
-			break;
-		
-		case 2:
-			roadArray[0].numLanes = 2;
-			roadArray[1].numLanes = 2;
-			roadArray[2].numLanes = 2;
-			roadArray[0].slowLaneSpeed = 40;
-			roadArray[1].slowLaneSpeed = 40;
-			roadArray[2].slowLaneSpeed = 40;
-			roadArray[0].followDistance = 50;
-			roadArray[1].followDistance = 50;
-			roadArray[2].followDistance = 50;
-			break;
-		
-		case 3:
-			roadArray[0].numLanes = 2;
-			roadArray[1].numLanes = 2;
-			roadArray[2].numLanes = 2;
-			roadArray[0].slowLaneSpeed = 40;
-			roadArray[1].slowLaneSpeed = 40;
-			roadArray[2].slowLaneSpeed = 40;
-			roadArray[0].followDistance = 50;
-			roadArray[1].followDistance = 50;
-			roadArray[2].followDistance = 50;
-			break;
-		
-		case 4:
-			roadArray[0].numLanes = 2;
-			roadArray[1].numLanes = 2;
-			roadArray[2].numLanes = 2;
-			roadArray[0].slowLaneSpeed = 40;
-			roadArray[1].slowLaneSpeed = 40;
-			roadArray[2].slowLaneSpeed = 40;
-			roadArray[0].followDistance = 50;
-			roadArray[1].followDistance = 50;
-			roadArray[2].followDistance = 50;
-			break;
-		}
-
 		// remove any previously created vehicles
-
-
+		for(int i=0; i<vehicleList.Count; i++)
+			Destroy(vehicleList[i].vehicle);
+		vehicleList.Clear();
+		
+		// configure the roads for the desired level
+		if (levelNum < 1 || levelNum > 4) {
+			Debug.Log("ERROR: TrafficManager told to initialize invalid level");
+			return;
+		}
+		SelectRoadConfig(levelNum);
+		
 		// add the vehicles to each of the roads in each of the terrains
 		
-		for(int i=0; i<road1Nodes.Length-1; i++) {	
+		for(int i=0; i<nodeArray1.Length-1; i++) {	
 			for (int j=0; j<10; j++) {
 
 				VehicleInfo vehicleInfo = new VehicleInfo();
 				vehicleInfo.vehicle = Instantiate(suvModel, new Vector3(0, 0, 0), Quaternion.identity) as GameObject;
 				
-				vehicleInfo.nodeArray = road1Nodes;
+				vehicleInfo.nodeArray = nodeArray1;
 				vehicleInfo.currentSegment = i;
-				vehicleInfo.directionIsAscending = true;
-				vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].transform.position;
-				vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].transform.position;
+				vehicleInfo.ascendingFlag = true;
+				vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].position;
+				vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].position;
 					
 				Vector2 segmentStartVector2 = new Vector2(vehicleInfo.segmentStartPos.x, vehicleInfo.segmentStartPos.z);
 				Vector2 segmentEndVector2 = new Vector2(vehicleInfo.segmentEndPos.x, vehicleInfo.segmentEndPos.z);
-				vehicleInfo.segmentDistance = Vector2.Distance(segmentStartVector2, segmentEndVector2);
+				float segmentFlatDistance = Vector2.Distance(segmentStartVector2, segmentEndVector2);
 				vehicleInfo.segmentHeading = levelManager.GetAngleFromOffset(vehicleInfo.segmentStartPos.x, vehicleInfo.segmentStartPos.z, vehicleInfo.segmentEndPos.x, vehicleInfo.segmentEndPos.z);
-				vehicleInfo.segmentPitch = levelManager.GetAngleFromOffset(vehicleInfo.segmentEndPos.y, 0, vehicleInfo.segmentStartPos.y, vehicleInfo.segmentDistance);
+				vehicleInfo.segmentPitch = levelManager.GetAngleFromOffset(vehicleInfo.segmentEndPos.y, 0, vehicleInfo.segmentStartPos.y, segmentFlatDistance);
 				vehicleInfo.lastUpdateTime = Time.time;
 				vehicleInfo.percentTravelled = 0.1f * j;
 
@@ -217,12 +188,121 @@ public class TrafficManager : MonoBehaviour {
 	}
 
 
+	//===================================
+	//===================================
+	//		SELECT ROAD CONFIG
+	//===================================
+	//===================================
 
+	private void SelectRoadConfig(int levelNum)
+	{
+		switch (levelNum) {
 
-*/
-
-
-
+		case 1:  // level 2
+			roadArray[0].lanesPerSide = 1;
+			roadArray[0].laneSpeed1 = 40;
+			roadArray[0].laneSpeed2 = 0;
+			roadArray[0].laneSpeed3 = 0;
+			roadArray[0].followDistance1 = 50;
+			roadArray[0].followDistance2 = 0;
+			roadArray[0].followDistance3 = 0;
+			////////////
+			roadArray[1].lanesPerSide = 1;
+			roadArray[1].laneSpeed1 = 40;
+			roadArray[1].laneSpeed2 = 0;
+			roadArray[1].laneSpeed3 = 0;
+			roadArray[1].followDistance1 = 50;
+			roadArray[1].followDistance2 = 0;
+			roadArray[1].followDistance3 = 0;
+			////////////
+			roadArray[2].lanesPerSide = 1;
+			roadArray[2].laneSpeed1 = 40;
+			roadArray[2].laneSpeed2 = 0;
+			roadArray[2].laneSpeed3 = 0;
+			roadArray[2].followDistance1 = 50;
+			roadArray[2].followDistance2 = 0;
+			roadArray[2].followDistance3 = 0;
+			break;
+		
+		case 2:  // level 3
+			roadArray[0].lanesPerSide = 1;
+			roadArray[0].laneSpeed1 = 40;
+			roadArray[0].laneSpeed2 = 0;
+			roadArray[0].laneSpeed3 = 0;
+			roadArray[0].followDistance1 = 50;
+			roadArray[0].followDistance2 = 0;
+			roadArray[0].followDistance3 = 0;
+			////////////
+			roadArray[1].lanesPerSide = 1;
+			roadArray[1].laneSpeed1 = 40;
+			roadArray[1].laneSpeed2 = 0;
+			roadArray[1].laneSpeed3 = 0;
+			roadArray[1].followDistance1 = 50;
+			roadArray[1].followDistance2 = 0;
+			roadArray[1].followDistance3 = 0;
+			////////////
+			roadArray[2].lanesPerSide = 1;
+			roadArray[2].laneSpeed1 = 40;
+			roadArray[2].laneSpeed2 = 0;
+			roadArray[2].laneSpeed3 = 0;
+			roadArray[2].followDistance1 = 50;
+			roadArray[2].followDistance2 = 0;
+			roadArray[2].followDistance3 = 0;
+			break;
+		
+		case 3:  // level 4
+			roadArray[0].lanesPerSide = 1;
+			roadArray[0].laneSpeed1 = 40;
+			roadArray[0].laneSpeed2 = 0;
+			roadArray[0].laneSpeed3 = 0;
+			roadArray[0].followDistance1 = 50;
+			roadArray[0].followDistance2 = 0;
+			roadArray[0].followDistance3 = 0;
+			////////////
+			roadArray[1].lanesPerSide = 1;
+			roadArray[1].laneSpeed1 = 40;
+			roadArray[1].laneSpeed2 = 0;
+			roadArray[1].laneSpeed3 = 0;
+			roadArray[1].followDistance1 = 50;
+			roadArray[1].followDistance2 = 0;
+			roadArray[1].followDistance3 = 0;
+			////////////
+			roadArray[2].lanesPerSide = 1;
+			roadArray[2].laneSpeed1 = 40;
+			roadArray[2].laneSpeed2 = 0;
+			roadArray[2].laneSpeed3 = 0;
+			roadArray[2].followDistance1 = 50;
+			roadArray[2].followDistance2 = 0;
+			roadArray[2].followDistance3 = 0;
+			break;
+		
+		case 4:  // level 5
+			roadArray[0].lanesPerSide = 1;
+			roadArray[0].laneSpeed1 = 40;
+			roadArray[0].laneSpeed2 = 0;
+			roadArray[0].laneSpeed3 = 0;
+			roadArray[0].followDistance1 = 50;
+			roadArray[0].followDistance2 = 0;
+			roadArray[0].followDistance3 = 0;
+			////////////
+			roadArray[1].lanesPerSide = 1;
+			roadArray[1].laneSpeed1 = 40;
+			roadArray[1].laneSpeed2 = 0;
+			roadArray[1].laneSpeed3 = 0;
+			roadArray[1].followDistance1 = 50;
+			roadArray[1].followDistance2 = 0;
+			roadArray[1].followDistance3 = 0;
+			////////////
+			roadArray[2].lanesPerSide = 1;
+			roadArray[2].laneSpeed1 = 40;
+			roadArray[2].laneSpeed2 = 0;
+			roadArray[2].laneSpeed3 = 0;
+			roadArray[2].followDistance1 = 50;
+			roadArray[2].followDistance2 = 0;
+			roadArray[2].followDistance3 = 0;
+			break;
+		}
+	}
 
 
 /*
