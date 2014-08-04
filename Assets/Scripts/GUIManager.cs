@@ -66,8 +66,6 @@ public class GuiManager : MonoBehaviour
 	public Texture2D fawnHeadTexture; 
 	public Texture2D hunterTexture; 
 	public Texture2D vehicleTexture; 
-	public Texture2D highwayTexture; 
-	public Texture2D overpassTexture; 
 	public Texture2D forestTexture; 
 	public Texture2D buttonTexture; 
 	public Texture2D buttonHoverTexture; 

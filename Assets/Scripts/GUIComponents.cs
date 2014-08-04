@@ -27,7 +27,7 @@ public class GuiComponents : MonoBehaviour
 	private Texture2D closeup6Texture;
 	
 	// placeholder for level selector; used only in display
-	private int currentLevel = 1;
+	private int currentLevel = 0;
 
 	// external modules
 	private GuiManager guiManager;
@@ -84,7 +84,6 @@ public class GuiComponents : MonoBehaviour
 		}
 		
 		float fontRef = levelPanelWidth * 1000f / 320f;
-		string levelNumber = "0:";
 		string levelLabel = "unknown";
 		float textureX;
 		float textureY;
@@ -95,71 +94,37 @@ public class GuiComponents : MonoBehaviour
 
 		if (bareBonesFlag == false) {
 		
-			if (currentLevel == 1) {
-				// Natural Wilderness
+			if (currentLevel == 0) {
 				textureX = levelPanelX + levelPanelWidth * 0.74f;
 				textureY = levelPanelY + levelPanelHeight * 0.05f;
 				textureWidth = levelPanelWidth * 0.20f;
 				textureHeight = guiManager.buckHeadTexture.height * (textureWidth / guiManager.buckHeadTexture.width);
 				GUI.color = new Color(1f, 1f, 1f, 0.9f * levelPanelOpacity);
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), guiManager.buckHeadTexture);
-				levelNumber = "1:";
 				levelLabel = "Natural Wilderness";
-				style.normal.textColor = new Color(0.99f, 0.70f, 0f, 0.96f);
 			}
 
-			if (currentLevel == 2) {
-				// Human Presence
+			if (currentLevel == 1) {
 				textureX = levelPanelX + levelPanelWidth * 0.80f;
 				textureY = levelPanelY + levelPanelHeight * 0.12f;
 				textureWidth = levelPanelWidth * 0.15f;
 				textureHeight = guiManager.hunterTexture.height * (textureWidth / guiManager.hunterTexture.width);
-				GUI.color = new Color(1f, 1f, 1f, 0.94f * levelPanelOpacity);
+				//GUI.color = new Color(1f, 1f, 1f, (currentLevel > 0) ? 0.97f : 0.4f);
+				GUI.color = new Color(1f, 1f, 1f, (currentLevel > 0) ? (0.94f  * levelPanelOpacity) : (0f * levelPanelOpacity));
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), guiManager.hunterTexture);
-				levelNumber = "2:";
-				levelLabel = "Human Presence";
-				style.normal.textColor = new Color(0.99f, 0.66f, 0f, 0.97f);
+				levelLabel = "2: Human Presence";
 			}
 
-			if (currentLevel == 3) {
-				// Human Expansion
+			if (currentLevel == 2) {
 				textureX = levelPanelX + levelPanelWidth * 0.75f;
 				textureY = levelPanelY + levelPanelHeight * 0.26f;
 				textureWidth = levelPanelWidth * 0.21f;
 				textureHeight = guiManager.vehicleTexture.height * (textureWidth / guiManager.vehicleTexture.width);
-				GUI.color = new Color(1f, 1f, 1f, 0.93f * levelPanelOpacity);
+				//GUI.color = new Color(1f, 1f, 1f, (currentLevel > 1) ? 0.93f : 0.36f);
+				GUI.color = new Color(1f, 1f, 1f, (currentLevel > 1) ? (0.93f  * levelPanelOpacity) : (0f * levelPanelOpacity));
 				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), guiManager.vehicleTexture);
-				levelNumber = "3:";
-				levelLabel = "Human Expansion";
-				style.normal.textColor = new Color(0.99f, 0.64f, 0f, 0.98f);
+				levelLabel = "3: Human Expansion";
 			}
-
-			if (currentLevel == 4) {
-				// Fragmented Habitat
-				textureX = levelPanelX + levelPanelWidth * 0.75f;
-				textureY = levelPanelY + levelPanelHeight * 0.26f;
-				textureWidth = levelPanelWidth * 0.21f;
-				textureHeight = guiManager.highwayTexture.height * (textureWidth / guiManager.highwayTexture.width);
-				GUI.color = new Color(1f, 1f, 1f, 0.93f * levelPanelOpacity);
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), guiManager.highwayTexture);
-				levelNumber = "4:";
-				levelLabel = "Fragmented Habitat";
-				style.normal.textColor = new Color(0.99f, 0.62f, 0f, 0.99f);
-			}
-
-			if (currentLevel == 5) {
-				// Connected Habitat
-				textureX = levelPanelX + levelPanelWidth * 0.75f;
-				textureY = levelPanelY + levelPanelHeight * 0.26f;
-				textureWidth = levelPanelWidth * 0.21f;
-				textureHeight = guiManager.overpassTexture.height * (textureWidth / guiManager.overpassTexture.width);
-				GUI.color = new Color(1f, 1f, 1f, 0.93f * levelPanelOpacity);
-				GUI.DrawTexture(new Rect(textureX, textureY, textureWidth, textureHeight), guiManager.overpassTexture);
-				levelNumber = "5:";
-				levelLabel = "Connected Habitat";
-				style.normal.textColor = new Color(0.99f, 0.70f, 0f, 1f);
-			}
-
 		}
 			
 		// level label
@@ -173,13 +138,12 @@ public class GuiComponents : MonoBehaviour
 		//GUI.Button(new Rect(levelPanelX - levelPanelWidth * 0.053f, levelPanelY + levelPanelHeight * 0.29f, levelPanelWidth * 0.3f, levelPanelHeight * 0.03f), (currentLevel == 0) ? " " : ((currentLevel == 1) ? " " : " "), style);
 		if (bareBonesFlag == false) {
 			style.fontSize = (int)(fontRef * 0.0185f);
-			//style.normal.textColor = new Color(0.99f, 0.7f, 0f, 0.92f);
+			style.normal.textColor = new Color(0.99f, 0.7f, 0f, 0.92f);
+			style.normal.textColor = new Color(0.99f, 0.62f, 0f, 0.95f);
+			style.normal.textColor = new Color(0.99f, 0.66f, 0f, 0.935f);
 			style.fontStyle = FontStyle.BoldAndItalic;
-			style.alignment = TextAnchor.MiddleLeft;
-			GUI.Button(new Rect(levelPanelX + levelPanelWidth * 0.09f, levelPanelY + levelPanelHeight * 0.26f, levelPanelWidth * 0.64f, levelPanelHeight * 0.03f), levelLabel, style);
-			//style.normal.textColor = new Color(0f, 0f, 0f, 0.5f);
-			//style.fontSize = (int)(fontRef * 0.02f);
-			//GUI.Button(new Rect(levelPanelX + levelPanelWidth * 0.09f, levelPanelY + levelPanelHeight * 0.26f, levelPanelWidth * 0.64f, levelPanelHeight * 0.03f), levelNumber, style);
+			style.alignment = TextAnchor.MiddleCenter;
+			GUI.Button(new Rect(levelPanelX + levelPanelWidth * 0.07f, levelPanelY + levelPanelHeight * 0.26f, levelPanelWidth * 0.64f, levelPanelHeight * 0.03f), levelLabel, style);
 			style.alignment = TextAnchor.MiddleCenter;
 		}
 
@@ -194,8 +158,8 @@ public class GuiComponents : MonoBehaviour
 		// invisible button
 		if (GUI.Button(new Rect(levelPanelX + levelPanelWidth * 0.7f, levelPanelY, levelPanelWidth * 0.3f, levelPanelHeight), "", style)) {
 			currentLevel += 1;
-			if (currentLevel > 5)
-				currentLevel = 1;
+			if (currentLevel > 2)
+				currentLevel = 0;
 		}
 		//GUI.Box(new Rect(levelPanelX + levelPanelWidth * 0.7f, levelPanelY, levelPanelWidth * 0.3f, levelPanelHeight), "");
 
