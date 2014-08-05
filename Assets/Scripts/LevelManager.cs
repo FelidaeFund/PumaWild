@@ -999,6 +999,68 @@ public class LevelManager : MonoBehaviour
 			
 		return 0f;
 	}
+	
+	public float GetStartingTerrainX(int terrainNum)
+	{
+		switch (terrainNum) {
+		case 0:
+			return -2000f;
+		case 1:
+			return 0f;
+		case 2:
+			return -2000f;
+		case 3:
+			return 0f;
+		}	
+		return 0f;
+	}
+	
+	public float GetStartingTerrainZ(int terrainNum)
+	{
+		switch (terrainNum) {
+		case 0:
+			return 0f;
+		case 1:
+			return 0f;
+		case 2:
+			return -2000f;
+		case 3:
+			return -2000f;
+		}	
+		return 0f;
+	}
+	
+	public float GetTerrainMinX()
+	{
+		float terrainMinX = (terrain1A.transform.position.x < terrain1B.transform.position.x) ? terrain1A.transform.position.x : terrain1B.transform.position.x;
+		terrainMinX = (terrainMinX < terrain1C.transform.position.x) ? terrainMinX : terrain1C.transform.position.x;
+		terrainMinX = (terrainMinX < terrain1D.transform.position.x) ? terrainMinX : terrain1D.transform.position.x;
+		return terrainMinX;
+	}
+
+	public float GetTerrainMinZ()
+	{
+		float terrainMinZ = (terrain1A.transform.position.z < terrain1B.transform.position.z) ? terrain1A.transform.position.z : terrain1B.transform.position.z;
+		terrainMinZ = (terrainMinZ < terrain1C.transform.position.z) ? terrainMinZ : terrain1C.transform.position.z;
+		terrainMinZ = (terrainMinZ < terrain1D.transform.position.z) ? terrainMinZ : terrain1D.transform.position.z;
+		return terrainMinZ;
+	}
+
+	public float GetTerrainMaxX()
+	{
+		float terrainMaxX = (terrain1A.transform.position.x > terrain1B.transform.position.x) ? terrain1A.transform.position.x : terrain1B.transform.position.x;
+		terrainMaxX = (terrainMaxX > terrain1C.transform.position.x) ? terrainMaxX : terrain1C.transform.position.x;
+		terrainMaxX = (terrainMaxX > terrain1D.transform.position.x) ? terrainMaxX : terrain1D.transform.position.x;
+		return terrainMaxX + 2000f;
+	}
+
+	public float GetTerrainMaxZ()
+	{
+		float terrainMaxZ = (terrain1A.transform.position.z > terrain1B.transform.position.z) ? terrain1A.transform.position.z : terrain1B.transform.position.z;
+		terrainMaxZ = (terrainMaxZ > terrain1C.transform.position.z) ? terrainMaxZ : terrain1C.transform.position.z;
+		terrainMaxZ = (terrainMaxZ > terrain1D.transform.position.z) ? terrainMaxZ : terrain1D.transform.position.z;
+		return terrainMaxZ + 2000f;
+	}
 
 	void ResetAnimations()
 	{
