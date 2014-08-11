@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 5c635c6e8ce184e41a6c5f544534bf7b
 ModelImporter:
-  serializedVersion: 15
+  serializedVersion: 16
   fileIDToRecycleName:
     100000: Arm_End_L
     100002: Arm_End_R
@@ -253,13 +253,14 @@ ModelImporter:
     9500000: //RootNode
     13700000: Fawn
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     optimizeGameObjects: 0
+    motionNodeName: 
     animationCompression: 1
     animationRotationError: .5
     animationPositionError: .5
@@ -563,4 +564,5 @@ ModelImporter:
     rootMotionBoneName: 
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
+  additionalBone: 0
   userData: 
