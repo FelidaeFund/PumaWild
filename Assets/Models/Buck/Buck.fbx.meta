@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 3169c9568e6445b43843cb326666db0d
 ModelImporter:
-  serializedVersion: 16
+  serializedVersion: 15
   fileIDToRecycleName:
     100000: Arm_End_L
     100002: Arm_End_R
@@ -233,14 +233,13 @@ ModelImporter:
     9500000: //RootNode
     13700000: deer
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     optimizeGameObjects: 0
-    motionNodeName: 
     animationCompression: 1
     animationRotationError: .5
     animationPositionError: .5
@@ -544,5 +543,4 @@ ModelImporter:
     rootMotionBoneName: 
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
-  additionalBone: 0
   userData: 
