@@ -38,9 +38,11 @@ public class TrafficManager : MonoBehaviour {
 	}
 	private class VirtualNodeInfo {
 		public Vector3 position;
-		public float segementLength;
-		public float segementHeading;
-		public float segementPitch;
+		public float segmentLength;
+		public float segmentPitch;
+		public float segmentHeading;
+		public float previousSegmentHeading;
+		public float nextSegmentHeading;
 	}
 	
 	// ROADS
@@ -76,9 +78,11 @@ public class TrafficManager : MonoBehaviour {
 		public float percentTravelled;
 		public Vector3 segmentStartPos;
 		public Vector3 segmentEndPos;
-		public float segmentHeading;
-		public float segmentPitch;
 		public float segmentLength;
+		public float segmentPitch;
+		public float segmentHeading;
+		public float previousSegmentHeading;
+		public float nextSegmentHeading;
 		public Vector3 terrainPos;
 	}
 
@@ -138,6 +142,7 @@ public class TrafficManager : MonoBehaviour {
 		GameObject[] roadNodes = null;
 		Vector3 nodeOffsetVector = new Vector3(0f, 0f, 0f);;
 		
+		// access manually placed game objects (possibly with inversion)
 		if (ascendingFlag == true) {
 			// use existing roadNodes
 			roadNodes = new GameObject[roadNodesAscending.Length];
@@ -158,25 +163,86 @@ public class TrafficManager : MonoBehaviour {
 		// create array
 		int arraySize = roadNodes.Length+2;
 		NodeInfo[] nodeArray = new NodeInfo[arraySize];
+
 		// first node is node "-1" (projection of node "n")
 		nodeArray[0] = new NodeInfo();
 		nodeArray[0].position = roadNodes[roadNodes.Length-1].transform.position + nodeOffsetVector;
+
 		// pull nodes from game object array
 		for (int i = 1; i < roadNodes.Length+1; i++) {
 			nodeArray[i] = new NodeInfo();
 			nodeArray[i].position = roadNodes[i-1].transform.position;
 		}
+
 		// last node is node "n+1" (projection of node "0")
 		nodeArray[arraySize-1] = new NodeInfo();
 		nodeArray[arraySize-1].position = roadNodes[0].transform.position - nodeOffsetVector;
-		// set static info for each segment
+
+		// initialize node data
+		float laneWidth = 12f;
+		
 		for (int i = 0; i < arraySize-1; i++) {
+			// static info for each segment
 			nodeArray[i].segmentLength = Vector3.Distance(nodeArray[i].position, nodeArray[i+1].position);					
 			Vector2 segmentStartVector2 = new Vector2(nodeArray[i].position.x, nodeArray[i].position.z);
 			Vector2 segmentEndVector2 = new Vector2(nodeArray[i+1].position.x, nodeArray[i+1].position.z);
 			float segmentFlatDistance = Vector2.Distance(segmentStartVector2, segmentEndVector2);
 			nodeArray[i].segmentHeading = levelManager.GetAngleFromOffset(nodeArray[i].position.x, nodeArray[i].position.z, nodeArray[i+1].position.x, nodeArray[i+1].position.z);
 			nodeArray[i].segmentPitch = levelManager.GetAngleFromOffset(nodeArray[i+1].position.y, 0, nodeArray[i].position.y, segmentFlatDistance);
+			// create vNodes for each segment
+			nodeArray[i].vNodes = new VirtualNodeInfo[3];
+			for (int lane = 0; lane < 3; lane++) {
+				nodeArray[i].vNodes[lane] = new VirtualNodeInfo();
+				// first determine composite heading based on previous segment and current segment
+				float previousSegmentHeading = nodeArray[ (i == 0) ? (arraySize-3) : (i-1) ].segmentHeading;
+				float currentSegmentHeading = nodeArray[i].segmentHeading;
+				float vNodeOffsetDirection = InterpolateAngles(previousSegmentHeading, currentSegmentHeading, 0.5f) + 90f;
+				// now create the vNode for this lane		
+				float laneOffset = (laneWidth * 0.9f) + laneWidth * lane;
+				float vNodeX = nodeArray[i].position.x + (Mathf.Sin(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
+				float vNodeZ = nodeArray[i].position.z + (Mathf.Cos(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
+				nodeArray[i].vNodes[lane].position = new Vector3(vNodeX, nodeArray[i].position.y, vNodeZ);
+			}
+		}
+
+		// initialize vNode positions for last node
+		{
+			int i = arraySize-1;
+			nodeArray[i].vNodes = new VirtualNodeInfo[3];
+			for (int lane = 0; lane < 3; lane++) {
+				nodeArray[i].vNodes[lane] = new VirtualNodeInfo();
+				// first determine composite heading based on previous segment and current segment
+				float previousSegmentHeading = nodeArray[ (i == 0) ? (arraySize-3) : (i-1) ].segmentHeading;
+				float currentSegmentHeading = nodeArray[i].segmentHeading;
+				float vNodeOffsetDirection = InterpolateAngles(previousSegmentHeading, currentSegmentHeading, 0.5f) + 90f;
+				// now create the vNode for this lane		
+				float laneOffset = (laneWidth * 0.9f) + laneWidth * lane;
+				float vNodeX = nodeArray[i].position.x + (Mathf.Sin(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
+				float vNodeZ = nodeArray[i].position.z + (Mathf.Cos(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
+				nodeArray[i].vNodes[lane].position = new Vector3(vNodeX, nodeArray[i].position.y, vNodeZ);
+			}
+		}
+
+		// update static info for each vNode
+		for (int i = 0; i < arraySize-1; i++) {
+			for (int lane = 0; lane < 3; lane++) {
+				Vector2 segmentStartVector2 = new Vector2(nodeArray[i].vNodes[lane].position.x, nodeArray[i].vNodes[lane].position.z);
+				Vector2 segmentEndVector2 = new Vector2(nodeArray[i+1].vNodes[lane].position.x, nodeArray[i+1].vNodes[lane].position.z);
+				float segmentFlatDistance = Vector2.Distance(segmentStartVector2, segmentEndVector2);
+				nodeArray[i].vNodes[lane].segmentLength = Vector3.Distance(nodeArray[i].vNodes[lane].position, nodeArray[i+1].vNodes[lane].position);					
+				nodeArray[i].vNodes[lane].segmentPitch = levelManager.GetAngleFromOffset(nodeArray[i+1].vNodes[lane].position.y, 0, nodeArray[i].vNodes[lane].position.y, segmentFlatDistance);
+				nodeArray[i].vNodes[lane].segmentHeading = levelManager.GetAngleFromOffset(nodeArray[i].vNodes[lane].position.x, nodeArray[i].vNodes[lane].position.z, nodeArray[i+1].vNodes[lane].position.x, nodeArray[i+1].vNodes[lane].position.z);
+			}
+		}
+
+		// update previousSegmentHeading and nextSegmentHeading for each vNode
+		for (int i = 0; i < arraySize; i++) {
+			for (int lane = 0; lane < 3; lane++) {
+				int previousIndex = (i == 0) ? (arraySize-3) : (i-1);
+				int nextIndex = (i == arraySize-1) ? (1) : (i+1);
+				nodeArray[i].vNodes[lane].previousSegmentHeading = nodeArray[previousIndex].segmentHeading;
+				nodeArray[i].vNodes[lane].nextSegmentHeading = nodeArray[nextIndex].segmentHeading;
+			}
 		}
 
 		return nodeArray;
@@ -206,8 +272,11 @@ public class TrafficManager : MonoBehaviour {
 
 		for (int t=0; t<4; t++) {
 			for (int r=0; r<3; r++) {
-				PopulateLane(r, 1, true, levelManager.GetStartingTerrainX(t), levelManager.GetStartingTerrainZ(t));
-				PopulateLane(r, 1, false, levelManager.GetStartingTerrainX(t), levelManager.GetStartingTerrainZ(t));
+				int laneCount = 3;  //roadArray[r].lanesPerSide;
+				for (int i = 0; i < laneCount; i++) {
+					PopulateLane(r, i, true, levelManager.GetStartingTerrainX(t), levelManager.GetStartingTerrainZ(t));
+					PopulateLane(r, i, false, levelManager.GetStartingTerrainX(t), levelManager.GetStartingTerrainZ(t));
+				}
 			}
 		}
 	}
@@ -215,9 +284,9 @@ public class TrafficManager : MonoBehaviour {
 	private void PopulateLane(int roadNum, int laneNum, bool ascendingFlag, float terrainX, float terrainZ)
 	{
 		float segmentPercent = 0f;
-		float followDistance = (laneNum == 1) ? roadArray[roadNum].followDistance1 : ((laneNum == 2) ? roadArray[roadNum].followDistance2 : roadArray[roadNum].followDistance3);
+		float followDistance = (laneNum == 0) ? roadArray[roadNum].followDistance1 : ((laneNum == 1) ? roadArray[roadNum].followDistance2 : roadArray[roadNum].followDistance3);
 		NodeInfo[] nodeArray = (ascendingFlag == true) ? roadArray[roadNum].nodeArrayAscending : roadArray[roadNum].nodeArrayDescending;
-		
+
 		int  i = 1;  // node 1 is effective node "0" because first node is node "-1"
 		while (i < nodeArray.Length-1) {
 			while (segmentPercent < 1f) {
@@ -226,25 +295,28 @@ public class TrafficManager : MonoBehaviour {
 				vehicleInfo.terrainPos = new Vector3(terrainX, 0, terrainZ);
 				vehicleInfo.vehicle = null;
 				vehicleInfo.nodeArray = nodeArray;
+				vehicleInfo.lane = laneNum;
 				vehicleInfo.roadOrientationIsX = roadArray[roadNum].orientationIsX;	
 				vehicleInfo.ascendingFlag = ascendingFlag;
-				vehicleInfo.speed = (laneNum == 1) ? roadArray[roadNum].laneSpeed1 : ((laneNum == 2) ? roadArray[roadNum].laneSpeed2 : roadArray[roadNum].laneSpeed3);
+				vehicleInfo.speed = (laneNum == 0) ? roadArray[roadNum].laneSpeed1 : ((laneNum == 1) ? roadArray[roadNum].laneSpeed2 : roadArray[roadNum].laneSpeed3);
 				vehicleInfo.percentTravelled = segmentPercent;		
 				vehicleInfo.currentSegment = i;
-				vehicleInfo.segmentStartPos = nodeArray[i].position;
-				vehicleInfo.segmentEndPos = nodeArray[i+1].position;
-				vehicleInfo.segmentLength = nodeArray[i].segmentLength;
-				vehicleInfo.segmentHeading = nodeArray[i].segmentHeading;
-				vehicleInfo.segmentPitch = nodeArray[i].segmentPitch;
+				vehicleInfo.segmentStartPos = nodeArray[i].vNodes[laneNum].position;
+				vehicleInfo.segmentEndPos = nodeArray[i+1].vNodes[laneNum].position;
+				vehicleInfo.segmentLength = nodeArray[i].vNodes[laneNum].segmentLength;
+				vehicleInfo.segmentPitch = nodeArray[i].vNodes[laneNum].segmentPitch;
+				vehicleInfo.segmentHeading = nodeArray[i].vNodes[laneNum].segmentHeading;
+				vehicleInfo.previousSegmentHeading = nodeArray[i].vNodes[laneNum].previousSegmentHeading;
+				vehicleInfo.nextSegmentHeading = nodeArray[i].vNodes[laneNum].nextSegmentHeading;
 				vehicleList.Add(vehicleInfo);
-				segmentPercent += followDistance / nodeArray[i].segmentLength;
+				segmentPercent += followDistance / nodeArray[i].vNodes[laneNum].segmentLength;
 			}
 			while (segmentPercent >= 1f) {
 				// increment to next node where vehicle needs to go
-				float extraDistance = (segmentPercent-1f) * nodeArray[i].segmentLength;
+				float extraDistance = (segmentPercent-1f) * nodeArray[i].vNodes[laneNum].segmentLength;
 				if (++i >= nodeArray.Length-1)
 					break;
-				segmentPercent = extraDistance / nodeArray[i].segmentLength;
+				segmentPercent = extraDistance / nodeArray[i].vNodes[laneNum].segmentLength;
 			}
 		}	
 	}
@@ -271,11 +343,13 @@ public class TrafficManager : MonoBehaviour {
 			else {
 				// progress to next segment
 				vehicleInfo.currentSegment += 1;  // no need to check end condition; last segment wraps to first segment part way through
-				vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].position;
-				vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].position;
-				vehicleInfo.segmentLength = vehicleInfo.nodeArray[vehicleInfo.currentSegment].segmentLength;
-				vehicleInfo.segmentHeading = vehicleInfo.nodeArray[vehicleInfo.currentSegment].segmentHeading;
-				vehicleInfo.segmentPitch = vehicleInfo.nodeArray[vehicleInfo.currentSegment].segmentPitch;
+				vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
+				vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
+				vehicleInfo.segmentLength = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].segmentLength;
+				vehicleInfo.segmentPitch = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].segmentPitch;
+				vehicleInfo.segmentHeading = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].segmentHeading;
+				vehicleInfo.previousSegmentHeading = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].previousSegmentHeading;
+				vehicleInfo.nextSegmentHeading = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].nextSegmentHeading;
 				vehicleInfo.percentTravelled = (distanceTravelled - segmentLengthRemaining) / vehicleInfo.segmentLength;						
 			}
 			
@@ -287,16 +361,16 @@ public class TrafficManager : MonoBehaviour {
 				if (vehicleInfo.ascendingFlag == true) {
 					if (vehiclePos.x > vehicleInfo.terrainPos.x + 2000f) {
 						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].position;
+						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
+						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
 						vehicleInfo.terrainPos += new Vector3(2000f, 0f, 0f);
 					}
 				}
 				else {
 					if (vehiclePos.x < vehicleInfo.terrainPos.x) {
 						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].position;
+						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
+						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
 						vehicleInfo.terrainPos += new Vector3(-2000f, 0f, 0f);
 					}
 				}
@@ -305,16 +379,16 @@ public class TrafficManager : MonoBehaviour {
 				if (vehicleInfo.ascendingFlag == true) {
 					if (vehiclePos.z > vehicleInfo.terrainPos.z + 2000f) {
 						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].position;
+						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
+						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
 						vehicleInfo.terrainPos += new Vector3(0f, 0f, 2000f);
 					}
 				}
 				else {
 					if (vehiclePos.z < vehicleInfo.terrainPos.z) {
 						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].position;
+						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
+						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
 						vehicleInfo.terrainPos += new Vector3(0f, 0f, -2000f);
 					}
 				}
@@ -337,10 +411,12 @@ public class TrafficManager : MonoBehaviour {
 				vehiclePos.z -= 4000f;
 				vehicleInfo.terrainPos.z -= 4000f;
 			}
-						
+
 			// no objects for vehicles far from puma
+
 			float maxVisibleDistance = 500f;
 			float distanceToPuma = Vector3.Distance(levelManager.pumaObj.transform.position, vehiclePos);			
+
 			if (distanceToPuma < maxVisibleDistance && vehicleInfo.vehicle == null) {
 				// close to puma; create object
 				vehicleInfo.vehicle = Instantiate(suvModel, vehicleInfo.terrainPos, Quaternion.identity) as GameObject;
@@ -350,16 +426,27 @@ public class TrafficManager : MonoBehaviour {
 				Destroy(vehicleInfo.vehicle);
 				vehicleInfo.vehicle = null;
 			}
-			
+
 			// if object, set location and rotation
 			if (vehicleInfo.vehicle != null) {	
 				vehicleInfo.vehicle.transform.position = vehiclePos;
-				vehicleInfo.vehicle.transform.rotation = Quaternion.Euler(vehicleInfo.segmentPitch, vehicleInfo.segmentHeading, 0);
+				float heading = vehicleInfo.segmentHeading;
+				if (vehicleInfo.percentTravelled < 0.05f) {
+					float scaleFactor = vehicleInfo.percentTravelled / 0.05f;
+					scaleFactor = 1f - ((scaleFactor-1f) * (scaleFactor-1f));
+					heading = InterpolateAngles(vehicleInfo.segmentHeading, vehicleInfo.previousSegmentHeading, 0.5f + (0.5f*scaleFactor));
+				}
+				else if (vehicleInfo.percentTravelled > 0.95f) {
+					float scaleFactor = (vehicleInfo.percentTravelled - 0.95f) / 0.05f;
+					scaleFactor = scaleFactor * scaleFactor;
+					heading = InterpolateAngles(vehicleInfo.segmentHeading, vehicleInfo.nextSegmentHeading, 1f - (0.5f*scaleFactor));
+				}
+				vehicleInfo.vehicle.transform.rotation = Quaternion.Euler(vehicleInfo.segmentPitch, heading, 0);
 			}
 		}
 	}
-
-
+	
+	
 	//===================================
 	//===================================
 	//		SELECT ROAD CONFIG
@@ -371,110 +458,148 @@ public class TrafficManager : MonoBehaviour {
 		switch (levelNum) {
 
 		case 1:  // level 2
-			roadArray[0].lanesPerSide = 1;
+			roadArray[0].lanesPerSide = 3;
 			roadArray[0].laneSpeed1 = 70;
-			roadArray[0].laneSpeed2 = 0;
-			roadArray[0].laneSpeed3 = 0;
-			roadArray[0].followDistance1 = 100;
-			roadArray[0].followDistance2 = 0;
-			roadArray[0].followDistance3 = 0;
+			roadArray[0].laneSpeed2 = 90;
+			roadArray[0].laneSpeed3 = 110;
+			roadArray[0].followDistance1 = 40;
+			roadArray[0].followDistance2 = 50;
+			roadArray[0].followDistance3 = 60;
 			////////////
-			roadArray[1].lanesPerSide = 1;
+			roadArray[1].lanesPerSide = 3;
 			roadArray[1].laneSpeed1 = 70;
-			roadArray[1].laneSpeed2 = 0;
-			roadArray[1].laneSpeed3 = 0;
-			roadArray[1].followDistance1 = 100;
-			roadArray[1].followDistance2 = 0;
-			roadArray[1].followDistance3 = 0;
+			roadArray[1].laneSpeed2 = 90;
+			roadArray[1].laneSpeed3 = 110;
+			roadArray[1].followDistance1 = 40;
+			roadArray[1].followDistance2 = 50;
+			roadArray[1].followDistance3 = 60;
 			////////////
-			roadArray[2].lanesPerSide = 1;
+			roadArray[2].lanesPerSide = 3;
 			roadArray[2].laneSpeed1 = 70;
-			roadArray[2].laneSpeed2 = 0;
-			roadArray[2].laneSpeed3 = 0;
-			roadArray[2].followDistance1 = 100;
-			roadArray[2].followDistance2 = 0;
-			roadArray[2].followDistance3 = 0;
+			roadArray[2].laneSpeed2 = 90;
+			roadArray[2].laneSpeed3 = 110;
+			roadArray[2].followDistance1 = 40;
+			roadArray[2].followDistance2 = 50;
+			roadArray[2].followDistance3 = 60;
 			break;
 		
 		case 2:  // level 3
-			roadArray[0].lanesPerSide = 1;
+			roadArray[0].lanesPerSide = 3;
 			roadArray[0].laneSpeed1 = 70;
-			roadArray[0].laneSpeed2 = 0;
-			roadArray[0].laneSpeed3 = 0;
-			roadArray[0].followDistance1 = 50;
-			roadArray[0].followDistance2 = 0;
-			roadArray[0].followDistance3 = 0;
+			roadArray[0].laneSpeed2 = 90;
+			roadArray[0].laneSpeed3 = 110;
+			roadArray[0].followDistance1 = 150;
+			roadArray[0].followDistance2 = 200;
+			roadArray[0].followDistance3 = 300;
 			////////////
-			roadArray[1].lanesPerSide = 1;
+			roadArray[1].lanesPerSide = 3;
 			roadArray[1].laneSpeed1 = 70;
-			roadArray[1].laneSpeed2 = 0;
-			roadArray[1].laneSpeed3 = 0;
-			roadArray[1].followDistance1 = 50;
-			roadArray[1].followDistance2 = 0;
-			roadArray[1].followDistance3 = 0;
+			roadArray[1].laneSpeed2 = 90;
+			roadArray[1].laneSpeed3 = 110;
+			roadArray[1].followDistance1 = 150;
+			roadArray[1].followDistance2 = 200;
+			roadArray[1].followDistance3 = 300;
 			////////////
-			roadArray[2].lanesPerSide = 1;
+			roadArray[2].lanesPerSide = 3;
 			roadArray[2].laneSpeed1 = 70;
-			roadArray[2].laneSpeed2 = 0;
-			roadArray[2].laneSpeed3 = 0;
-			roadArray[2].followDistance1 = 50;
-			roadArray[2].followDistance2 = 0;
-			roadArray[2].followDistance3 = 0;
+			roadArray[2].laneSpeed2 = 90;
+			roadArray[2].laneSpeed3 = 110;
+			roadArray[2].followDistance1 = 150;
+			roadArray[2].followDistance2 = 200;
+			roadArray[2].followDistance3 = 300;
 			break;
 		
 		case 3:  // level 4
-			roadArray[0].lanesPerSide = 1;
-			roadArray[0].laneSpeed1 = 40;
-			roadArray[0].laneSpeed2 = 0;
-			roadArray[0].laneSpeed3 = 0;
-			roadArray[0].followDistance1 = 50;
-			roadArray[0].followDistance2 = 0;
-			roadArray[0].followDistance3 = 0;
+			roadArray[0].lanesPerSide = 3;
+			roadArray[0].laneSpeed1 = 70;
+			roadArray[0].laneSpeed2 = 90;
+			roadArray[0].laneSpeed3 = 110;
+			roadArray[0].followDistance1 = 150;
+			roadArray[0].followDistance2 = 200;
+			roadArray[0].followDistance3 = 300;
 			////////////
-			roadArray[1].lanesPerSide = 1;
-			roadArray[1].laneSpeed1 = 40;
-			roadArray[1].laneSpeed2 = 0;
-			roadArray[1].laneSpeed3 = 0;
-			roadArray[1].followDistance1 = 50;
-			roadArray[1].followDistance2 = 0;
-			roadArray[1].followDistance3 = 0;
+			roadArray[1].lanesPerSide = 3;
+			roadArray[1].laneSpeed1 = 70;
+			roadArray[1].laneSpeed2 = 90;
+			roadArray[1].laneSpeed3 = 110;
+			roadArray[1].followDistance1 = 150;
+			roadArray[1].followDistance2 = 200;
+			roadArray[1].followDistance3 = 300;
 			////////////
-			roadArray[2].lanesPerSide = 1;
-			roadArray[2].laneSpeed1 = 40;
-			roadArray[2].laneSpeed2 = 0;
-			roadArray[2].laneSpeed3 = 0;
-			roadArray[2].followDistance1 = 50;
-			roadArray[2].followDistance2 = 0;
-			roadArray[2].followDistance3 = 0;
+			roadArray[2].lanesPerSide = 3;
+			roadArray[2].laneSpeed1 = 70;
+			roadArray[2].laneSpeed2 = 90;
+			roadArray[2].laneSpeed3 = 110;
+			roadArray[2].followDistance1 = 150;
+			roadArray[2].followDistance2 = 200;
+			roadArray[2].followDistance3 = 300;
 			break;
 		
 		case 4:  // level 5
-			roadArray[0].lanesPerSide = 1;
-			roadArray[0].laneSpeed1 = 40;
-			roadArray[0].laneSpeed2 = 0;
-			roadArray[0].laneSpeed3 = 0;
-			roadArray[0].followDistance1 = 50;
-			roadArray[0].followDistance2 = 0;
-			roadArray[0].followDistance3 = 0;
+			roadArray[0].lanesPerSide = 3;
+			roadArray[0].laneSpeed1 = 70;
+			roadArray[0].laneSpeed2 = 90;
+			roadArray[0].laneSpeed3 = 110;
+			roadArray[0].followDistance1 = 150;
+			roadArray[0].followDistance2 = 200;
+			roadArray[0].followDistance3 = 300;
 			////////////
-			roadArray[1].lanesPerSide = 1;
-			roadArray[1].laneSpeed1 = 40;
-			roadArray[1].laneSpeed2 = 0;
-			roadArray[1].laneSpeed3 = 0;
-			roadArray[1].followDistance1 = 50;
-			roadArray[1].followDistance2 = 0;
-			roadArray[1].followDistance3 = 0;
+			roadArray[1].lanesPerSide = 3;
+			roadArray[1].laneSpeed1 = 70;
+			roadArray[1].laneSpeed2 = 90;
+			roadArray[1].laneSpeed3 = 110;
+			roadArray[1].followDistance1 = 150;
+			roadArray[1].followDistance2 = 200;
+			roadArray[1].followDistance3 = 300;
 			////////////
-			roadArray[2].lanesPerSide = 1;
-			roadArray[2].laneSpeed1 = 40;
-			roadArray[2].laneSpeed2 = 0;
-			roadArray[2].laneSpeed3 = 0;
-			roadArray[2].followDistance1 = 50;
-			roadArray[2].followDistance2 = 0;
-			roadArray[2].followDistance3 = 0;
+			roadArray[2].lanesPerSide = 3;
+			roadArray[2].laneSpeed1 = 70;
+			roadArray[2].laneSpeed2 = 90;
+			roadArray[2].laneSpeed3 = 110;
+			roadArray[2].followDistance1 = 150;
+			roadArray[2].followDistance2 = 200;
+			roadArray[2].followDistance3 = 300;
 			break;
 		}
 	}
+
+	//===================================
+	//===================================
+	//		UTILS
+	//===================================
+	//===================================
+
+	private float InterpolateAngles(float angle1, float angle2, float angle1Percent)
+	{
+		float interpolatedAngle = 0f;
+
+		if (angle1 < 0f)
+			angle1 += 360f;
+		if (angle2 < 0f)
+			angle2 += 360f;
+	
+		if (angle2 > angle1) {
+			if (angle2 - angle1 < 180f) {
+				interpolatedAngle = angle2 - ((angle2 - angle1) * angle1Percent);
+			}
+			else {
+				angle1 += 360f;
+				interpolatedAngle = angle1 - ((angle1 - angle2) * (1f-angle1Percent));
+			}
+		}
+		else {
+			if (angle1 - angle2 < 180f) {
+				interpolatedAngle = angle1 - ((angle1 - angle2) * (1f-angle1Percent));
+			}
+			else {
+				angle2 += 360f;
+				interpolatedAngle = angle2 - ((angle2 - angle1) * angle1Percent);
+			}
+		}
+
+		return interpolatedAngle;
+	}
+
 
 
 /*
