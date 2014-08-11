@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 5ec325b85d26b5641b73d7f0cf902a32
 ModelImporter:
-  serializedVersion: 16
+  serializedVersion: 15
   fileIDToRecycleName:
     100000: Chest_ctrl
     100002: cluster10Handle
@@ -229,14 +229,13 @@ ModelImporter:
     9500000: //RootNode
     13700000: Doe
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     optimizeGameObjects: 0
-    motionNodeName: 
     animationCompression: 1
     animationRotationError: .5
     animationPositionError: .5
@@ -540,5 +539,4 @@ ModelImporter:
     rootMotionBoneName: 
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
-  additionalBone: 0
   userData: 
