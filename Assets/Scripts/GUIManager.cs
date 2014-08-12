@@ -7,7 +7,7 @@ using System.Collections;
 public class GuiManager : MonoBehaviour 
 {
 	// DEBUGGING OPTIONS
-	private bool displayFrameRate = true;
+	private bool displayFrameRate = false;
 	private bool skipStraightToLevel = false;
 	private int  skipStraightToLevelFrameCount = 0;
 
