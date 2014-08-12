@@ -97,6 +97,7 @@ public class TrafficManager : MonoBehaviour {
 
 	void Start()
 	{
+		return;
 		// connect to external modules
 		levelManager = GetComponent<LevelManager>();
 		
@@ -258,6 +259,7 @@ public class TrafficManager : MonoBehaviour {
 
 	void Update ()
 	{
+		return;
 		for(int i=0; i<vehicleList.Count; i++) {
 			VehicleInfo vehicleInfo = vehicleList[i];
 			

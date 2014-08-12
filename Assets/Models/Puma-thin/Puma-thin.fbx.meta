@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 0d455daa1f46d2d49a801acacba03d8f
 ModelImporter:
-  serializedVersion: 15
+  serializedVersion: 16
   fileIDToRecycleName:
     100000: cougar:Bk_Pv_Ctl_g
     100002: cougar:Breathe01
@@ -471,13 +471,14 @@ ModelImporter:
     13700016: cougar:teethUp
     13700018: cougar:tongue
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     optimizeGameObjects: 0
+    motionNodeName: 
     animationCompression: 1
     animationRotationError: .5
     animationPositionError: .5
@@ -833,4 +834,5 @@ ModelImporter:
     rootMotionBoneName: 
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
+  additionalBone: 0
   userData: 
