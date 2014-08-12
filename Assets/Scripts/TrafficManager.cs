@@ -256,6 +256,11 @@ public class TrafficManager : MonoBehaviour {
 
 	public void InitLevel(int levelNum)
 	{
+		return;
+	
+	
+	
+	
 		// remove any previously created vehicles
 		for(int i=0; i<vehicleList.Count; i++)
 			Destroy(vehicleList[i].vehicle);
