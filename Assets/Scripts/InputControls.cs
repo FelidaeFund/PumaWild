@@ -130,8 +130,6 @@ public class InputControls : MonoBehaviour
 		bool keyStateTurnLeft = false;
 		bool keyStateTurnRight = false;
 
-		forwardKey = true;
-
 		// check for pressed mouse within any of the onscreen rects
 		if (Input.GetMouseButton(0)) {
 			float mouseX = Input.mousePosition.x;
