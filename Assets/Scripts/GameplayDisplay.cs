@@ -71,6 +71,7 @@ public class GameplayDisplay : MonoBehaviour
 	
 	public void Draw(float movementControlsOpacity, float positionIndicatorOpacity, float statusDisplayOpacity) 
 	{ 
+		return;
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
 
