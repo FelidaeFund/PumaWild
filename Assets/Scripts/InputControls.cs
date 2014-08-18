@@ -122,6 +122,7 @@ public class InputControls : MonoBehaviour
 
 	public void ProcessControls(string gameState)
 	{
+		
 		// initialize key states to 'off'
 		bool keyStateForward = false;
 		bool keyStateBack = false;
@@ -170,7 +171,7 @@ public class InputControls : MonoBehaviour
 			keyStateTurnRight = true;
 			
 		// set the heading to either straight ahead or diagonal
-	
+		keyStateForward = true; // REMOVE IT (makes puma walk forward all the time)
 		if (keyStateForward == true)
 			levelManager.pumaHeadingOffset = 0f;
 

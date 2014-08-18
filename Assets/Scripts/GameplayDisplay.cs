@@ -41,6 +41,7 @@ public class GameplayDisplay : MonoBehaviour
 
 	void Start() 
 	{	
+		return;
 		// connect to external modules
 		guiManager = GetComponent<GuiManager>();
 		guiComponents = GetComponent<GuiComponents>();
@@ -71,6 +72,7 @@ public class GameplayDisplay : MonoBehaviour
 	
 	public void Draw(float movementControlsOpacity, float positionIndicatorOpacity, float statusDisplayOpacity) 
 	{ 
+		return;
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
 
