@@ -155,7 +155,8 @@ public class LevelManager : MonoBehaviour
 		switchLevels = levelSwitcher.GetComponent<SwitchLevels>();
 
 		// puma
-		pumaObj = GameObject.Find("_Puma-thin");	
+		//pumaObj = GameObject.Find("_Puma-thin");
+		pumaObj = new GameObject();	
 				
 		// deer
 		buck = new DeerClass();
