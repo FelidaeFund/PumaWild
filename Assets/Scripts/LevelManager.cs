@@ -208,7 +208,7 @@ public class LevelManager : MonoBehaviour
 		terrainArray[18] = terrain5C;		
 		terrainArray[19] = terrain5D;		
 		
-		InitLevel(0);
+		InitLevel(3);
 	}
 	
 	public void InitLevel(int level)

@@ -790,7 +790,7 @@ public class GuiManager : MonoBehaviour
 
 			GUI.Box(new Rect(Screen.width * 0.50f - 80f, 0, 160, 24), "Screen Res: " + Screen.width.ToString() + "x" + Screen.height.ToString());				
 			
-			int averageFrameRate = (int)(1000 / levelManager.frameAverageDuration);
+			int averageFrameRate = (levelManager.frameAverageDuration == 0) ? 0 : (int)(1000 / levelManager.frameAverageDuration);
 			GUI.Box(new Rect(Screen.width * 0.76f - 80f, 0, 160, 24), "Avg Frame rate: " + averageFrameRate.ToString());		
 
 			GUI.Box(new Rect(Screen.width * 0.24f - 80f, Screen.height - 24, 160, 24), "displayVar1:  " + levelManager.displayVar1.ToString());		

@@ -131,7 +131,7 @@ public class TrafficManager : MonoBehaviour {
 		vehicleList = new List<VehicleInfo>();
 
 		
-		InitLevel(1);	// TEMP !!!!!
+		InitLevel(3);	// TEMP !!!!!
 	}
 	
 	
@@ -140,7 +140,7 @@ public class TrafficManager : MonoBehaviour {
 	private NodeInfo[] InitNodeArray(GameObject[] roadNodesAscending, bool ascendingFlag, bool orientationIsX)
 	{
 		GameObject[] roadNodes = null;
-		Vector3 nodeOffsetVector = new Vector3(0f, 0f, 0f);;
+		Vector3 nodeOffsetVector = new Vector3(0f, 0f, 0f);
 		
 		// access manually placed game objects (possibly with inversion)
 		if (ascendingFlag == true) {
@@ -164,22 +164,22 @@ public class TrafficManager : MonoBehaviour {
 		int arraySize = roadNodes.Length+2;
 		NodeInfo[] nodeArray = new NodeInfo[arraySize];
 
-		// first node is node "-1" (projection of node "n")
+		// first node is node "-1" (projection of game object "n")
 		nodeArray[0] = new NodeInfo();
 		nodeArray[0].position = roadNodes[roadNodes.Length-1].transform.position + nodeOffsetVector;
 
 		// pull nodes from game object array
-		for (int i = 1; i < roadNodes.Length+1; i++) {
+		for (int i = 1; i <= roadNodes.Length; i++) {
 			nodeArray[i] = new NodeInfo();
 			nodeArray[i].position = roadNodes[i-1].transform.position;
 		}
 
-		// last node is node "n+1" (projection of node "0")
+		// last node is node "n+1" (projection of game object "0")
 		nodeArray[arraySize-1] = new NodeInfo();
 		nodeArray[arraySize-1].position = roadNodes[0].transform.position - nodeOffsetVector;
 
 		// initialize node data
-		float laneWidth = 12f;
+		float laneWidth = 9f;
 		
 		for (int i = 0; i < arraySize-1; i++) {
 			// static info for each segment
@@ -189,16 +189,22 @@ public class TrafficManager : MonoBehaviour {
 			float segmentFlatDistance = Vector2.Distance(segmentStartVector2, segmentEndVector2);
 			nodeArray[i].segmentHeading = levelManager.GetAngleFromOffset(nodeArray[i].position.x, nodeArray[i].position.z, nodeArray[i+1].position.x, nodeArray[i+1].position.z);
 			nodeArray[i].segmentPitch = levelManager.GetAngleFromOffset(nodeArray[i+1].position.y, 0, nodeArray[i].position.y, segmentFlatDistance);
+		}
+	
+		for (int i = 0; i < arraySize-1; i++) {
 			// create vNodes for each segment
 			nodeArray[i].vNodes = new VirtualNodeInfo[3];
 			for (int lane = 0; lane < 3; lane++) {
 				nodeArray[i].vNodes[lane] = new VirtualNodeInfo();
 				// first determine composite heading based on previous segment and current segment
-				float previousSegmentHeading = nodeArray[ (i == 0) ? (arraySize-3) : (i-1) ].segmentHeading;
+				float previousSegmentHeading = nodeArray[(i == 0) ? (arraySize-3) : (i-1) ].segmentHeading;
 				float currentSegmentHeading = nodeArray[i].segmentHeading;
 				float vNodeOffsetDirection = InterpolateAngles(previousSegmentHeading, currentSegmentHeading, 0.5f) + 90f;
+				
+				Debug.Log("vNodeOffsetDirection is " + (int)vNodeOffsetDirection + " for item " + i);
+				
 				// now create the vNode for this lane		
-				float laneOffset = (laneWidth * 0.9f) + laneWidth * lane;
+				float laneOffset = (laneWidth * 0.6f) + laneWidth * lane;
 				float vNodeX = nodeArray[i].position.x + (Mathf.Sin(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
 				float vNodeZ = nodeArray[i].position.z + (Mathf.Cos(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
 				nodeArray[i].vNodes[lane].position = new Vector3(vNodeX, nodeArray[i].position.y, vNodeZ);
@@ -212,11 +218,14 @@ public class TrafficManager : MonoBehaviour {
 			for (int lane = 0; lane < 3; lane++) {
 				nodeArray[i].vNodes[lane] = new VirtualNodeInfo();
 				// first determine composite heading based on previous segment and current segment
-				float previousSegmentHeading = nodeArray[ (i == 0) ? (arraySize-3) : (i-1) ].segmentHeading;
-				float currentSegmentHeading = nodeArray[i].segmentHeading;
+				float previousSegmentHeading = nodeArray[arraySize-2].segmentHeading;
+				float currentSegmentHeading = nodeArray[1].segmentHeading;
 				float vNodeOffsetDirection = InterpolateAngles(previousSegmentHeading, currentSegmentHeading, 0.5f) + 90f;
+				
+				Debug.Log("vNodeOffsetDirection is " + (int)vNodeOffsetDirection + " for item " + i);
+				
 				// now create the vNode for this lane		
-				float laneOffset = (laneWidth * 0.9f) + laneWidth * lane;
+				float laneOffset = (laneWidth * 0.6f) + laneWidth * lane;
 				float vNodeX = nodeArray[i].position.x + (Mathf.Sin(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
 				float vNodeZ = nodeArray[i].position.z + (Mathf.Cos(vNodeOffsetDirection*Mathf.PI/180) * laneOffset);
 				nodeArray[i].vNodes[lane].position = new Vector3(vNodeX, nodeArray[i].position.y, vNodeZ);
@@ -225,6 +234,7 @@ public class TrafficManager : MonoBehaviour {
 
 		// update static info for each vNode
 		for (int i = 0; i < arraySize-1; i++) {
+			// all vNodes except last one
 			for (int lane = 0; lane < 3; lane++) {
 				Vector2 segmentStartVector2 = new Vector2(nodeArray[i].vNodes[lane].position.x, nodeArray[i].vNodes[lane].position.z);
 				Vector2 segmentEndVector2 = new Vector2(nodeArray[i+1].vNodes[lane].position.x, nodeArray[i+1].vNodes[lane].position.z);
@@ -233,6 +243,12 @@ public class TrafficManager : MonoBehaviour {
 				nodeArray[i].vNodes[lane].segmentPitch = levelManager.GetAngleFromOffset(nodeArray[i+1].vNodes[lane].position.y, 0, nodeArray[i].vNodes[lane].position.y, segmentFlatDistance);
 				nodeArray[i].vNodes[lane].segmentHeading = levelManager.GetAngleFromOffset(nodeArray[i].vNodes[lane].position.x, nodeArray[i].vNodes[lane].position.z, nodeArray[i+1].vNodes[lane].position.x, nodeArray[i+1].vNodes[lane].position.z);
 			}
+		}
+		for (int lane = 0; lane < 3; lane++) {
+			// last vNode
+			nodeArray[arraySize-1].vNodes[lane].segmentLength = nodeArray[1].vNodes[lane].segmentLength;
+			nodeArray[arraySize-1].vNodes[lane].segmentPitch = nodeArray[1].vNodes[lane].segmentPitch;
+			nodeArray[arraySize-1].vNodes[lane].segmentHeading = nodeArray[1].vNodes[lane].segmentHeading;
 		}
 
 		// update previousSegmentHeading and nextSegmentHeading for each vNode
@@ -271,8 +287,8 @@ public class TrafficManager : MonoBehaviour {
 		// add the vehicles to each of the roads in each of the terrains
 
 		for (int t=0; t<4; t++) {
-			for (int r=0; r<3; r++) {
-				int laneCount = 3;  //roadArray[r].lanesPerSide;
+			for (int r=0; r<1; r++) {
+				int laneCount = roadArray[r].lanesPerSide;
 				for (int i = 0; i < laneCount; i++) {
 					PopulateLane(r, i, true, levelManager.GetStartingTerrainX(t), levelManager.GetStartingTerrainZ(t));
 					PopulateLane(r, i, false, levelManager.GetStartingTerrainX(t), levelManager.GetStartingTerrainZ(t));
@@ -287,8 +303,8 @@ public class TrafficManager : MonoBehaviour {
 		float followDistance = (laneNum == 0) ? roadArray[roadNum].followDistance1 : ((laneNum == 1) ? roadArray[roadNum].followDistance2 : roadArray[roadNum].followDistance3);
 		NodeInfo[] nodeArray = (ascendingFlag == true) ? roadArray[roadNum].nodeArrayAscending : roadArray[roadNum].nodeArrayDescending;
 
-		int  i = 1;  // node 1 is effective node "0" because first node is node "-1"
-		while (i < nodeArray.Length-1) {
+		int  i = 0;
+		while (i < nodeArray.Length-2) {
 			while (segmentPercent < 1f) {
 				// add vehicles as long as the node has room
 				VehicleInfo vehicleInfo = new VehicleInfo();
@@ -330,19 +346,27 @@ public class TrafficManager : MonoBehaviour {
 
 	void Update ()
 	{
+	
 		for(int i=0; i<vehicleList.Count; i++) {
 			VehicleInfo vehicleInfo = vehicleList[i];
 			
 			// add new distance to vehicle position
 			float distanceTravelled = vehicleInfo.speed * Time.deltaTime;
 			float segmentLengthRemaining = vehicleInfo.segmentLength * (1f - vehicleInfo.percentTravelled);
-			if (distanceTravelled < segmentLengthRemaining) {
-				// remain in current segment
-				vehicleInfo.percentTravelled += distanceTravelled / vehicleInfo.segmentLength;
-			}
-			else {
-				// progress to next segment
-				vehicleInfo.currentSegment += 1;  // no need to check end condition; last segment wraps to first segment part way through
+
+			while (distanceTravelled >= segmentLengthRemaining) {
+				distanceTravelled -= segmentLengthRemaining;
+				vehicleInfo.currentSegment += 1;
+			
+				if (vehicleInfo.currentSegment == vehicleInfo.nodeArray.Length - 2) {
+					// loop back to start of node list for next terrain
+					vehicleInfo.currentSegment = 0;
+					if (vehicleInfo.roadOrientationIsX == true)
+						vehicleInfo.terrainPos += new Vector3(((vehicleInfo.ascendingFlag == true) ? 2000f : -2000f), 0f, 0f);
+					else
+						vehicleInfo.terrainPos += new Vector3(0f, 0f, ((vehicleInfo.ascendingFlag == true) ? 2000f : -2000f));
+				}
+				
 				vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
 				vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
 				vehicleInfo.segmentLength = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].segmentLength;
@@ -350,49 +374,14 @@ public class TrafficManager : MonoBehaviour {
 				vehicleInfo.segmentHeading = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].segmentHeading;
 				vehicleInfo.previousSegmentHeading = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].previousSegmentHeading;
 				vehicleInfo.nextSegmentHeading = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].nextSegmentHeading;
-				vehicleInfo.percentTravelled = (distanceTravelled - segmentLengthRemaining) / vehicleInfo.segmentLength;						
+				vehicleInfo.percentTravelled = 0f;		
+				segmentLengthRemaining = vehicleInfo.segmentLength;
 			}
+
+			vehicleInfo.percentTravelled += distanceTravelled / vehicleInfo.segmentLength;
 			
 			// calculate new vehicle position
 			Vector3 vehiclePos = vehicleInfo.terrainPos + Vector3.Lerp(vehicleInfo.segmentStartPos, vehicleInfo.segmentEndPos, vehicleInfo.percentTravelled);
-
-			// if we've left our current terrain, loop back to start of node list for new terrain
-			if (vehicleInfo.roadOrientationIsX == true) {
-				if (vehicleInfo.ascendingFlag == true) {
-					if (vehiclePos.x > vehicleInfo.terrainPos.x + 2000f) {
-						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.terrainPos += new Vector3(2000f, 0f, 0f);
-					}
-				}
-				else {
-					if (vehiclePos.x < vehicleInfo.terrainPos.x) {
-						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.terrainPos += new Vector3(-2000f, 0f, 0f);
-					}
-				}
-			}
-			else {
-				if (vehicleInfo.ascendingFlag == true) {
-					if (vehiclePos.z > vehicleInfo.terrainPos.z + 2000f) {
-						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.terrainPos += new Vector3(0f, 0f, 2000f);
-					}
-				}
-				else {
-					if (vehiclePos.z < vehicleInfo.terrainPos.z) {
-						vehicleInfo.currentSegment = 0;
-						vehicleInfo.segmentStartPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.segmentEndPos = vehicleInfo.nodeArray[vehicleInfo.currentSegment+1].vNodes[vehicleInfo.lane].position;
-						vehicleInfo.terrainPos += new Vector3(0f, 0f, -2000f);
-					}
-				}
-			}
 
 			// if we're not over any terrain, adjust accordingly
 			if (vehiclePos.x < levelManager.GetTerrainMinX()) {
@@ -411,12 +400,10 @@ public class TrafficManager : MonoBehaviour {
 				vehiclePos.z -= 4000f;
 				vehicleInfo.terrainPos.z -= 4000f;
 			}
-
+						
 			// no objects for vehicles far from puma
-
-			float maxVisibleDistance = 500f;
+			float maxVisibleDistance = 5000f;
 			float distanceToPuma = Vector3.Distance(levelManager.pumaObj.transform.position, vehiclePos);			
-
 			if (distanceToPuma < maxVisibleDistance && vehicleInfo.vehicle == null) {
 				// close to puma; create object
 				vehicleInfo.vehicle = Instantiate(suvModel, vehicleInfo.terrainPos, Quaternion.identity) as GameObject;
@@ -431,13 +418,14 @@ public class TrafficManager : MonoBehaviour {
 			if (vehicleInfo.vehicle != null) {	
 				vehicleInfo.vehicle.transform.position = vehiclePos;
 				float heading = vehicleInfo.segmentHeading;
-				if (vehicleInfo.percentTravelled < 0.05f) {
-					float scaleFactor = vehicleInfo.percentTravelled / 0.05f;
+				float blendDistance = 0.2f;
+				if (vehicleInfo.percentTravelled < blendDistance) {
+					float scaleFactor = vehicleInfo.percentTravelled / blendDistance;
 					scaleFactor = 1f - ((scaleFactor-1f) * (scaleFactor-1f));
 					heading = InterpolateAngles(vehicleInfo.segmentHeading, vehicleInfo.previousSegmentHeading, 0.5f + (0.5f*scaleFactor));
 				}
-				else if (vehicleInfo.percentTravelled > 0.95f) {
-					float scaleFactor = (vehicleInfo.percentTravelled - 0.95f) / 0.05f;
+				else if (vehicleInfo.percentTravelled > 1f - blendDistance) {
+					float scaleFactor = (vehicleInfo.percentTravelled - (1f - blendDistance)) / blendDistance;
 					scaleFactor = scaleFactor * scaleFactor;
 					heading = InterpolateAngles(vehicleInfo.segmentHeading, vehicleInfo.nextSegmentHeading, 1f - (0.5f*scaleFactor));
 				}
@@ -458,15 +446,15 @@ public class TrafficManager : MonoBehaviour {
 		switch (levelNum) {
 
 		case 1:  // level 2
-			roadArray[0].lanesPerSide = 3;
-			roadArray[0].laneSpeed1 = 70;
+			roadArray[0].lanesPerSide = 1;
+			roadArray[0].laneSpeed1 = 20;
 			roadArray[0].laneSpeed2 = 90;
 			roadArray[0].laneSpeed3 = 110;
 			roadArray[0].followDistance1 = 40;
 			roadArray[0].followDistance2 = 50;
 			roadArray[0].followDistance3 = 60;
 			////////////
-			roadArray[1].lanesPerSide = 3;
+			roadArray[1].lanesPerSide = 1;
 			roadArray[1].laneSpeed1 = 70;
 			roadArray[1].laneSpeed2 = 90;
 			roadArray[1].laneSpeed3 = 110;
@@ -474,7 +462,7 @@ public class TrafficManager : MonoBehaviour {
 			roadArray[1].followDistance2 = 50;
 			roadArray[1].followDistance3 = 60;
 			////////////
-			roadArray[2].lanesPerSide = 3;
+			roadArray[2].lanesPerSide = 1;
 			roadArray[2].laneSpeed1 = 70;
 			roadArray[2].laneSpeed2 = 90;
 			roadArray[2].laneSpeed3 = 110;
@@ -484,13 +472,13 @@ public class TrafficManager : MonoBehaviour {
 			break;
 		
 		case 2:  // level 3
-			roadArray[0].lanesPerSide = 3;
-			roadArray[0].laneSpeed1 = 70;
-			roadArray[0].laneSpeed2 = 90;
-			roadArray[0].laneSpeed3 = 110;
-			roadArray[0].followDistance1 = 150;
-			roadArray[0].followDistance2 = 200;
-			roadArray[0].followDistance3 = 300;
+			roadArray[0].lanesPerSide = 2;
+			roadArray[0].laneSpeed1 = 20;
+			roadArray[0].laneSpeed2 = 30;
+			roadArray[0].laneSpeed3 = 40;
+			roadArray[0].followDistance1 = 80;
+			roadArray[0].followDistance2 = 100;
+			roadArray[0].followDistance3 = 60;
 			////////////
 			roadArray[1].lanesPerSide = 3;
 			roadArray[1].laneSpeed1 = 70;
